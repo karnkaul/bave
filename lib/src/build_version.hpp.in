@@ -1,0 +1,9 @@
+#include <bave/core/version.hpp>
+
+namespace bave {
+constexpr auto build_version_v = Version{
+	.major = @PROJECT_VERSION_MAJOR@,
+	.minor = @PROJECT_VERSION_MINOR@,
+	.patch = @PROJECT_VERSION_PATCH@,
+};
+}
