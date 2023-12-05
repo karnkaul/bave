@@ -1,2 +1,2 @@
-add_subdirectory(game)
+add_subdirectory(flappy)
 add_subdirectory(desktop)

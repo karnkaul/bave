@@ -15,6 +15,10 @@ endif()
 
 option(BAVE_USE_PCH "Use PCH for bave builds" ON)
 option(BAVE_BUILD_EXAMPLE "Build bave example" ${is_root_project})
+option(BAVE_BUILD_TESTS "Build bave example" ${is_root_project})
+
+# TODO: set ON
+option(BAVE_USE_FREETYPE "Use freetype for text rendering in bave" OFF)
 
 add_library(${project_prefix}-compile-options INTERFACE)
 add_library(${project_prefix}::${project_prefix}-compile-options ALIAS ${project_prefix}-compile-options)
@@ -37,4 +41,9 @@ add_subdirectory(lib)
 
 if(BAVE_BUILD_EXAMPLE)
   add_subdirectory(example)
+endif()
+
+if(BAVE_BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
 endif()

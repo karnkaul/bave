@@ -30,8 +30,8 @@ target_sources(${PROJECT_NAME} PRIVATE ${sources})
 
 if(BAVE_USE_PCH)
   target_precompile_headers(${PROJECT_NAME} PRIVATE
-
-    # <vulkan/vulkan.hpp>
+    <vulkan/vulkan.hpp>
+    <fmt/format.h>
     <algorithm>
     <atomic>
     <chrono>

@@ -6,11 +6,15 @@
 namespace bave {
 class Game : public PolyPinned {
   public:
-	explicit Game(IApp& app) : m_app(app) {}
+	explicit Game(App& app) : m_app(app) {}
 
-	[[nodiscard]] auto get_app() const -> IApp& { return m_app; }
+	[[nodiscard]] auto get_app() const -> App& { return m_app; }
+
+	virtual void tick() {}
+
+	virtual void shutdown() {}
 
   private:
-	IApp& m_app;
+	App& m_app;
 };
 } // namespace bave
