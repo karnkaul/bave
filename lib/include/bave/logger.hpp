@@ -24,22 +24,22 @@ struct Logger {
 	void log(char level, CString message) const;
 
 	template <typename... Args>
-	void error(fmt::format_string<Args...> fmt, Args&&... args) {
+	void error(fmt::format_string<Args...> fmt, Args&&... args) const {
 		log(log::error_v, fmt::format(fmt, std::forward<Args>(args)...).c_str());
 	}
 
 	template <typename... Args>
-	void warn(fmt::format_string<Args...> fmt, Args&&... args) {
+	void warn(fmt::format_string<Args...> fmt, Args&&... args) const {
 		log(log::warn_v, fmt::format(fmt, std::forward<Args>(args)...).c_str());
 	}
 
 	template <typename... Args>
-	void info(fmt::format_string<Args...> fmt, Args&&... args) {
+	void info(fmt::format_string<Args...> fmt, Args&&... args) const {
 		log(log::info_v, fmt::format(fmt, std::forward<Args>(args)...).c_str());
 	}
 
 	template <typename... Args>
-	void debug(fmt::format_string<Args...> fmt, Args&&... args) {
+	void debug(fmt::format_string<Args...> fmt, Args&&... args) const {
 		log(log::debug_v, fmt::format(fmt, std::forward<Args>(args)...).c_str());
 	}
 };

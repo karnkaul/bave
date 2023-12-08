@@ -23,6 +23,10 @@ option(BAVE_USE_FREETYPE "Use freetype for text rendering in bave" OFF)
 add_library(${project_prefix}-compile-options INTERFACE)
 add_library(${project_prefix}::${project_prefix}-compile-options ALIAS ${project_prefix}-compile-options)
 
+target_compile_definitions(${project_prefix}-compile-options INTERFACE
+  $<$<CONFIG:Debug>:BAVE_DEBUG>
+)
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL Clang OR CMAKE_CXX_COMPILER_ID STREQUAL GNU)
   target_compile_options(${project_prefix}-compile-options INTERFACE
     -Wall -Wextra -Wpedantic -Wconversion -Wunused -Werror=return-type $<$<NOT:$<CONFIG:Debug>>:-Werror>

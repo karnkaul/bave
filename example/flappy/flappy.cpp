@@ -1,4 +1,5 @@
 #include <flappy.hpp>
+#include <cmath>
 
 void Flappy::tick() {
 	for (auto const& event : get_app().get_events()) {
@@ -24,14 +25,6 @@ void Flappy::tick() {
 		}
 	}
 
-	auto const fb_size = get_app().get_framebuffer_size();
-	if (fb_size != m_fb_size) {
-		m_fb_size = fb_size;
-		m_log.debug("Framebuffer size: {}x{}", fb_size.x, fb_size.y);
-	}
-
 	m_elapsed += get_app().get_dt();
-	if (m_elapsed >= 3s) {
-		// get_app().shutdown();
-	}
+	m_clear_red = 0.5f * std::sin(m_elapsed.count()) + 0.5f;
 }

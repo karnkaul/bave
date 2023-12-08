@@ -1,20 +1,12 @@
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+
 #include <bave/core/error.hpp>
 #include <bave/desktop_app.hpp>
 #include <cassert>
 
 namespace bave {
 namespace {
-struct ScopedGlfw {
-	ScopedGlfw(ScopedGlfw const&) = delete;
-	ScopedGlfw(ScopedGlfw&&) = delete;
-	auto operator=(ScopedGlfw const&) -> ScopedGlfw& = delete;
-	auto operator=(ScopedGlfw&&) -> ScopedGlfw& = delete;
-
-	ScopedGlfw() { glfwInit(); }
-	~ScopedGlfw() noexcept { glfwTerminate(); }
-};
-
 constexpr auto to_action(int const glfw_action) {
 	switch (glfw_action) {
 	case GLFW_PRESS: return Action::ePress;
@@ -39,34 +31,79 @@ constexpr auto to_mods(int const glfw_mods) {
 }
 } // namespace
 
-DesktopApp::DesktopApp(CreateInfo const& create_info) : App("DesktopApp"), m_create_info(create_info) {}
+void DesktopApp::Glfw::Deleter::operator()(Glfw /*glfw*/) const noexcept { glfwTerminate(); }
+
+void DesktopApp::Glfw::Deleter::operator()(Ptr<GLFWwindow> window) const noexcept { glfwDestroyWindow(window); }
+
+DesktopApp::DesktopApp(CreateInfo create_info) : App("DesktopApp"), m_create_info(std::move(create_info)) {
+	if (!m_create_info.select_gpu) {
+		m_create_info.select_gpu = [](std::span<Gpu const> gpus) { return gpus.front(); };
+	}
+}
 
 void DesktopApp::do_run() {
-	auto glfw = ScopedGlfw{};
+	glfwInit();
+	m_glfw = {Glfw{.init = true}};
+
+	glfwSetErrorCallback([](int error_code, char const* description) {
+		static auto const logger = Logger{"glfw"};
+		logger.error("[error {}] {}", error_code, description);
+	});
 
 	make_window();
+	init_graphics();
+	m_game = make_game();
 
-	auto delta_time = DeltaTime{};
 	while (!is_shutting_down()) {
-		m_dt = delta_time.update();
+		start_next_frame();
 		poll_events();
 		tick();
 		render();
 	}
 }
 
-void DesktopApp::do_shutdown() { glfwSetWindowShouldClose(m_window, GLFW_TRUE); }
+void DesktopApp::do_shutdown() {
+	m_game->shutdown();
+	glfwSetWindowShouldClose(m_window.get(), GLFW_TRUE);
+}
 
 auto DesktopApp::do_get_window_size() const -> glm::ivec2 {
 	auto ret = glm::ivec2{};
-	glfwGetWindowSize(m_window, &ret.x, &ret.y);
+	glfwGetWindowSize(m_window.get(), &ret.x, &ret.y);
 	return ret;
 }
 
 auto DesktopApp::do_get_framebuffer_size() const -> glm::ivec2 {
 	auto ret = glm::ivec2{};
-	glfwGetFramebufferSize(m_window, &ret.x, &ret.y);
+	glfwGetFramebufferSize(m_window.get(), &ret.x, &ret.y);
 	return ret;
+}
+
+auto DesktopApp::do_get_render_device() const -> RenderDevice& {
+	if (!m_render_device) { throw Error{"Dereferencing null RenderDevice"}; }
+	return *m_render_device;
+}
+
+auto DesktopApp::get_instance_extensions() const -> std::span<char const* const> {
+	auto count = std::uint32_t{};
+	auto const* const extensions_array = glfwGetRequiredInstanceExtensions(&count);
+	return std::span{extensions_array, count};
+}
+
+auto DesktopApp::make_surface(vk::Instance instance) const -> vk::SurfaceKHR {
+	VkSurfaceKHR ret{};
+	glfwCreateWindowSurface(instance, m_window.get(), {}, &ret);
+	return vk::SurfaceKHR{ret};
+}
+
+auto DesktopApp::get_framebuffer_extent() const -> vk::Extent2D {
+	auto const size = glm::uvec2{get_framebuffer_size()};
+	return {size.x, size.y};
+}
+
+auto DesktopApp::select_gpu(std::span<Gpu const> gpus) const -> Gpu {
+	if (m_create_info.select_gpu) { return m_create_info.select_gpu(gpus); }
+	return IWsi::select_gpu(gpus);
 }
 
 auto DesktopApp::self(Ptr<GLFWwindow> window) -> DesktopApp& {
@@ -75,36 +112,42 @@ auto DesktopApp::self(Ptr<GLFWwindow> window) -> DesktopApp& {
 	return *ret;
 }
 
-void DesktopApp::push(Ptr<GLFWwindow> window, Event event) { self(window).m_events.push_back(event); }
+void DesktopApp::push(Ptr<GLFWwindow> window, Event event) { self(window).push_event(event); }
 
 void DesktopApp::make_window() {
 	if (glfwVulkanSupported() == GLFW_FALSE) { throw Error{"Vulkan not supported"}; }
 
-	m_window = glfwCreateWindow(m_create_info.extent.x, m_create_info.extent.y, m_create_info.title.c_str(), nullptr, nullptr);
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+	auto* window = glfwCreateWindow(m_create_info.extent.x, m_create_info.extent.y, m_create_info.title.c_str(), nullptr, nullptr);
+	m_window = std::unique_ptr<GLFWwindow, Glfw::Deleter>{window};
 	if (m_window == nullptr) { throw Error{"Failed to create Window"}; }
-	glfwSetWindowUserPointer(m_window, this);
+	glfwSetWindowUserPointer(m_window.get(), this);
 
-	glfwSetWindowCloseCallback(m_window, [](Ptr<GLFWwindow> window) { self(window).shutdown(); });
-	glfwSetWindowFocusCallback(m_window, [](Ptr<GLFWwindow> window, int v) { push(window, FocusChange{.in_focus = v == GLFW_TRUE}); });
-	glfwSetWindowSizeCallback(m_window, [](Ptr<GLFWwindow> window, int x, int y) { push(window, WindowResize{.extent = {x, y}}); });
-	glfwSetFramebufferSizeCallback(m_window, [](Ptr<GLFWwindow> window, int x, int y) { push(window, FramebufferResize{.extent = {x, y}}); });
-	glfwSetKeyCallback(m_window, [](Ptr<GLFWwindow> window, int key, int scancode, int action, int mods) {
+	if (m_create_info.lock_aspect_ratio) { glfwSetWindowAspectRatio(m_window.get(), m_create_info.extent.x, m_create_info.extent.y); }
+
+	glfwSetWindowCloseCallback(m_window.get(), [](Ptr<GLFWwindow> window) { self(window).shutdown(); });
+	glfwSetWindowFocusCallback(m_window.get(), [](Ptr<GLFWwindow> window, int v) { push(window, FocusChange{.in_focus = v == GLFW_TRUE}); });
+	glfwSetWindowSizeCallback(m_window.get(), [](Ptr<GLFWwindow> window, int x, int y) { push(window, WindowResize{.extent = {x, y}}); });
+	glfwSetFramebufferSizeCallback(m_window.get(), [](Ptr<GLFWwindow> window, int x, int y) { push(window, FramebufferResize{.extent = {x, y}}); });
+	glfwSetKeyCallback(m_window.get(), [](Ptr<GLFWwindow> window, int key, int scancode, int action, int mods) {
 		push(window, KeyInput{.key = static_cast<Key>(key), .action = to_action(action), .mods = to_mods(mods), .scancode = scancode});
 	});
-	glfwSetCharCallback(m_window, [](Ptr<GLFWwindow> window, std::uint32_t code) { push(window, CharInput{.code = code}); });
-	glfwSetCursorPosCallback(m_window, [](Ptr<GLFWwindow> window, double x, double y) { push(window, CursorMove{.position = {x, y}}); });
-	glfwSetScrollCallback(m_window, [](Ptr<GLFWwindow> window, double x, double y) { push(window, MouseScroll{.delta = {x, y}}); });
-	glfwSetMouseButtonCallback(m_window, [](Ptr<GLFWwindow> window, int button, int action, int mods) {
+	glfwSetCharCallback(m_window.get(), [](Ptr<GLFWwindow> window, std::uint32_t code) { push(window, CharInput{.code = code}); });
+	glfwSetCursorPosCallback(m_window.get(), [](Ptr<GLFWwindow> window, double x, double y) { push(window, CursorMove{.position = {x, y}}); });
+	glfwSetScrollCallback(m_window.get(), [](Ptr<GLFWwindow> window, double x, double y) { push(window, MouseScroll{.delta = {x, y}}); });
+	glfwSetMouseButtonCallback(m_window.get(), [](Ptr<GLFWwindow> window, int button, int action, int mods) {
 		auto position = glm::dvec2{};
 		glfwGetCursorPos(window, &position.x, &position.y);
 		push(window, MouseClick{.id = button, .action = to_action(action), .mods = to_mods(mods), .position = position});
 	});
 }
 
-void DesktopApp::poll_events() {
-	m_events.clear();
-	glfwPollEvents();
+void DesktopApp::init_graphics() {
+	m_render_device = std::make_unique<RenderDevice>(this);
+	m_frame_renderer = std::make_unique<FrameRenderer>(m_render_device.get());
 }
+
+void DesktopApp::poll_events() { glfwPollEvents(); }
 
 void DesktopApp::tick() {
 	if (is_shutting_down()) { return; }
@@ -112,5 +155,9 @@ void DesktopApp::tick() {
 	m_game->tick();
 }
 
-void DesktopApp::render() {}
+void DesktopApp::render() {
+	auto command_buffer = m_frame_renderer->start_render(m_game->get_clear());
+	if (command_buffer) { m_game->render(command_buffer); }
+	m_frame_renderer->finish_render();
+}
 } // namespace bave

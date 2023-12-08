@@ -27,8 +27,4 @@ target_sources(${PROJECT_NAME} PRIVATE ${sources})
 target_link_libraries(${PROJECT_NAME} PUBLIC
   android-app-glue
   log
-
-  # temp
-  EGL
-  GLESv1_CM
 )

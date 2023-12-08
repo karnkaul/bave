@@ -2,13 +2,11 @@
 #include <bave/game.hpp>
 
 namespace bave {
-void App::Deleter::operator()(Game* ptr) const noexcept { std::default_delete<Game>{}(ptr); }
+App::App(std::string tag) : m_log(std::move(tag)), m_game_factory([](App& app) { return std::make_unique<Game>(app); }) {}
 
-App::App(std::string tag) : m_log(std::move(tag)) { m_game = std::unique_ptr<Game, Deleter>(new Game{*this}); }
-
-void App::set_game(std::unique_ptr<Game> game) {
-	if (!game) { return; }
-	m_game.reset(game.release());
+void App::set_game_factory(std::function<std::unique_ptr<class Game>(App&)> game_factory) {
+	if (!game_factory) { return; }
+	m_game_factory = std::move(game_factory);
 }
 
 auto App::run() -> ErrCode {
@@ -29,7 +27,16 @@ auto App::run() -> ErrCode {
 void App::shutdown() {
 	m_log.info("shutdown requested");
 	m_shutting_down = true;
-	m_game->shutdown();
 	do_shutdown();
+}
+
+void App::start_next_frame() {
+	m_events.clear();
+	m_dt.update();
+}
+
+auto App::make_game() -> std::unique_ptr<Game> {
+	assert(m_game_factory);
+	return m_game_factory(*this);
 }
 } // namespace bave

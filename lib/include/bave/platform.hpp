@@ -9,4 +9,11 @@ constexpr auto platform_v =
 #else
 	Platform::eDesktop;
 #endif
+
+constexpr auto debug_v =
+#if defined(BAVE_DEBUG)
+	true;
+#else
+	false;
+#endif
 } // namespace bave

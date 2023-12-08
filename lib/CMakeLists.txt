@@ -56,6 +56,7 @@ endif()
 
 if(ANDROID)
   add_subdirectory(android)
+  add_definitions(-DVK_USE_PLATFORM_ANDROID_KHR=1)
 else()
   add_subdirectory(desktop)
 endif()
