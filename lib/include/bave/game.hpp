@@ -17,10 +17,12 @@ class Game : public PolyPinned {
 	}
 
 	virtual void tick() {}
-	[[nodiscard]] virtual auto get_clear() const -> Rgba { return black_v; }
 	virtual void render([[maybe_unused]] vk::CommandBuffer command_buffer) const {}
 
 	virtual void shutdown() {}
+
+	Rgba clear_colour{black_v};
+	Transform render_view{};
 
   private:
 	App& m_app;

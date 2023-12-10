@@ -167,22 +167,20 @@ struct CopyImageToImage {
 void RenderResource::Deleter::operator()(vk::Buffer buffer) const { vmaDestroyBuffer(allocator, buffer, allocation); }
 void RenderResource::Deleter::operator()(vk::Image image) const { vmaDestroyImage(allocator, image, allocation); }
 
-RenderBuffer::RenderBuffer(NotNull<RenderDevice*> render_device, vk::BufferUsageFlags usage, vk::DeviceSize capacity, bool host_visible)
-	: m_render_device(render_device), m_usage(usage), m_host(host_visible) {
+RenderBuffer::RenderBuffer(NotNull<RenderDevice*> render_device, vk::BufferUsageFlags usage, vk::DeviceSize capacity)
+	: m_render_device(render_device), m_usage(usage) {
 	resize(capacity);
 }
 
 auto RenderBuffer::resize(std::size_t new_capacity) -> void {
 	auto vaci = VmaAllocationCreateInfo{};
 	vaci.usage = VMA_MEMORY_USAGE_AUTO;
-	if (m_host) { vaci.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT; }
+	vaci.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
 	auto const bci = vk::BufferCreateInfo{{}, new_capacity, m_usage | vk::BufferUsageFlagBits::eTransferDst};
 	auto vbci = static_cast<VkBufferCreateInfo>(bci);
 
-	// NOLINTNEXTLINE
-	auto allocation = VmaAllocation{};
-	// NOLINTNEXTLINE
-	auto buffer = VkBuffer{};
+	auto* allocation = VmaAllocation{};
+	auto* buffer = VkBuffer{};
 	auto alloc_info = VmaAllocationInfo{};
 	if (vmaCreateBuffer(m_render_device->get_allocator(), &vbci, &vaci, &buffer, &allocation, &alloc_info) != VK_SUCCESS) {
 		throw Error{"Failed to allocate Vulkan Buffer"};
@@ -193,24 +191,13 @@ auto RenderBuffer::resize(std::size_t new_capacity) -> void {
 	m_mapped = alloc_info.pMappedData;
 	m_size = {};
 
-	if (m_host) { assert(m_mapped); }
+	assert(m_mapped);
 }
 
-auto HostRenderBuffer::write(void const* data, std::size_t size) -> void {
+auto RenderBuffer::write(void const* data, std::size_t size) -> void {
 	if (size > m_capacity) { resize(size); }
 	if (size > 0) { std::memcpy(m_mapped, data, size); }
 	m_size = size;
-}
-
-auto DeviceRenderBuffer::write(void const* data, std::size_t size) -> void {
-	auto scratch_buffer = std::make_unique<HostRenderBuffer>(m_render_device, vk::BufferUsageFlagBits::eTransferSrc, size);
-	scratch_buffer->write(data, size);
-	if (size > m_capacity) { resize(size); }
-	auto cmd = CommandBuffer{*m_render_device};
-	auto const bcr = vk::BufferCopy{{}, {}, size};
-	cmd.get().copyBuffer(scratch_buffer->get_buffer(), m_buffer, bcr);
-	m_size = size;
-	cmd.submit(*m_render_device);
 }
 
 auto RenderImage::compute_mip_levels(vk::Extent2D extent) -> std::uint32_t {
@@ -218,7 +205,8 @@ auto RenderImage::compute_mip_levels(vk::Extent2D extent) -> std::uint32_t {
 }
 
 RenderImage::RenderImage(NotNull<RenderDevice*> render_device, CreateInfo const& info, vk::Extent2D extent) : m_render_device(render_device) {
-	if (extent == vk::Extent2D{}) { extent = min_extent_v; }
+	if (extent.width == 0) { extent.width = 1; }
+	if (extent.height == 0) { extent.height = 1; }
 	m_create_info = info;
 	recreate(extent);
 }
@@ -244,7 +232,7 @@ auto RenderImage::copy_from(std::span<Layer const> layers, vk::Extent2D target_e
 	if (m_extent != target_extent) { recreate(target_extent); }
 	auto const accumulate_size = [](std::size_t total, Layer const layer) { return total + layer.size_bytes(); };
 	auto const size = std::accumulate(layers.begin(), layers.end(), std::size_t{}, accumulate_size);
-	auto staging = HostRenderBuffer{m_render_device, vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst, size};
+	auto staging = RenderBuffer{m_render_device, vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst, size};
 
 	auto* ptr = static_cast<std::byte*>(staging.get_mapped());
 	for (auto const& image : layers) {
@@ -269,13 +257,13 @@ auto RenderImage::copy_from(std::span<Layer const> layers, vk::Extent2D target_e
 }
 
 auto RenderImage::overwrite(Bitmap const& bitmap, glm::uvec2 top_left) -> bool {
-	if (m_create_info.view_type == vk::ImageViewType::eCube) { return false; }
+	if (m_create_info.view_type == vk::ImageViewType::eCube || bitmap.extent.x == 0 || bitmap.extent.y == 0) { return false; }
 
 	auto const overwrite_extent = bitmap.extent + top_left;
 	auto const current_extent = glm::uvec2{m_extent.width, m_extent.height};
 	if (overwrite_extent.x > current_extent.x || overwrite_extent.y > current_extent.y) { return false; }
 
-	auto staging = HostRenderBuffer{m_render_device, vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst, bitmap.bytes.size_bytes()};
+	auto staging = RenderBuffer{m_render_device, vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst, bitmap.bytes.size_bytes()};
 	std::memcpy(staging.get_mapped(), bitmap.bytes.data(), bitmap.bytes.size_bytes());
 
 	auto cmd = CommandBuffer{*m_render_device};
@@ -300,7 +288,7 @@ auto RenderImage::overwrite(std::span<BitmapWrite const> writes) -> bool {
 
 	auto const accumulate_size = [](std::size_t total, BitmapWrite const& iw) { return total + iw.bitmap.bytes.size_bytes(); };
 	auto const size = std::accumulate(writes.begin(), writes.end(), std::size_t{}, accumulate_size);
-	auto staging = HostRenderBuffer{m_render_device, vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst, size};
+	auto staging = RenderBuffer{m_render_device, vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst, size};
 
 	auto const isrl = vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
 	auto bics = std::vector<vk::BufferImageCopy>{};
@@ -308,8 +296,7 @@ auto RenderImage::overwrite(std::span<BitmapWrite const> writes) -> bool {
 	auto* ptr = static_cast<std::byte*>(staging.get_mapped());
 	auto buffer_offset = vk::DeviceSize{};
 	for (auto const& iw : writes) {
-		// NOLINTNEXTLINE
-		std::memcpy(ptr + buffer_offset, iw.bitmap.bytes.data(), iw.bitmap.bytes.size_bytes());
+		std::memcpy(ptr + buffer_offset, iw.bitmap.bytes.data(), iw.bitmap.bytes.size_bytes()); // NOLINT
 		auto const image_offset = glm::ivec2{iw.top_left};
 		auto const bic = vk::BufferImageCopy{
 			buffer_offset, {}, {}, isrl, vk::Offset3D{image_offset.x, image_offset.y, 0}, {iw.bitmap.extent.x, iw.bitmap.extent.y, 1},

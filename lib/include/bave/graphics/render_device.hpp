@@ -5,6 +5,9 @@
 #include <bave/core/inclusive_range.hpp>
 #include <bave/core/scoped_resource.hpp>
 #include <bave/graphics/buffering.hpp>
+#include <bave/graphics/cache/render_buffer_cache.hpp>
+#include <bave/graphics/cache/sampler_cache.hpp>
+#include <bave/graphics/cache/scratch_buffer_cache.hpp>
 #include <bave/graphics/defer.hpp>
 #include <bave/graphics/device_blocker.hpp>
 #include <bave/graphics/swapchain.hpp>
@@ -44,6 +47,9 @@ class RenderDevice {
 	// [[nodiscard]] auto get_font_library() const -> FontLibrary& { return *m_font_library; }
 
 	[[nodiscard]] auto get_defer_queue() -> DeferQueue& { return m_defer_queue; }
+	[[nodiscard]] auto get_vertex_buffer_cache() const -> RenderBufferCache& { return *m_vbo_cache; }
+	[[nodiscard]] auto get_scratch_buffer_cache() const -> ScratchBufferCache& { return *m_sbo_cache; }
+	[[nodiscard]] auto get_sampler_cache() const -> SamplerCache& { return *m_sampler_cache; }
 
 	[[nodiscard]] auto get_line_width_limits() const -> InclusiveRange<float> { return m_line_width_limits; }
 	[[nodiscard]] auto get_frame_index() const -> FrameIndex { return m_frame_index; }
@@ -55,7 +61,7 @@ class RenderDevice {
 
 	[[nodiscard]] auto acquire_next_image(vk::Fence wait, vk::Semaphore signal) -> std::optional<RenderImageView>;
 	auto queue_submit(vk::SubmitInfo const& submit_info, vk::Fence signal) -> bool;
-	auto present_acquired_image(vk::Semaphore wait) -> bool;
+	auto submit_and_present(vk::SubmitInfo const& submit_info, vk::Fence draw_signal, vk::Semaphore present_wait) -> bool;
 
 	auto recreate_surface() -> bool;
 
@@ -82,6 +88,9 @@ class RenderDevice {
 	Gpu m_gpu{};
 	vk::Queue m_queue{};
 	Swapchain m_swapchain{};
+	std::unique_ptr<RenderBufferCache> m_vbo_cache{};
+	std::unique_ptr<ScratchBufferCache> m_sbo_cache{};
+	std::unique_ptr<SamplerCache> m_sampler_cache{};
 
 	DeviceBlocker m_blocker{};
 

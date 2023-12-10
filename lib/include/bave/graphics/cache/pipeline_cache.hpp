@@ -1,20 +1,27 @@
 #pragma once
 #include <bave/graphics/cache/descriptor_cache.hpp>
 #include <bave/graphics/cache/shader_cache.hpp>
-#include <bave/graphics/pipeline_state.hpp>
 #include <span>
 
 namespace bave {
 class PipelineCache {
   public:
-	struct ShaderProgram {
+	static constexpr std::uint32_t max_textures_v{4};
+
+	struct State {
+		float line_width{1.0f};
+		vk::PrimitiveTopology topology{vk::PrimitiveTopology::eTriangleList};
+		vk::PolygonMode polygon_mode{vk::PolygonMode::eFill};
+	};
+
+	struct Program {
 		vk::ShaderModule vertex{};
 		vk::ShaderModule fragment{};
 	};
 
 	explicit PipelineCache(vk::RenderPass render_pass, NotNull<RenderDevice*> render_device, NotNull<DataStore const*> data_store);
 
-	[[nodiscard]] auto load_pipeline(ShaderProgram shader, PipelineState state, vk::PolygonMode polygon_mode) -> vk::Pipeline;
+	[[nodiscard]] auto load_pipeline(Program shader, State state) -> vk::Pipeline;
 
 	[[nodiscard]] auto get_shader_cache() const -> ShaderCache const& { return m_shader_cache; }
 	[[nodiscard]] auto get_shader_cache() -> ShaderCache& { return m_shader_cache; }
@@ -30,21 +37,25 @@ class PipelineCache {
   private:
 	struct Key {
 	  public:
-		explicit Key(ShaderProgram shader, PipelineState state, vk::PolygonMode polygon_mode);
+		explicit Key(Program shader, State state);
 
 		[[nodiscard]] auto hash() const -> std::size_t { return cached_hash; }
 
 		auto operator==(Key const& rhs) const -> bool { return hash() == rhs.hash(); }
 
-		ShaderProgram shader{};
-		PipelineState state{};
-		vk::PolygonMode polygon_mode{};
+		Program shader{};
+		State state{};
 		std::size_t cached_hash{};
 	};
 
 	struct Hasher {
 		auto operator()(Key const& key) const -> std::size_t { return key.hash(); }
 	};
+
+	struct {
+		std::vector<vk::VertexInputAttributeDescription> attributes{};
+		std::vector<vk::VertexInputBindingDescription> bindings{};
+	} m_vertex_layout{};
 
 	[[nodiscard]] auto build(Key const& key) -> vk::UniquePipeline;
 

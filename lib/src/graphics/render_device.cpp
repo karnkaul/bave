@@ -71,6 +71,10 @@ RenderDevice::RenderDevice(NotNull<IWsi*> wsi, CreateInfo create_info) : m_wsi(w
 
 	recreate_swapchain(wsi->get_framebuffer_extent());
 
+	m_vbo_cache = std::make_unique<RenderBufferCache>(this, vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndexBuffer);
+	m_sbo_cache = std::make_unique<ScratchBufferCache>(this);
+	m_sampler_cache = std::make_unique<SamplerCache>(get_device());
+
 	auto const line_width_range = get_gpu().device.getProperties().limits.lineWidthRange;
 	m_line_width_limits = {line_width_range[0], line_width_range[1]};
 
@@ -123,7 +127,7 @@ auto RenderDevice::queue_submit(vk::SubmitInfo const& submit_info, vk::Fence con
 	return get_queue().submit(1, &submit_info, signal) == vk::Result::eSuccess;
 }
 
-auto RenderDevice::present_acquired_image(vk::Semaphore const wait) -> bool {
+auto RenderDevice::submit_and_present(vk::SubmitInfo const& submit_info, vk::Fence draw_signal, vk::Semaphore present_wait) -> bool {
 	auto const framebuffer = m_wsi->get_framebuffer_extent();
 	if (framebuffer.width == 0 || framebuffer.height == 0) { return false; }
 	if (!m_swapchain.active.image_index) {
@@ -131,19 +135,24 @@ auto RenderDevice::present_acquired_image(vk::Semaphore const wait) -> bool {
 		return false;
 	}
 
-	m_frame_index.increment();
-
 	auto pi = vk::PresentInfoKHR{};
 	pi.pImageIndices = &*m_swapchain.active.image_index;
 	pi.pSwapchains = &*m_swapchain.active.swapchain;
-	pi.pWaitSemaphores = &wait;
+	pi.pWaitSemaphores = &present_wait;
 	pi.waitSemaphoreCount = 1;
 	pi.pSwapchains = &*m_swapchain.active.swapchain;
 	pi.swapchainCount = 1;
-	auto lock = std::scoped_lock{m_queue_mutex};
-	auto const result = get_queue().presentKHR(&pi);
+
+	auto lock = std::unique_lock{m_queue_mutex};
+	auto result = get_queue().submit(1, &submit_info, draw_signal);
+	result = get_queue().presentKHR(&pi);
+	lock.unlock();
+
+	m_frame_index.increment();
 
 	m_swapchain.active.image_index.reset();
+	m_sbo_cache->next_frame();
+
 	return handle_swapchain_result(result, framebuffer, "present");
 }
 

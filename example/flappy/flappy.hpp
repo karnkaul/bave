@@ -1,15 +1,20 @@
 #pragma once
 #include <bave/game.hpp>
+#include <bave/graphics/mesh.hpp>
+#include <bave/graphics/texture.hpp>
 
 class Flappy : public bave::Game {
 	void tick() final;
-	[[nodiscard]] auto get_clear() const -> bave::Rgba final { return bave::Rgba::from({m_clear_red, 0.0f, 0.0f, 1.0f}); }
+	void render(vk::CommandBuffer command_buffer) const final;
 
 	bave::Logger m_log{"Flappy"};
 	bave::Seconds m_elapsed{};
 
+	bave::Mesh m_mesh;
+	bave::Texture m_texture;
+
 	float m_clear_red{};
 
   public:
-	using bave::Game::Game;
+	explicit Flappy(bave::App& app);
 };

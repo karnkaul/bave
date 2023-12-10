@@ -25,8 +25,9 @@ class RenderResource : public Polymorphic {
 
 class RenderBuffer : public RenderResource {
   public:
-	explicit RenderBuffer(NotNull<RenderDevice*> render_device, vk::BufferUsageFlags usage, vk::DeviceSize capacity = 1)
-		: RenderBuffer(render_device, usage, capacity, false) {}
+	explicit RenderBuffer(NotNull<RenderDevice*> render_device, vk::BufferUsageFlags usage, vk::DeviceSize capacity = 1);
+
+	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return *m_render_device; }
 
 	[[nodiscard]] auto get_buffer() const -> vk::Buffer { return m_buffer.get(); }
 	[[nodiscard]] auto get_usage() const -> vk::BufferUsageFlags { return m_usage; }
@@ -35,39 +36,20 @@ class RenderBuffer : public RenderResource {
 
 	auto resize(std::size_t new_capacity) -> void;
 
-	virtual auto write(void const* data, std::size_t size) -> void = 0;
+	[[nodiscard]] auto get_mapped() const -> void const* { return m_mapped; }
+	[[nodiscard]] auto get_mapped() -> void* { return m_mapped; }
+
+	auto write(void const* data, std::size_t size) -> void;
 
 	operator vk::Buffer() const { return get_buffer(); }
 
   protected:
-	explicit RenderBuffer(NotNull<RenderDevice*> render_device, vk::BufferUsageFlags usage, vk::DeviceSize capacity, bool host_visible);
-
 	NotNull<RenderDevice*> m_render_device;
 	vk::BufferUsageFlags m_usage{};
 	vk::DeviceSize m_capacity{};
 	ScopedResource<vk::Buffer, Deleter> m_buffer{};
 	std::size_t m_size{};
 	void* m_mapped{};
-	bool m_host{};
-};
-
-class HostRenderBuffer : public RenderBuffer {
-  public:
-	explicit HostRenderBuffer(NotNull<RenderDevice*> render_device, vk::BufferUsageFlags usage, vk::DeviceSize capacity = 1)
-		: RenderBuffer(render_device, usage, capacity, true) {}
-
-	[[nodiscard]] auto get_mapped() const -> void const* { return m_mapped; }
-	[[nodiscard]] auto get_mapped() -> void* { return m_mapped; }
-
-	auto write(void const* data, std::size_t size) -> void final;
-};
-
-class DeviceRenderBuffer : public RenderBuffer {
-  public:
-	explicit DeviceRenderBuffer(NotNull<RenderDevice*> render_device, vk::BufferUsageFlags usage, vk::DeviceSize capacity)
-		: RenderBuffer(render_device, usage, capacity, false) {}
-
-	auto write(void const* data, std::size_t size) -> void final;
 };
 
 class RenderImage : public RenderResource {
@@ -99,6 +81,8 @@ class RenderImage : public RenderResource {
 	auto overwrite(Bitmap const& bitmap, glm::uvec2 top_left) -> bool;
 	auto overwrite(std::span<BitmapWrite const> writes) -> bool;
 	auto resize(vk::Extent2D extent) -> void;
+
+	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return *m_render_device; }
 
 	[[nodiscard]] auto get_image() const -> vk::Image { return m_image.get(); }
 	[[nodiscard]] auto get_extent() const -> vk::Extent2D { return m_extent; }

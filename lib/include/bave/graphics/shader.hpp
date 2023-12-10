@@ -1,7 +1,8 @@
 #pragma once
 #include <bave/core/not_null.hpp>
-#include <bave/graphics/pipeline_state.hpp>
-#include <bave/graphics/render_resource.hpp>
+#include <bave/graphics/image_sampler.hpp>
+#include <bave/graphics/mesh.hpp>
+#include <bave/graphics/render_instance.hpp>
 #include <bave/logger.hpp>
 #include <map>
 
@@ -11,11 +12,12 @@ class Shader {
 	explicit Shader(NotNull<class FrameRenderer const*> frame_renderer, vk::ShaderModule vert, vk::ShaderModule frag);
 
 	auto update(std::uint32_t set, std::uint32_t binding, RenderBuffer const& buffer) -> bool;
-	auto update(std::uint32_t set, std::uint32_t binding, RenderImage const& image, vk::Sampler sampler) -> bool;
+	auto update(std::uint32_t set, std::uint32_t binding, ImageSampler combined_image_sampler, std::uint32_t index = 0) -> bool;
 
-	void draw(vk::CommandBuffer command_buffer, std::uint32_t vertex_count, std::uint32_t instance_count = 1);
+	void draw(vk::CommandBuffer command_buffer, Mesh const& mesh, std::span<RenderInstance::Baked const> instances);
 
-	PipelineState pipeline_state{};
+	float line_width{1.0f};
+	vk::PrimitiveTopology topology{vk::PrimitiveTopology::eTriangleList};
 	vk::PolygonMode polygon_mode{vk::PolygonMode::eFill};
 
   private:

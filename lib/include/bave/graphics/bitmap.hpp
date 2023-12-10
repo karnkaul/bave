@@ -1,6 +1,6 @@
 #pragma once
-#include <bave/core/offset_span.hpp>
 #include <glm/vec2.hpp>
+#include <span>
 
 namespace bave {
 template <typename StorageT, std::size_t Channels>
@@ -10,9 +10,6 @@ struct BasicBitmap {
 	StorageT bytes{};
 	glm::uvec2 extent{};
 };
-
-template <std::size_t Channels>
-using BitmapByteSpan = BasicBitmap<OffsetSpan, Channels>;
 
 template <std::size_t Channels>
 using BitmapView = BasicBitmap<std::span<std::byte const>, Channels>;

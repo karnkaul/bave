@@ -5,8 +5,8 @@
 namespace bave {
 namespace {
 auto make_descriptor_pool(vk::Device device) -> vk::UniqueDescriptorPool {
-	static constexpr std::uint32_t descriptor_count_v{3};
-	static constexpr std::uint32_t max_sets_v{3};
+	static constexpr std::uint32_t descriptor_count_v{8};
+	static constexpr std::uint32_t max_sets_v{8};
 
 	auto const pool_sizes = std::array{
 		vk::DescriptorPoolSize{vk::DescriptorType::eCombinedImageSampler, descriptor_count_v},
@@ -32,7 +32,8 @@ auto DescriptorCache::try_allocate(vk::DescriptorSetLayout const& layout, vk::De
 	dsai.descriptorPool = *data.active;
 	dsai.pSetLayouts = &layout;
 	dsai.descriptorSetCount = 1;
-	return m_render_device->get_device().allocateDescriptorSets(&dsai, &out) == vk::Result::eSuccess;
+	auto res = m_render_device->get_device().allocateDescriptorSets(&dsai, &out);
+	return res == vk::Result::eSuccess;
 }
 
 auto DescriptorCache::allocate(vk::DescriptorSetLayout const& layout) -> vk::DescriptorSet {

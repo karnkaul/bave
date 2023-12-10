@@ -150,7 +150,7 @@ void AndroidApp::tick() {
 void AndroidApp::render() {
 	if (!m_can_render) { return; }
 
-	auto command_buffer = m_frame_renderer->start_render(m_game->get_clear());
+	auto command_buffer = m_frame_renderer->start_render(m_game->clear_colour, m_game->render_view);
 	if (command_buffer) { m_game->render(command_buffer); }
 	m_frame_renderer->finish_render();
 }
@@ -185,6 +185,7 @@ void AndroidApp::start() {
 }
 
 void AndroidApp::destroy() {
+	m_render_device->get_device().waitIdle();
 	m_game.reset();
 	m_frame_renderer.reset();
 	m_render_device.reset();
