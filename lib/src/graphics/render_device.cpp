@@ -1,9 +1,9 @@
-#include <bave/graphics/render_device.hpp>
-#include <bave/graphics/utils.hpp>
-// #include <bave/graphics/resource.hpp>
 #include <bave/build_version.hpp>
 #include <bave/core/error.hpp>
+#include <bave/graphics/render_device.hpp>
+#include <bave/graphics/utils.hpp>
 #include <graphics/bootstrap.hpp>
+#include <graphics/glslc.hpp>
 
 namespace bave {
 namespace {
@@ -73,6 +73,8 @@ RenderDevice::RenderDevice(NotNull<IWsi*> wsi, CreateInfo create_info) : m_wsi(w
 
 	auto const line_width_range = get_gpu().device.getProperties().limits.lineWidthRange;
 	m_line_width_limits = {line_width_range[0], line_width_range[1]};
+
+	if (glslc::is_online()) { m_log.info("glslc online"); }
 }
 
 auto RenderDevice::wait_for(vk::Fence const fence, std::uint64_t const timeout) const -> bool {
@@ -87,7 +89,7 @@ auto RenderDevice::reset_fence(vk::Fence const fence, bool wait_first) const -> 
 
 auto RenderDevice::request_present_mode(vk::PresentModeKHR present_mode) -> bool {
 	if (std::find(m_swapchain.present_modes.begin(), m_swapchain.present_modes.end(), present_mode) == m_swapchain.present_modes.end()) {
-		m_log.warn("unsupported present mode: [{}]", to_vsync_string(present_mode));
+		m_log.warn("unsupported present mode: '{}'", to_vsync_string(present_mode));
 		return false;
 	}
 	m_swapchain.desired_present_mode = present_mode;
@@ -129,6 +131,8 @@ auto RenderDevice::present_acquired_image(vk::Semaphore const wait) -> bool {
 		return false;
 	}
 
+	m_frame_index.increment();
+
 	auto pi = vk::PresentInfoKHR{};
 	pi.pImageIndices = &*m_swapchain.active.image_index;
 	pi.pSwapchains = &*m_swapchain.active.swapchain;
@@ -167,6 +171,7 @@ auto RenderDevice::recreate_swapchain(vk::Extent2D framebuffer) -> bool {
 	info.presentMode = m_swapchain.desired_present_mode;
 	info.minImageCount = image_count(caps);
 	info.oldSwapchain = m_swapchain.active.swapchain.get();
+	get_device().waitIdle();
 	auto new_swapchain = get_device().createSwapchainKHRUnique(info);
 
 	auto count = std::uint32_t{};
@@ -175,7 +180,6 @@ auto RenderDevice::recreate_swapchain(vk::Extent2D framebuffer) -> bool {
 		return false;
 	}
 
-	if (m_swapchain.active.swapchain) { m_defer_queue.push(std::move(m_swapchain.active)); }
 	m_swapchain.active.swapchain = std::move(new_swapchain);
 	m_swapchain.create_info = info;
 	m_swapchain.active.images.resize(count);

@@ -70,6 +70,10 @@ target_compile_definitions(${PROJECT_NAME} INTERFACE
 )
 
 if(NOT ANDROID)
+  target_compile_definitions(${PROJECT_NAME} INTERFACE
+    BAVE_IMGUI
+  )
+
   target_link_libraries(${PROJECT_NAME} INTERFACE
     dear_imgui::dear_imgui
     glfw::glfw

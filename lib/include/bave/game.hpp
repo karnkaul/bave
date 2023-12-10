@@ -1,6 +1,7 @@
 #pragma once
 #include <bave/app.hpp>
 #include <bave/core/polymorphic.hpp>
+#include <bave/graphics/rgba.hpp>
 #include <bave/logger.hpp>
 #include <vulkan/vulkan.hpp>
 
@@ -11,8 +12,12 @@ class Game : public PolyPinned {
 
 	[[nodiscard]] auto get_app() const -> App& { return m_app; }
 
+	[[nodiscard]] auto load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader> {
+		return get_app().get_frame_renderer().load_shader(vertex, fragment);
+	}
+
 	virtual void tick() {}
-	[[nodiscard]] virtual auto get_clear() const -> vk::ClearColorValue { return {0.0f, 0.0f, 0.0f, 1.0f}; }
+	[[nodiscard]] virtual auto get_clear() const -> Rgba { return black_v; }
 	virtual void render([[maybe_unused]] vk::CommandBuffer command_buffer) const {}
 
 	virtual void shutdown() {}

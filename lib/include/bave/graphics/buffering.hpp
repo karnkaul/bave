@@ -1,20 +1,19 @@
 #pragma once
 #include <bave/core/wrap.hpp>
 #include <array>
-#include <cstdint>
 
 namespace bave {
-constexpr size_t buffering_v{2};
+constexpr std::size_t buffering_v{2};
 
 template <typename Type>
 using Buffered = std::array<Type, buffering_v>;
 
 struct FrameIndex {
-	size_t value{};
+	std::size_t value{};
 
 	constexpr auto increment() -> void { value = increment_wrapped(value, buffering_v); }
 
-	constexpr operator size_t() const { return value; }
+	constexpr operator std::size_t() const { return value; }
 };
 
 template <typename BufferedT, typename MakeT>

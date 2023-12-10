@@ -3,6 +3,7 @@
 
 #include <bave/core/error.hpp>
 #include <bave/desktop_app.hpp>
+#include <src/desktop_data_store.hpp>
 #include <cassert>
 
 namespace bave {
@@ -42,6 +43,7 @@ DesktopApp::DesktopApp(CreateInfo create_info) : App("DesktopApp"), m_create_inf
 }
 
 void DesktopApp::do_run() {
+	m_log.debug("glfwInit");
 	glfwInit();
 	m_glfw = {Glfw{.init = true}};
 
@@ -50,7 +52,11 @@ void DesktopApp::do_run() {
 		logger.error("[error {}] {}", error_code, description);
 	});
 
+	m_log.debug("init_data_store");
+	init_data_store();
+	m_log.debug("make_window");
 	make_window();
+	m_log.debug("init_graphics");
 	init_graphics();
 	m_game = make_game();
 
@@ -84,6 +90,11 @@ auto DesktopApp::do_get_render_device() const -> RenderDevice& {
 	return *m_render_device;
 }
 
+auto DesktopApp::do_get_frame_renderer() const -> FrameRenderer& {
+	if (!m_frame_renderer) { throw Error{"Dereferencing null FrameRenderer"}; }
+	return *m_frame_renderer;
+}
+
 auto DesktopApp::get_instance_extensions() const -> std::span<char const* const> {
 	auto count = std::uint32_t{};
 	auto const* const extensions_array = glfwGetRequiredInstanceExtensions(&count);
@@ -113,6 +124,12 @@ auto DesktopApp::self(Ptr<GLFWwindow> window) -> DesktopApp& {
 }
 
 void DesktopApp::push(Ptr<GLFWwindow> window, Event event) { self(window).push_event(event); }
+
+void DesktopApp::init_data_store() {
+	auto data_path = DesktopDataStore::find_super_dir(m_create_info.args.front(), m_create_info.assets_pattern);
+	auto data_store = std::make_unique<DesktopDataStore>(std::move(data_path));
+	set_data_store(std::move(data_store));
+}
 
 void DesktopApp::make_window() {
 	if (glfwVulkanSupported() == GLFW_FALSE) { throw Error{"Vulkan not supported"}; }
@@ -144,20 +161,26 @@ void DesktopApp::make_window() {
 
 void DesktopApp::init_graphics() {
 	m_render_device = std::make_unique<RenderDevice>(this);
-	m_frame_renderer = std::make_unique<FrameRenderer>(m_render_device.get());
+	m_frame_renderer = std::make_unique<FrameRenderer>(m_render_device.get(), &get_data_store());
+	m_dear_imgui = std::make_unique<DearImGui>(m_window.get(), *m_render_device, m_frame_renderer->get_render_pass());
 }
 
 void DesktopApp::poll_events() { glfwPollEvents(); }
 
 void DesktopApp::tick() {
+	m_dear_imgui->new_frame();
 	if (is_shutting_down()) { return; }
 	assert(m_game != nullptr);
 	m_game->tick();
 }
 
 void DesktopApp::render() {
+	m_dear_imgui->end_frame();
 	auto command_buffer = m_frame_renderer->start_render(m_game->get_clear());
-	if (command_buffer) { m_game->render(command_buffer); }
+	if (command_buffer) {
+		m_game->render(command_buffer);
+		m_dear_imgui->render(command_buffer);
+	}
 	m_frame_renderer->finish_render();
 }
 } // namespace bave

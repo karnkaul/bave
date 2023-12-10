@@ -1,0 +1,17 @@
+#pragma once
+#include <concepts>
+#include <string_view>
+
+namespace bave {
+template <typename Type>
+concept StringyT = std::constructible_from<std::string_view, Type>;
+
+struct StringHash {
+	using is_transparent = void;
+
+	template <StringyT Type>
+	auto operator()(Type const& t) const -> size_t {
+		return std::hash<std::string_view>{}(std::string_view{t});
+	}
+};
+} // namespace bave

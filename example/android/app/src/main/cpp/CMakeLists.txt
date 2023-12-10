@@ -4,6 +4,7 @@ project(bave-example)
 
 if(NOT TARGET bave)
   set(bave_path ../../../../../../../bave)
+  file(REAL_PATH ${bave_path} bave_path)
   add_subdirectory(${bave_path} "${CMAKE_CURRENT_BINARY_DIR}/bave")
 
   set(flappy_path ${bave_path}/example/flappy)
@@ -30,3 +31,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 target_sources(${PROJECT_NAME} PRIVATE
   main.cpp
 )
+
+add_custom_target(copy-assets ALL
+  ${CMAKE_COMMAND} -E copy_directory "${bave_path}/example/assets" "${CMAKE_CURRENT_SOURCE_DIR}/../assets"
+)
+
+add_dependencies(${PROJECT_NAME} copy-assets)

@@ -4,6 +4,7 @@
 #include <bave/core/error.hpp>
 #include <bave/core/ptr.hpp>
 #include <bave/game.hpp>
+#include <src/android_data_store.hpp>
 #include <cassert>
 
 // temp
@@ -65,6 +66,11 @@ auto AndroidApp::do_get_framebuffer_size() const -> glm::ivec2 {
 auto AndroidApp::do_get_render_device() const -> RenderDevice& {
 	if (!m_render_device) { throw Error{"Dereferencing null RenderDevice"}; }
 	return *m_render_device;
+}
+
+auto AndroidApp::do_get_frame_renderer() const -> FrameRenderer& {
+	if (!m_frame_renderer) { throw Error{"Dereferencing null FrameRenderer"}; }
+	return *m_frame_renderer;
 }
 
 auto AndroidApp::get_instance_extensions() const -> std::span<char const* const> {
@@ -151,7 +157,7 @@ void AndroidApp::render() {
 
 void AndroidApp::init_graphics() {
 	m_render_device = std::make_unique<RenderDevice>(this);
-	m_frame_renderer = std::make_unique<FrameRenderer>(m_render_device.get());
+	m_frame_renderer = std::make_unique<FrameRenderer>(m_render_device.get(), &get_data_store());
 }
 
 void AndroidApp::pause_render() {
@@ -171,6 +177,7 @@ void AndroidApp::resume_render() {
 }
 
 void AndroidApp::start() {
+	set_data_store(std::make_unique<AndroidDataStore>(&m_app));
 	init_graphics();
 	m_game = make_game();
 	m_can_render = true;

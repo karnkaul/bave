@@ -4,6 +4,7 @@
 #include <vk_mem_alloc.h>
 #include <bave/core/inclusive_range.hpp>
 #include <bave/core/scoped_resource.hpp>
+#include <bave/graphics/buffering.hpp>
 #include <bave/graphics/defer.hpp>
 #include <bave/graphics/device_blocker.hpp>
 #include <bave/graphics/swapchain.hpp>
@@ -45,6 +46,7 @@ class RenderDevice {
 	[[nodiscard]] auto get_defer_queue() -> DeferQueue& { return m_defer_queue; }
 
 	[[nodiscard]] auto get_line_width_limits() const -> InclusiveRange<float> { return m_line_width_limits; }
+	[[nodiscard]] auto get_frame_index() const -> FrameIndex { return m_frame_index; }
 
 	auto wait_for(vk::Fence fence, std::uint64_t timeout = max_timeout_v) const -> bool;
 	auto reset_fence(vk::Fence fence, bool wait_first = true) const -> bool;
@@ -84,6 +86,7 @@ class RenderDevice {
 	DeviceBlocker m_blocker{};
 
 	InclusiveRange<float> m_line_width_limits{};
+	FrameIndex m_frame_index{};
 
 	// std::unique_ptr<FontLibrary> m_font_library{FontLibrary::make()};
 };

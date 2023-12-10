@@ -27,6 +27,7 @@ class AndroidApp : public App, public IWsi {
 	[[nodiscard]] auto do_get_framebuffer_size() const -> glm::ivec2 final;
 
 	[[nodiscard]] auto do_get_render_device() const -> RenderDevice& final;
+	[[nodiscard]] auto do_get_frame_renderer() const -> FrameRenderer& final;
 
 	[[nodiscard]] auto get_instance_extensions() const -> std::span<char const* const> final;
 	[[nodiscard]] auto make_surface(vk::Instance instance) const -> vk::SurfaceKHR final;

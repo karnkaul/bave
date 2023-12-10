@@ -94,16 +94,19 @@ auto FrameRenderer::Frame::make(RenderDevice& render_device) -> Frame {
 	return ret;
 }
 
-FrameRenderer::FrameRenderer(NotNull<RenderDevice*> render_device)
+FrameRenderer::FrameRenderer(NotNull<RenderDevice*> render_device, NotNull<DataStore const*> data_store)
 	: m_render_device(render_device), m_depth_format(optimal_depth_format(render_device->get_gpu().device)), m_blocker(render_device->get_device()) {
 	m_frame = Frame::make(*m_render_device);
 	m_frame.render_pass = make_single_render_pass(render_device->get_device(), render_device->get_swapchain_format(), m_depth_format);
+	m_pipeline_cache = std::make_unique<PipelineCache>(*m_frame.render_pass, render_device, data_store);
 }
 
-auto FrameRenderer::start_render(vk::ClearColorValue const& clear) -> vk::CommandBuffer {
+auto FrameRenderer::start_render(Rgba clear_colour) -> vk::CommandBuffer {
 	auto& sync = m_frame.syncs.at(get_frame_index());
 	m_frame.swapchain_image = m_render_device->acquire_next_image(*sync.drawn, *sync.draw);
 	if (!m_frame.swapchain_image) { return {}; }
+
+	m_pipeline_cache->get_descriptor_cache().next_frame();
 	if (!m_frame.depth_image || m_frame.depth_image->get_extent() != m_frame.swapchain_image->extent) {
 		if (m_frame.depth_image) { m_render_device->get_defer_queue().push(std::move(m_frame.depth_image)); }
 		m_frame.depth_image = make_depth_image(*m_render_device, m_frame.swapchain_image->extent, m_depth_format);
@@ -116,8 +119,10 @@ auto FrameRenderer::start_render(vk::ClearColorValue const& clear) -> vk::Comman
 	fb = make_framebuffer(m_render_device->get_device(), *m_frame.render_pass, rt);
 	auto const ra = vk::Rect2D{vk::Offset2D{}, m_frame.swapchain_image->extent};
 
+	auto const vec4_clear_colour = clear_colour.to_vec4();
+	auto const vk_clear_colour = vk::ClearColorValue{vec4_clear_colour.x, vec4_clear_colour.y, vec4_clear_colour.z, vec4_clear_colour.w};
 	auto const clear_values = std::array<vk::ClearValue, 2>{
-		clear,
+		vk_clear_colour,
 		vk::ClearDepthStencilValue{1.0f, 0},
 	};
 
@@ -131,7 +136,6 @@ auto FrameRenderer::finish_render() -> bool {
 	if (!m_frame.swapchain_image) { return false; }
 
 	auto& sync = m_frame.syncs.at(get_frame_index());
-	m_frame.index.increment();
 
 	sync.command_buffer.endRenderPass();
 	sync.command_buffer.end();
@@ -148,5 +152,24 @@ auto FrameRenderer::finish_render() -> bool {
 	m_render_device->queue_submit(si, *sync.drawn);
 
 	return m_render_device->present_acquired_image(*sync.present);
+}
+
+auto FrameRenderer::load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader> {
+	if (!is_rendering()) {
+		m_log.error("can only load shaders when rendering");
+		return {};
+	}
+
+	auto& shader_cache = m_pipeline_cache->get_shader_cache();
+	auto vert = shader_cache.load(vertex);
+	auto frag = shader_cache.load(fragment);
+	if (!vert || !frag) { return {}; }
+
+	return Shader{this, vert, frag};
+}
+
+auto FrameRenderer::get_backbuffer_extent() const -> vk::Extent2D {
+	if (!m_frame.swapchain_image) { return {}; }
+	return m_frame.swapchain_image->extent;
 }
 } // namespace bave

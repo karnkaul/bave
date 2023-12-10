@@ -16,4 +16,11 @@ constexpr auto debug_v =
 #else
 	false;
 #endif
+
+constexpr auto imgui_v =
+#if defined(BAVE_IMGUI)
+	true;
+#else
+	false;
+#endif
 } // namespace bave

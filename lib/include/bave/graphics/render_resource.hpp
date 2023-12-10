@@ -70,7 +70,7 @@ class DeviceRenderBuffer : public RenderBuffer {
 	auto write(void const* data, std::size_t size) -> void final;
 };
 
-class RenderImage : RenderResource {
+class RenderImage : public RenderResource {
   public:
 	struct CreateInfo {
 		static constexpr auto usage_v = vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst;

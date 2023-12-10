@@ -27,4 +27,9 @@ void Flappy::tick() {
 
 	m_elapsed += get_app().get_dt();
 	m_clear_red = 0.5f * std::sin(m_elapsed.count()) + 0.5f;
+
+	IFBAVEIMGUI({
+		ImGui::ShowDemoWindow();
+		// ...
+	});
 }

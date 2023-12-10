@@ -1,6 +1,7 @@
 #pragma once
 #include <bave/app.hpp>
 #include <bave/core/ptr.hpp>
+#include <bave/dear_imgui.hpp>
 #include <bave/game.hpp>
 #include <bave/graphics/wsi.hpp>
 #include <bave/platform.hpp>
@@ -22,6 +23,7 @@ class DesktopApp : public App, public IWsi {
 		glm::ivec2 extent{1280, 720};
 		std::function<Gpu(std::span<Gpu const>)> select_gpu{};
 		bool lock_aspect_ratio{true};
+		std::string_view assets_pattern{"assets"};
 	};
 
 	explicit DesktopApp(CreateInfo create_info);
@@ -47,12 +49,14 @@ class DesktopApp : public App, public IWsi {
 	[[nodiscard]] auto do_get_framebuffer_size() const -> glm::ivec2 final;
 
 	[[nodiscard]] auto do_get_render_device() const -> RenderDevice& final;
+	[[nodiscard]] auto do_get_frame_renderer() const -> FrameRenderer& final;
 
 	[[nodiscard]] auto get_instance_extensions() const -> std::span<char const* const> final;
 	[[nodiscard]] auto make_surface(vk::Instance instance) const -> vk::SurfaceKHR final;
 	[[nodiscard]] auto get_framebuffer_extent() const -> vk::Extent2D final;
 	[[nodiscard]] auto select_gpu(std::span<Gpu const> gpus) const -> Gpu final;
 
+	void init_data_store();
 	void make_window();
 	void init_graphics();
 
@@ -66,6 +70,7 @@ class DesktopApp : public App, public IWsi {
 	std::unique_ptr<RenderDevice> m_render_device{};
 	vk::UniqueSurfaceKHR m_surface{};
 	std::unique_ptr<FrameRenderer> m_frame_renderer{};
+	std::unique_ptr<DearImGui> m_dear_imgui{};
 	std::unique_ptr<Game> m_game{};
 };
 } // namespace bave
