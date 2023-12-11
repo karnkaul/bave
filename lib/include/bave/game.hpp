@@ -12,8 +12,6 @@ class Game : public PolyPinned {
 
 	[[nodiscard]] auto get_app() const -> App& { return m_app; }
 
-	[[nodiscard]] auto get_render_view() const -> Transform& { return m_app.get_render_device().render_view; }
-
 	virtual void tick() {}
 	virtual void render([[maybe_unused]] vk::CommandBuffer command_buffer) const {}
 

@@ -14,7 +14,6 @@
 #include <bave/graphics/wsi.hpp>
 #include <bave/logger.hpp>
 #include <bave/platform.hpp>
-#include <bave/transform.hpp>
 #include <limits>
 #include <mutex>
 
@@ -65,8 +64,6 @@ class RenderDevice {
 	auto submit_and_present(vk::SubmitInfo const& submit_info, vk::Fence draw_signal, vk::Semaphore present_wait) -> bool;
 
 	auto recreate_surface() -> bool;
-
-	Transform render_view{};
 
   private:
 	struct Deleter {

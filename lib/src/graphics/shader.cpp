@@ -10,8 +10,8 @@ struct Std140View {
 };
 } // namespace
 
-Shader::Shader(NotNull<FrameRenderer const*> frame_renderer, vk::ShaderModule vert, vk::ShaderModule frag)
-	: m_frame_renderer(frame_renderer), m_vert(vert), m_frag(frag) {
+Shader::Shader(NotNull<FrameRenderer const*> frame_renderer, Program program, RenderView render_view)
+	: m_frame_renderer(frame_renderer), m_vert(program.vertex), m_frag(program.fragment), m_render_view(render_view) {
 	set_viewport_scissor();
 	set_white_textures();
 }
@@ -91,12 +91,17 @@ void Shader::set_viewport_scissor() {
 }
 
 void Shader::set_view_and_instances(std::span<RenderInstance::Baked const> instances) {
-	auto const view_extent = m_frame_renderer->get_backbuffer_extent();
-	auto const uview_extent = glm::uvec2{view_extent.width, view_extent.height};
-	auto const fview_extent = 0.5f * glm::fvec2{uview_extent};
+	auto const world_space = [&] {
+		if (m_render_view.viewport) { return *m_render_view.viewport; }
+		auto const view_extent = m_frame_renderer->get_backbuffer_extent();
+		auto const uview_extent = glm::uvec2{view_extent.width, view_extent.height};
+		return glm::vec2{uview_extent};
+	}();
+	auto const proj_xy = 0.5f * world_space;
+	auto const proj_z = m_render_view.z_plane;
 	auto const view = Std140View{
-		.view = m_frame_renderer->get_render_device().render_view.matrix(),
-		.projection = glm::ortho(-fview_extent.x, fview_extent.x, -fview_extent.y, fview_extent.y, -100.0f, 100.0f),
+		.view = m_render_view.transform.matrix(),
+		.projection = glm::ortho(-proj_xy.x, proj_xy.x, -proj_xy.y, proj_xy.y, proj_z.near, proj_z.far),
 	};
 	auto& view_buffer = m_frame_renderer->get_render_device().get_scratch_buffer_cache().allocate(vk::BufferUsageFlagBits::eUniformBuffer);
 	view_buffer.write(&view, sizeof(view));

@@ -53,7 +53,7 @@ auto App::load_shader(std::string_view vertex, std::string_view fragment) const 
 	auto frag = shader_cache.load(fragment);
 	if (!vert || !frag) { return {}; }
 
-	return Shader{&get_frame_renderer(), vert, frag};
+	return Shader{&get_frame_renderer(), {.vertex = vert, .fragment = frag}, render_view};
 }
 
 void App::start_next_frame() {
