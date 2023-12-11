@@ -2,7 +2,7 @@
 #include <cmath>
 
 Flappy::Flappy(bave::App& app) : Game(app), m_mesh(&app.get_render_device()), m_texture(&app.get_render_device()) {
-	m_mesh.write(bave::Geometry::from(bave::Quad{}));
+	m_mesh.write(bave::Geometry::from(bave::Quad{.size = glm::vec2{300.0f}}));
 
 	auto pixels = std::array<std::uint32_t, 4>{
 		0xff0000ff,
@@ -16,8 +16,6 @@ Flappy::Flappy(bave::App& app) : Game(app), m_mesh(&app.get_render_device()), m_
 	};
 	m_texture.write(bitmap);
 	m_texture.sampler.min = m_texture.sampler.mag = bave::Sampler::Filter::eNearest;
-
-	render_view.scale = glm::vec2{200.0f};
 }
 
 void Flappy::tick() {
@@ -60,7 +58,7 @@ void Flappy::render(vk::CommandBuffer command_buffer) const {
 		shader->update(1, 0, m_texture.combined_image_sampler());
 		auto const instances = std::array{
 			bave::RenderInstance::Baked{.transform = glm::mat4{1.0f}, .rgba = glm::vec4{1.0f}},
-			bave::RenderInstance{.transform = bave::Transform{.position = glm::vec2{2.0f}}, .rgba = bave::yellow_v}.bake(),
+			bave::RenderInstance{.transform = bave::Transform{.position = glm::vec2{400.0f}}, .rgba = bave::yellow_v}.bake(),
 		};
 		shader->draw(command_buffer, m_mesh, instances);
 	}

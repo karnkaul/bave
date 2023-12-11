@@ -150,7 +150,7 @@ void AndroidApp::tick() {
 void AndroidApp::render() {
 	if (!m_can_render) { return; }
 
-	auto command_buffer = m_frame_renderer->start_render(m_game->clear_colour, m_game->render_view);
+	auto command_buffer = m_frame_renderer->start_render(m_game->clear_colour);
 	if (command_buffer) { m_game->render(command_buffer); }
 	m_frame_renderer->finish_render();
 }

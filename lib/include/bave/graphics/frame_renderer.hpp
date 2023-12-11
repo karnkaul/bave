@@ -22,7 +22,7 @@ class FrameRenderer : public Pinned {
 
 	[[nodiscard]] auto get_pipeline_cache() const -> PipelineCache& { return *m_pipeline_cache; }
 
-	auto start_render(Rgba clear_colour, Transform const& render_view) -> vk::CommandBuffer;
+	auto start_render(Rgba clear_colour) -> vk::CommandBuffer;
 	auto finish_render() -> bool;
 
 	[[nodiscard]] auto is_rendering() const -> bool { return m_frame.render_target.has_value(); }
@@ -47,7 +47,6 @@ class FrameRenderer : public Pinned {
 		vk::UniqueRenderPass render_pass{};
 
 		Buffered<vk::UniqueFramebuffer> framebuffers{};
-		Buffered<std::optional<RenderBuffer>> view_ubos{};
 		std::optional<RenderImageView> render_target{};
 
 		static auto make(RenderDevice& render_device) -> Frame;

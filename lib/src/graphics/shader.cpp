@@ -1,7 +1,15 @@
 #include <bave/graphics/frame_renderer.hpp>
 #include <bave/graphics/shader.hpp>
+#include <glm/gtx/transform.hpp>
 
 namespace bave {
+namespace {
+struct Std140View {
+	glm::mat4 view;
+	glm::mat4 projection;
+};
+} // namespace
+
 Shader::Shader(NotNull<FrameRenderer const*> frame_renderer, vk::ShaderModule vert, vk::ShaderModule frag)
 	: m_frame_renderer(frame_renderer), m_vert(vert), m_frag(frag) {
 	m_scissor.extent = m_frame_renderer->get_backbuffer_extent();
@@ -61,9 +69,8 @@ void Shader::draw(vk::CommandBuffer command_buffer, Mesh const& mesh, std::span<
 		return;
 	}
 
-	auto& instance_buffer = m_frame_renderer->get_render_device().get_scratch_buffer_cache().allocate(vk::BufferUsageFlagBits::eStorageBuffer);
-	instance_buffer.write(instances.data(), instances.size_bytes());
-	update(0, 1, instance_buffer);
+	write_view_set();
+	write_instances_set(instances);
 
 	for (auto& [number, descriptor_set] : m_descriptor_sets) {
 		if (!descriptor_set) { continue; }
@@ -88,5 +95,24 @@ auto Shader::get_descriptor_set(std::uint32_t set) -> vk::DescriptorSet {
 	auto& descriptor_set = m_descriptor_sets[set];
 	if (!descriptor_set) { descriptor_set = pipeline_cache.get_descriptor_cache().allocate(set_layouts[set]); }
 	return descriptor_set;
+}
+
+void Shader::write_view_set() {
+	auto const view_extent = m_frame_renderer->get_backbuffer_extent();
+	auto const uview_extent = glm::uvec2{view_extent.width, view_extent.height};
+	auto const fview_extent = 0.5f * glm::fvec2{uview_extent};
+	auto const view = Std140View{
+		.view = m_frame_renderer->get_render_device().render_view.matrix(),
+		.projection = glm::ortho(-fview_extent.x, fview_extent.x, -fview_extent.y, fview_extent.y, -100.0f, 100.0f),
+	};
+	auto& ubo = m_frame_renderer->get_render_device().get_scratch_buffer_cache().allocate(vk::BufferUsageFlagBits::eUniformBuffer);
+	ubo.write(&view, sizeof(view));
+	update(0, 0, ubo);
+}
+
+void Shader::write_instances_set(std::span<RenderInstance::Baked const> instances) {
+	auto& ssbo = m_frame_renderer->get_render_device().get_scratch_buffer_cache().allocate(vk::BufferUsageFlagBits::eStorageBuffer);
+	ssbo.write(instances.data(), instances.size_bytes());
+	update(0, 1, ssbo);
 }
 } // namespace bave

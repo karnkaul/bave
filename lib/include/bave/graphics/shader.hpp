@@ -23,6 +23,9 @@ class Shader {
   private:
 	auto get_descriptor_set(std::uint32_t set) -> vk::DescriptorSet;
 
+	void write_view_set();
+	void write_instances_set(std::span<RenderInstance::Baked const> instances);
+
 	Logger m_log{"Shader"};
 	NotNull<FrameRenderer const*> m_frame_renderer;
 	std::map<std::uint32_t, vk::DescriptorSet> m_descriptor_sets{};

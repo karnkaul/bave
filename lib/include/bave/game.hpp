@@ -16,13 +16,14 @@ class Game : public PolyPinned {
 		return get_app().get_frame_renderer().load_shader(vertex, fragment);
 	}
 
+	[[nodiscard]] auto get_render_view() const -> Transform& { return m_app.get_render_device().render_view; }
+
 	virtual void tick() {}
 	virtual void render([[maybe_unused]] vk::CommandBuffer command_buffer) const {}
 
 	virtual void shutdown() {}
 
 	Rgba clear_colour{black_v};
-	Transform render_view{};
 
   private:
 	App& m_app;

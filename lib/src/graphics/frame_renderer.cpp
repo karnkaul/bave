@@ -1,7 +1,6 @@
 #include <bave/core/error.hpp>
 #include <bave/graphics/frame_renderer.hpp>
 #include <bave/graphics/image_barrier.hpp>
-#include <glm/gtx/transform.hpp>
 
 namespace bave {
 namespace {
@@ -51,13 +50,9 @@ auto make_single_render_pass(vk::Device device, vk::Format colour) -> vk::Unique
 	return device.createRenderPassUnique(rpci);
 }
 
-struct Std140View {
-	glm::mat4 view;
-	glm::mat4 projection;
-};
-
 auto white_bitmap() -> Bitmap {
 	static constexpr auto pixels = std::array<std::uint8_t, 4>{0xff, 0xff, 0xff, 0xff};
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
 	return Bitmap{.bytes = {reinterpret_cast<std::byte const*>(pixels.data()), pixels.size()}, .extent = {1, 1}};
 }
 } // namespace
@@ -77,9 +72,6 @@ auto FrameRenderer::Frame::make(RenderDevice& render_device) -> Frame {
 		sync.drawn = device.createFenceUnique({vk::FenceCreateFlagBits::eSignaled});
 	}
 
-	auto make_view_ubo = [&] { return RenderBuffer{&render_device, vk::BufferUsageFlagBits::eUniformBuffer}; };
-	fill_buffered(ret.view_ubos, make_view_ubo);
-
 	ret.render_pass = make_single_render_pass(render_device.get_device(), render_device.get_swapchain_format());
 
 	return ret;
@@ -90,7 +82,7 @@ FrameRenderer::FrameRenderer(NotNull<RenderDevice*> render_device, NotNull<DataS
 	  m_pipeline_cache(std::make_unique<PipelineCache>(*m_frame.render_pass, render_device, data_store)), m_white(render_device, white_bitmap()),
 	  m_blocker(render_device->get_device()) {}
 
-auto FrameRenderer::start_render(Rgba clear_colour, Transform const& render_view) -> vk::CommandBuffer {
+auto FrameRenderer::start_render(Rgba clear_colour) -> vk::CommandBuffer {
 	auto& sync = m_frame.syncs.at(get_frame_index());
 	m_frame.render_target = m_render_device->acquire_next_image(*sync.drawn, *sync.draw);
 	if (!m_frame.render_target) { return {}; }
@@ -111,13 +103,6 @@ auto FrameRenderer::start_render(Rgba clear_colour, Transform const& render_view
 
 	auto const rpbi = vk::RenderPassBeginInfo{*m_frame.render_pass, *fb, ra, 2, clear_values.data()};
 	sync.command_buffer.beginRenderPass(rpbi, vk::SubpassContents::eInline);
-
-	glm::vec2 const view_extent = glm::uvec2{m_frame.render_target->extent.width, m_frame.render_target->extent.height};
-	auto const view = Std140View{
-		.view = render_view.matrix(),
-		.projection = glm::ortho(-0.5f * view_extent.x, 0.5f * view_extent.x, -0.5f * view_extent.y, 0.5f * view_extent.y, -100.0f, 100.0f),
-	};
-	m_frame.view_ubos.at(get_frame_index())->write(&view, sizeof(view));
 
 	return sync.command_buffer;
 }
@@ -154,10 +139,7 @@ auto FrameRenderer::load_shader(std::string_view vertex, std::string_view fragme
 	auto frag = shader_cache.load(fragment);
 	if (!vert || !frag) { return {}; }
 
-	auto ret = Shader{this, vert, frag};
-	ret.update(0, 0, *m_frame.view_ubos.at(get_frame_index()));
-
-	return ret;
+	return Shader{this, vert, frag};
 }
 
 auto FrameRenderer::get_backbuffer_extent() const -> vk::Extent2D {
