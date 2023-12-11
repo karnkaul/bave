@@ -53,7 +53,7 @@ void Flappy::tick() {
 }
 
 void Flappy::render(vk::CommandBuffer command_buffer) const {
-	auto shader = load_shader("shaders/default.vert", "shaders/default.frag");
+	auto shader = get_app().load_shader("shaders/default.vert", "shaders/default.frag");
 	if (shader) {
 		shader->update(1, 0, m_texture.combined_image_sampler());
 		auto const instances = std::array{

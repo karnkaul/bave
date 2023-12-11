@@ -5,6 +5,7 @@
 #include <bave/data_store.hpp>
 #include <bave/event.hpp>
 #include <bave/graphics/frame_renderer.hpp>
+#include <bave/graphics/shader.hpp>
 #include <bave/logger.hpp>
 #include <functional>
 #include <memory>
@@ -42,6 +43,8 @@ class App : public PolyPinned {
 	[[nodiscard]] auto get_window_size() const -> glm::ivec2 { return do_get_window_size(); }
 	[[nodiscard]] auto get_framebuffer_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
 	[[nodiscard]] auto get_pipeline_cache() const -> PipelineCache& { return do_get_frame_renderer().get_pipeline_cache(); }
+
+	[[nodiscard]] auto load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader>;
 
   protected:
 	void start_next_frame();

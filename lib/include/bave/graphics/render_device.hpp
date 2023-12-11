@@ -60,7 +60,7 @@ class RenderDevice {
 
 	auto request_present_mode(vk::PresentModeKHR present_mode) -> bool;
 
-	[[nodiscard]] auto acquire_next_image(vk::Fence wait, vk::Semaphore signal) -> std::optional<RenderImageView>;
+	[[nodiscard]] auto acquire_next_image(vk::Fence wait, vk::Semaphore signal) -> std::optional<RenderTarget>;
 	auto queue_submit(vk::SubmitInfo const& submit_info, vk::Fence signal) -> bool;
 	auto submit_and_present(vk::SubmitInfo const& submit_info, vk::Fence draw_signal, vk::Semaphore present_wait) -> bool;
 

@@ -12,10 +12,6 @@ class Game : public PolyPinned {
 
 	[[nodiscard]] auto get_app() const -> App& { return m_app; }
 
-	[[nodiscard]] auto load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader> {
-		return get_app().get_frame_renderer().load_shader(vertex, fragment);
-	}
-
 	[[nodiscard]] auto get_render_view() const -> Transform& { return m_app.get_render_device().render_view; }
 
 	virtual void tick() {}

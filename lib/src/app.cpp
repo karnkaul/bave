@@ -41,6 +41,21 @@ auto App::get_data_store() const -> DataStore& {
 	return *m_data_store;
 }
 
+auto App::load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader> {
+	auto const& frame_renderer = get_frame_renderer();
+	if (!frame_renderer.is_rendering()) {
+		m_log.error("can only load shaders when rendering");
+		return {};
+	}
+
+	auto& shader_cache = frame_renderer.get_pipeline_cache().get_shader_cache();
+	auto vert = shader_cache.load(vertex);
+	auto frag = shader_cache.load(fragment);
+	if (!vert || !frag) { return {}; }
+
+	return Shader{&get_frame_renderer(), vert, frag};
+}
+
 void App::start_next_frame() {
 	m_events.clear();
 	m_dt.update();

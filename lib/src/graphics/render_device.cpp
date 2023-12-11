@@ -100,7 +100,7 @@ auto RenderDevice::request_present_mode(vk::PresentModeKHR present_mode) -> bool
 	return true;
 }
 
-auto RenderDevice::acquire_next_image(vk::Fence wait, vk::Semaphore signal) -> std::optional<RenderImageView> {
+auto RenderDevice::acquire_next_image(vk::Fence wait, vk::Semaphore signal) -> std::optional<RenderTarget> {
 	auto const framebuffer = m_wsi->get_framebuffer_extent();
 	if (framebuffer.width == 0 || framebuffer.height == 0) { return {}; }
 
@@ -119,7 +119,7 @@ auto RenderDevice::acquire_next_image(vk::Fence wait, vk::Semaphore signal) -> s
 	}
 
 	assert(m_swapchain.active.image_index.has_value());
-	return m_swapchain.active.images.at(*m_swapchain.active.image_index);
+	return m_swapchain.active.render_targets.at(*m_swapchain.active.image_index);
 }
 
 auto RenderDevice::queue_submit(vk::SubmitInfo const& submit_info, vk::Fence const signal) -> bool {
@@ -191,13 +191,13 @@ auto RenderDevice::recreate_swapchain(vk::Extent2D framebuffer) -> bool {
 
 	m_swapchain.active.swapchain = std::move(new_swapchain);
 	m_swapchain.create_info = info;
-	m_swapchain.active.images.resize(count);
+	m_swapchain.active.render_targets.resize(count);
 	auto const images = get_device().getSwapchainImagesKHR(*m_swapchain.active.swapchain);
-	m_swapchain.active.images.clear();
+	m_swapchain.active.render_targets.clear();
 	m_swapchain.active.views.clear();
 	for (auto const image : images) {
 		m_swapchain.active.views.push_back(MakeImageView{.image = image, .format = m_swapchain.create_info.imageFormat}(get_device()));
-		m_swapchain.active.images.push_back({
+		m_swapchain.active.render_targets.push_back({
 			.image = image,
 			.view = *m_swapchain.active.views.back(),
 			.extent = m_swapchain.create_info.imageExtent,
@@ -208,8 +208,8 @@ auto RenderDevice::recreate_swapchain(vk::Extent2D framebuffer) -> bool {
 	m_swapchain.active.image_index.reset();
 
 	m_log.info("swapchain extent: [{}x{}] | images: [{}] | colour space: [{}] | vsync: [{}]", m_swapchain.create_info.imageExtent.width,
-			   m_swapchain.create_info.imageExtent.height, m_swapchain.active.images.size(), Swapchain::is_srgb_format(info.imageFormat) ? "sRGB" : "linear",
-			   to_vsync_string(info.presentMode));
+			   m_swapchain.create_info.imageExtent.height, m_swapchain.active.render_targets.size(),
+			   Swapchain::is_srgb_format(info.imageFormat) ? "sRGB" : "linear", to_vsync_string(info.presentMode));
 
 	return true;
 }

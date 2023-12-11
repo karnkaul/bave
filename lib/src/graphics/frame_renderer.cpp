@@ -4,7 +4,7 @@
 
 namespace bave {
 namespace {
-auto make_framebuffer(vk::Device device, vk::RenderPass render_pass, RenderImageView const& render_target) -> vk::UniqueFramebuffer {
+auto make_framebuffer(vk::Device device, vk::RenderPass render_pass, RenderTarget const& render_target) -> vk::UniqueFramebuffer {
 	auto fci = vk::FramebufferCreateInfo{};
 	fci.renderPass = render_pass;
 	fci.attachmentCount = 1;
@@ -126,20 +126,6 @@ auto FrameRenderer::finish_render() -> bool {
 	si.signalSemaphoreCount = 1;
 
 	return m_render_device->submit_and_present(si, *sync.drawn, *sync.present);
-}
-
-auto FrameRenderer::load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader> {
-	if (!is_rendering()) {
-		m_log.error("can only load shaders when rendering");
-		return {};
-	}
-
-	auto& shader_cache = m_pipeline_cache->get_shader_cache();
-	auto vert = shader_cache.load(vertex);
-	auto frag = shader_cache.load(fragment);
-	if (!vert || !frag) { return {}; }
-
-	return Shader{this, vert, frag};
 }
 
 auto FrameRenderer::get_backbuffer_extent() const -> vk::Extent2D {

@@ -1,11 +1,17 @@
 #pragma once
 #include <bave/graphics/colour_space.hpp>
 #include <bave/graphics/gpu.hpp>
-#include <bave/graphics/render_image_view.hpp>
 #include <optional>
 #include <vector>
 
 namespace bave {
+struct RenderTarget {
+	vk::Image image{};
+	vk::ImageView view{};
+	vk::Extent2D extent{};
+	vk::Format format{};
+};
+
 struct Swapchain {
 	struct Formats {
 		std::vector<vk::SurfaceFormatKHR> srgb{};
@@ -15,7 +21,7 @@ struct Swapchain {
 	};
 
 	struct Storage {
-		std::vector<RenderImageView> images{};
+		std::vector<RenderTarget> render_targets{};
 		std::vector<vk::UniqueImageView> views{};
 		vk::UniqueSwapchainKHR swapchain{};
 		std::optional<std::uint32_t> image_index{};
