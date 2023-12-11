@@ -23,7 +23,7 @@ auto DesktopDataStore::find_super_dir(std::string_view base, std::string_view pa
 	if (path.empty() || !fs::exists(path)) { path = fs::current_path(); }
 
 	for (; !path.empty() && path.parent_path() != path; path = path.parent_path()) {
-		if (auto ret = path / pattern; fs::is_directory(ret)) { return ret; }
+		if (auto ret = path / pattern; fs::is_directory(ret)) { return ret.generic_string(); }
 	}
 
 	return {};
