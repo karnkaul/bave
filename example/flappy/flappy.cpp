@@ -1,3 +1,4 @@
+#include <bave/graphics/extent_scaler.hpp>
 #include <flappy.hpp>
 #include <cmath>
 
@@ -16,6 +17,8 @@ Flappy::Flappy(bave::App& app) : Game(app), m_mesh(&app.get_render_device()), m_
 	};
 	m_texture.write(bitmap);
 	m_texture.sampler.min = m_texture.sampler.mag = bave::Sampler::Filter::eNearest;
+
+	get_app().render_view.viewport = bave::ExtentScaler{.source = get_app().get_framebuffer_size()}.match_width({1440.0f, 2560.0f});
 }
 
 void Flappy::tick() {
