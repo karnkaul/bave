@@ -23,8 +23,9 @@ class Shader {
   private:
 	auto get_descriptor_set(std::uint32_t set) -> vk::DescriptorSet;
 
-	void write_view_set();
-	void write_instances_set(std::span<RenderInstance::Baked const> instances);
+	void set_viewport_scissor();
+	void set_view_and_instances(std::span<RenderInstance::Baked const> instances);
+	void set_white_textures();
 
 	Logger m_log{"Shader"};
 	NotNull<FrameRenderer const*> m_frame_renderer;

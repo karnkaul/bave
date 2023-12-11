@@ -20,7 +20,7 @@ struct PipelineShaderLayout {
 		set_0.emplace_back(1, vk::DescriptorType::eStorageBuffer, 1);
 
 		auto& textures_set = ordered_set_layouts[1];
-		for (std::uint32_t binding = 0; binding < PipelineCache::max_textures_v; ++binding) {
+		for (std::uint32_t binding = 0; binding < SetLayout::max_textures_v; ++binding) {
 			textures_set.emplace_back(binding, vk::DescriptorType::eCombinedImageSampler, 1);
 		}
 
