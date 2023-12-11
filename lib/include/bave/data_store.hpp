@@ -10,7 +10,7 @@
 namespace bave {
 class DataStore : public Polymorphic {
   public:
-	explicit DataStore(std::string tag = "DataStore") : m_log(std::move(tag)) {}
+	explicit DataStore(std::string tag = "DataStore") : m_log{std::move(tag)} {}
 
 	[[nodiscard]] static auto as_string_view(std::span<std::byte const> bytes) -> std::string_view;
 

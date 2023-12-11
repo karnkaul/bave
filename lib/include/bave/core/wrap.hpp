@@ -1,5 +1,6 @@
 #pragma once
 #include <concepts>
+#include <cstdint>
 
 namespace bave {
 template <std::integral Type>
@@ -15,7 +16,7 @@ template <std::integral Type>
 template <typename StorageT>
 struct Wrap {
 	StorageT data{};
-	size_t offset{};
+	std::size_t offset{};
 
 	[[nodiscard]] constexpr auto get_current() const -> decltype(auto) { return data.at(offset); }
 	[[nodiscard]] constexpr auto get_current() -> decltype(auto) { return data.at(offset); }

@@ -17,7 +17,6 @@ if(NOT ANDROID)
   add_library(glfw::glfw ALIAS glfw)
 
   add_subdirectory(src/dear_imgui)
-  add_subdirectory(src/clap)
 endif()
 
 add_subdirectory(src/dyvk)
@@ -77,6 +76,5 @@ if(NOT ANDROID)
   target_link_libraries(${PROJECT_NAME} INTERFACE
     dear_imgui::dear_imgui
     glfw::glfw
-    clap::clap
   )
 endif()

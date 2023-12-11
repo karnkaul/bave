@@ -1,23 +1,19 @@
 #include <bave/graphics/frame_renderer.hpp>
 #include <bave/graphics/shader.hpp>
+#include <glm/gtx/transform.hpp>
 
 namespace bave {
-Shader::Shader(NotNull<FrameRenderer const*> frame_renderer, vk::ShaderModule vert, vk::ShaderModule frag)
-	: m_frame_renderer(frame_renderer), m_vert(vert), m_frag(frag) {
-	m_scissor.extent = m_frame_renderer->get_backbuffer_extent();
-	glm::vec2 const viewport = glm::uvec2{m_scissor.extent.width, m_scissor.extent.height};
-	m_viewport = vk::Viewport{0.0f, viewport.y, viewport.x, -viewport.y};
+namespace {
+struct Std140View {
+	glm::mat4 view;
+	glm::mat4 projection;
+};
+} // namespace
 
-	auto descriptor_set = get_descriptor_set(1);
-	auto const [image_view, sampler] = frame_renderer->get_white_texture().combined_image_sampler();
-	auto const dii = vk::DescriptorImageInfo{sampler, image_view, vk::ImageLayout::eShaderReadOnlyOptimal};
-	auto wdss = std::array<vk::WriteDescriptorSet, static_cast<std::size_t>(PipelineCache::max_textures_v)>{};
-	for (std::uint32_t binding = 0; binding < PipelineCache::max_textures_v; ++binding) {
-		auto& wds = wdss.at(binding);
-		wds = vk::WriteDescriptorSet{descriptor_set, binding, 0, 1, vk::DescriptorType::eCombinedImageSampler};
-		wds.pImageInfo = &dii;
-	}
-	frame_renderer->get_render_device().get_device().updateDescriptorSets(wdss, {});
+Shader::Shader(NotNull<FrameRenderer const*> frame_renderer, Program program, RenderView render_view)
+	: m_frame_renderer(frame_renderer), m_vert(program.vertex), m_frag(program.fragment), m_render_view(render_view) {
+	set_viewport_scissor();
+	set_white_textures();
 }
 
 auto Shader::update(std::uint32_t set, std::uint32_t binding, RenderBuffer const& buffer) -> bool {
@@ -61,9 +57,7 @@ void Shader::draw(vk::CommandBuffer command_buffer, Mesh const& mesh, std::span<
 		return;
 	}
 
-	auto& instance_buffer = m_frame_renderer->get_render_device().get_scratch_buffer_cache().allocate(vk::BufferUsageFlagBits::eStorageBuffer);
-	instance_buffer.write(instances.data(), instances.size_bytes());
-	update(0, 1, instance_buffer);
+	set_view_and_instances(instances);
 
 	for (auto& [number, descriptor_set] : m_descriptor_sets) {
 		if (!descriptor_set) { continue; }
@@ -88,5 +82,47 @@ auto Shader::get_descriptor_set(std::uint32_t set) -> vk::DescriptorSet {
 	auto& descriptor_set = m_descriptor_sets[set];
 	if (!descriptor_set) { descriptor_set = pipeline_cache.get_descriptor_cache().allocate(set_layouts[set]); }
 	return descriptor_set;
+}
+
+void Shader::set_viewport_scissor() {
+	m_scissor.extent = m_frame_renderer->get_backbuffer_extent();
+	glm::vec2 const viewport = glm::uvec2{m_scissor.extent.width, m_scissor.extent.height};
+	m_viewport = vk::Viewport{0.0f, viewport.y, viewport.x, -viewport.y};
+}
+
+void Shader::set_view_and_instances(std::span<RenderInstance::Baked const> instances) {
+	auto const world_space = [&] {
+		if (m_render_view.viewport) { return *m_render_view.viewport; }
+		auto const view_extent = m_frame_renderer->get_backbuffer_extent();
+		auto const uview_extent = glm::uvec2{view_extent.width, view_extent.height};
+		return glm::vec2{uview_extent};
+	}();
+	auto const proj_xy = 0.5f * world_space;
+	auto const proj_z = m_render_view.z_plane;
+	auto const view = Std140View{
+		.view = m_render_view.transform.matrix(),
+		.projection = glm::ortho(-proj_xy.x, proj_xy.x, -proj_xy.y, proj_xy.y, proj_z.near, proj_z.far),
+	};
+	auto& view_buffer = m_frame_renderer->get_render_device().get_scratch_buffer_cache().allocate(vk::BufferUsageFlagBits::eUniformBuffer);
+	view_buffer.write(&view, sizeof(view));
+	update(set_layout_v.view_instances.set, 0, view_buffer);
+
+	auto& instances_buffer = m_frame_renderer->get_render_device().get_scratch_buffer_cache().allocate(vk::BufferUsageFlagBits::eStorageBuffer);
+	instances_buffer.write(instances.data(), instances.size_bytes());
+	update(set_layout_v.view_instances.set, 1, instances_buffer);
+}
+
+void Shader::set_white_textures() {
+	auto descriptor_set = get_descriptor_set(set_layout_v.textures.set);
+	auto const [image_view, sampler] = m_frame_renderer->get_white_texture().combined_image_sampler();
+	auto const dii = vk::DescriptorImageInfo{sampler, image_view, vk::ImageLayout::eShaderReadOnlyOptimal};
+	auto wdss = std::array<vk::WriteDescriptorSet, set_layout_v.textures.bindings.size()>{};
+	for (std::size_t binding = 0; binding < wdss.size(); ++binding) {
+		auto const type = set_layout_v.textures.bindings.at(binding);
+		auto& wds = wdss.at(binding);
+		wds = vk::WriteDescriptorSet{descriptor_set, static_cast<std::uint32_t>(binding), 0, 1, type};
+		wds.pImageInfo = &dii;
+	}
+	m_frame_renderer->get_render_device().get_device().updateDescriptorSets(wdss, {});
 }
 } // namespace bave
