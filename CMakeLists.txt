@@ -13,9 +13,15 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   set(is_root_project TRUE)
 endif()
 
+set(build_tests ${is_root_project})
+
+if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  set(build_tests FALSE)
+endif()
+
 option(BAVE_USE_PCH "Use PCH for bave builds" ON)
 option(BAVE_BUILD_EXAMPLE "Build bave example" ${is_root_project})
-option(BAVE_BUILD_TESTS "Build bave example" ${is_root_project})
+option(BAVE_BUILD_TESTS "Build bave tests" ${build_tests})
 
 # TODO: set ON
 option(BAVE_USE_FREETYPE "Use freetype for text rendering in bave" OFF)
@@ -34,6 +40,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL Clang OR CMAKE_CXX_COMPILER_ID STREQUAL GNU)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL MSVC)
   target_compile_options(${project_prefix}-compile-options INTERFACE
     $<$<NOT:$<CONFIG:Debug>>:/WX>
+    /MP
   )
   target_compile_definitions(${project_prefix}-compile-options PRIVATE
     _AMD64_

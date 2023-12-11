@@ -3,7 +3,7 @@
 #include <bave/game.hpp>
 
 namespace bave {
-App::App(std::string tag) : m_log(std::move(tag)), m_game_factory([](App& app) { return std::make_unique<Game>(app); }) {}
+App::App(std::string tag) : m_log{std::move(tag)}, m_game_factory([](App& app) { return std::make_unique<Game>(app); }) {}
 
 void App::set_game_factory(std::function<std::unique_ptr<class Game>(App&)> game_factory) {
 	if (!game_factory) { return; }

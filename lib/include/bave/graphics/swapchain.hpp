@@ -29,7 +29,9 @@ struct Swapchain {
 
 	static constexpr auto srgb_formats_v = std::array{vk::Format::eR8G8B8A8Srgb, vk::Format::eB8G8R8A8Srgb, vk::Format::eA8B8G8R8SrgbPack32};
 
-	static constexpr auto is_srgb_format(vk::Format const format) { return std::ranges::find(srgb_formats_v, format) != srgb_formats_v.end(); }
+	static constexpr auto is_srgb_format(vk::Format const format) {
+		return std::find(srgb_formats_v.begin(), srgb_formats_v.end(), format) != srgb_formats_v.end();
+	}
 
 	void make_create_info(vk::SurfaceKHR surface, std::uint32_t queue_family, ColourSpace colour_space);
 

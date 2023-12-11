@@ -1,0 +1,4 @@
+notes
+======
+- [ ] autoscaling view to static world size
+	- problem: fonts / text

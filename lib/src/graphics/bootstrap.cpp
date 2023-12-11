@@ -140,7 +140,7 @@ auto make_device(Gpu const& gpu) -> vk::UniqueDevice {
 	auto const available_extensions = gpu.device.enumerateDeviceExtensionProperties();
 	for (auto const* ext : required_extensions_v) {
 		auto const found = [ext](vk::ExtensionProperties const& props) { return std::string_view{props.extensionName} == ext; };
-		if (std::ranges::find_if(available_extensions, found) == available_extensions.end()) {
+		if (std::find_if(available_extensions.begin(), available_extensions.end(), found) == available_extensions.end()) {
 			throw Error{"Required extension '{}' not supported by selected GPU '{}'", ext, gpu.properties.deviceName.data()};
 		}
 	}
