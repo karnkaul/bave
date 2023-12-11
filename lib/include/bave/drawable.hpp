@@ -4,6 +4,7 @@
 #include <bave/graphics/mesh.hpp>
 #include <bave/graphics/render_instance.hpp>
 #include <bave/graphics/set_layout.hpp>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -15,11 +16,11 @@ class Drawable : public Polymorphic {
 	void draw(vk::CommandBuffer command_buffer) const;
 
 	std::string vertex_shader{"shaders/default.vert"};
-	std::string fragment_shader{"shaders/default.vert"};
+	std::string fragment_shader{"shaders/default.frag"};
 
 	Transform transform{};
 	Rgba tint{};
-	std::array<Ptr<Texture const>, SetLayout::max_textures_v> textures{};
+	std::array<std::shared_ptr<Texture const>, SetLayout::max_textures_v> textures{};
 
 	std::vector<RenderInstance> instances{};
 

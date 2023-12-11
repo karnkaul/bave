@@ -1,7 +1,6 @@
 #pragma once
 #include <bave/game.hpp>
-#include <bave/graphics/mesh.hpp>
-#include <bave/graphics/texture.hpp>
+#include <bave/shape.hpp>
 
 class Flappy : public bave::Game {
 	void tick() final;
@@ -10,8 +9,7 @@ class Flappy : public bave::Game {
 	bave::Logger m_log{"Flappy"};
 	bave::Seconds m_elapsed{};
 
-	bave::Mesh m_mesh;
-	bave::Texture m_texture;
+	bave::QuadShape m_quad;
 
 	float m_clear_red{};
 

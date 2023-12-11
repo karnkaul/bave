@@ -50,17 +50,19 @@ void Shader::update_textures(std::span<ImageSampler const, SetLayout::max_textur
 	auto descriptor_set = get_descriptor_set(set_layout_v.textures.set);
 	auto diis = std::array<vk::DescriptorImageInfo, SetLayout::max_textures_v>{};
 	auto wdss = std::array<vk::WriteDescriptorSet, SetLayout::max_textures_v>{};
+	auto size = std::size_t{};
 	for (std::size_t binding = 0; binding < wdss.size(); ++binding) {
 		auto const [image_view, sampler] = combined_image_samplers[binding];
 		if (!image_view || !sampler) { continue; }
 		auto const type = set_layout_v.textures.bindings.at(binding);
-		auto& dii = diis.at(binding);
+		auto& dii = diis.at(size);
 		dii = {sampler, image_view, vk::ImageLayout::eShaderReadOnlyOptimal};
-		auto& wds = wdss.at(binding);
+		auto& wds = wdss.at(size);
 		wds = vk::WriteDescriptorSet{descriptor_set, static_cast<std::uint32_t>(binding), 0, 1, type};
 		wds.pImageInfo = &dii;
+		++size;
 	}
-	m_frame_renderer->get_render_device().get_device().updateDescriptorSets(wdss, {});
+	m_frame_renderer->get_render_device().get_device().updateDescriptorSets(std::span{wdss.data(), size}, {});
 }
 
 void Shader::draw(vk::CommandBuffer command_buffer, Mesh const& mesh, std::span<RenderInstance::Baked const> instances) {

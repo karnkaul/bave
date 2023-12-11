@@ -4,8 +4,6 @@
 
 `bave` is a simple 2D engine written in C++20* and Vulkan.
 
-> _*As of 2023-12-11, Android and MacOS clang don't have full library support for C++20 (eg `std::format`, `std::ranges`, etc). Usage of such features has been avoided in the library._
-
 ## Features
 
 - [x] Desktop / Android support.
@@ -13,7 +11,7 @@
 - [x] Double buffered render resources.
 - [x] Meshes and textures.
 - [x] Shaders, optional custom descriptor sets (but fixed layout).
-- [ ] `Drawable` API.
+- [x] `Drawable` API.
 
 ## Requirements
 
@@ -33,6 +31,8 @@
 - (Optional but highly recommended) Vulkan SDK and/or validation layers.
   - Android validation layers are downloaded by the example, feel free to copy them / the script into your project.
   - `bave` vendors Vulkan headers and loads functions at runtime, so the SDK / loader is not needed at build time.
+
+> _*Usage of C++20 library features absent from Android and MacOS clang (eg `std::format`, `std::ranges`, etc) has been avoided throughout the library._
 
 ## Example
 

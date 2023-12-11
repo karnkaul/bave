@@ -9,58 +9,16 @@
 #include <vector>
 
 namespace bave {
-struct Quad {
-	glm::vec2 size{1.0f};
-	UvRect uv{uv_rect_v};
-	Rgba rgba{white_v};
-	glm::vec3 origin{};
-
-	auto operator==(Quad const&) const -> bool = default;
-};
-
-struct Circle {
-	static constexpr int resolution_v{128};
-
-	float diameter{1.0f};
-	int resolution{resolution_v};
-	Rgba rgba{white_v};
-	glm::vec3 origin{};
-
-	auto operator==(Circle const&) const -> bool = default;
-};
-
-struct RoundedQuad : Quad {
-	float corner_radius{0.25f};
-	int corner_resolution{8};
-
-	auto operator==(RoundedQuad const&) const -> bool = default;
-};
-
-struct NineSlice {
-	struct Size {
-		glm::vec2 total{1.0f};
-		glm::vec2 top{0.25f};
-		glm::vec2 bottom{0.25f};
-
-		[[nodiscard]] auto rescaled(glm::vec2 extent) const -> Size;
-
-		auto operator==(Size const&) const -> bool = default;
-	};
-
-	Size size{};
-	UvRect top_uv{.lt = {}, .rb = glm::vec2{0.25f}};
-	UvRect bottom_uv{.lt = glm::vec2{0.75f}, .rb = glm::vec2{1.0f}};
-	Rgba rgba{white_v};
-	glm::vec3 origin{};
-
-	auto operator==(NineSlice const&) const -> bool = default;
-};
-
 struct Vertex {
 	glm::vec2 position{};
 	glm::vec2 uv{};
 	glm::vec4 rgba{1.0f};
 };
+
+struct Quad;
+struct Circle;
+struct RoundedQuad;
+struct NineSlice;
 
 struct Geometry {
 	std::vector<Vertex> vertices{};
@@ -79,5 +37,63 @@ struct Geometry {
 		ret.append(shape);
 		return ret;
 	}
+};
+
+struct Quad {
+	static constexpr auto size_v = glm::vec2{200.0f};
+
+	glm::vec2 size{size_v};
+	UvRect uv{uv_rect_v};
+	Rgba rgba{white_v};
+	glm::vec3 origin{};
+
+	[[nodiscard]] auto to_geometry() const -> Geometry { return Geometry::from(*this); }
+
+	auto operator==(Quad const&) const -> bool = default;
+};
+
+struct Circle {
+	static constexpr int resolution_v{128};
+	static constexpr auto diameter_v{200.0f};
+
+	float diameter{diameter_v};
+	int resolution{resolution_v};
+	Rgba rgba{white_v};
+	glm::vec3 origin{};
+
+	[[nodiscard]] auto to_geometry() const -> Geometry;
+
+	auto operator==(Circle const&) const -> bool = default;
+};
+
+struct RoundedQuad : Quad {
+	float corner_radius{0.25f * size_v.x};
+	int corner_resolution{8};
+
+	[[nodiscard]] auto to_geometry() const -> Geometry { return Geometry::from(*this); }
+
+	auto operator==(RoundedQuad const&) const -> bool = default;
+};
+
+struct NineSlice {
+	struct Size {
+		glm::vec2 total{Quad::size_v};
+		glm::vec2 top{0.25f * Quad::size_v};
+		glm::vec2 bottom{0.25f * Quad::size_v};
+
+		[[nodiscard]] auto rescaled(glm::vec2 extent) const -> Size;
+
+		auto operator==(Size const&) const -> bool = default;
+	};
+
+	Size size{};
+	UvRect top_uv{.lt = {}, .rb = glm::vec2{0.25f}};
+	UvRect bottom_uv{.lt = glm::vec2{0.75f}, .rb = glm::vec2{1.0f}};
+	Rgba rgba{white_v};
+	glm::vec3 origin{};
+
+	[[nodiscard]] auto to_geometry() const -> Geometry { return Geometry::from(*this); }
+
+	auto operator==(NineSlice const&) const -> bool = default;
 };
 } // namespace bave
