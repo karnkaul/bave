@@ -1,0 +1,42 @@
+name: ci
+on: [push]
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: init
+        run: sudo apt update -yqq && sudo apt install -yqq ninja-build xorg-dev g++-13 clang-15
+      - name: configure gcc
+        run: |
+          cmake -S . --preset=default -B build -DBAVE_USE_FREETYPE=OFF -DCAPO_USE_OPENAL=OFF -DCMAKE_CXX_COMPILER=g++-13
+          touch build/build.ninja build/CMakeFiles/impl-Debug.ninja build/CMakeFiles/VerifyGlobs.cmake_force
+      - name: build gcc
+        run: cmake --build build --config=Release -- -d explain
+      - name: test
+        run: cd build && ctest -C Release
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: configure
+        run: cmake -S . --preset=vs22 -B build -DBAVE_USE_FREETYPE=OFF -DCAPO_USE_OPENAL=OFF
+      - name: build
+        run: cmake --build build --config=Release
+      - name: test
+        run: cd build && ctest -C Release
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: init
+        run: |
+          brew install ninja
+      - name: configure
+        run: |
+          cmake -S . --preset=default -B build -DBAVE_USE_FREETYPE=OFF -DCAPO_USE_OPENAL=OFF
+          touch build/build.ninja build/CMakeFiles/impl-Debug.ninja build/CMakeFiles/VerifyGlobs.cmake_force
+      - name: build
+        run: cmake --build build --config=Release
+      - name: test
+        run: cd build && ctest -C Release

@@ -4,7 +4,7 @@
 #include <span>
 
 namespace bave {
-constexpr struct SetLayout {
+struct SetLayout {
 	template <std::size_t Bindings>
 	struct Set {
 		std::uint32_t set{};
@@ -30,7 +30,9 @@ constexpr struct SetLayout {
 		.set = 2,
 		.bindings = {vk::DescriptorType::eUniformBuffer, vk::DescriptorType::eStorageBuffer},
 	};
-} set_layout_v{};
+};
+
+constexpr auto set_layout_v = SetLayout{};
 
 class PipelineCache {
   public:
