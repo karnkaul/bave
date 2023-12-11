@@ -61,7 +61,7 @@ void Flappy::render(vk::CommandBuffer command_buffer) const {
 		shader->update(1, 0, m_texture.combined_image_sampler());
 		auto const instances = std::array{
 			bave::RenderInstance::Baked{.transform = glm::mat4{1.0f}, .rgba = glm::vec4{1.0f}},
-			bave::RenderInstance{.transform = bave::Transform{.position = glm::vec2{400.0f}}, .rgba = bave::yellow_v}.bake(),
+			bave::RenderInstance{.transform = bave::Transform{.position = glm::vec2{400.0f}}, .tint = bave::yellow_v}.bake(),
 		};
 		shader->draw(command_buffer, m_mesh, instances);
 	}

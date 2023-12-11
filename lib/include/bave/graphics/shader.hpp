@@ -4,6 +4,7 @@
 #include <bave/graphics/mesh.hpp>
 #include <bave/graphics/render_instance.hpp>
 #include <bave/graphics/render_view.hpp>
+#include <bave/graphics/set_layout.hpp>
 #include <bave/logger.hpp>
 #include <map>
 
@@ -18,7 +19,9 @@ class Shader {
 	explicit Shader(NotNull<class FrameRenderer const*> frame_renderer, Program program, RenderView render_view);
 
 	auto update(std::uint32_t set, std::uint32_t binding, RenderBuffer const& buffer) -> bool;
-	auto update(std::uint32_t set, std::uint32_t binding, ImageSampler combined_image_sampler, std::uint32_t index = 0) -> bool;
+	auto update(std::uint32_t set, std::uint32_t binding, ImageSampler combined_image_sampler) -> bool;
+
+	void update_textures(std::span<ImageSampler const, SetLayout::max_textures_v> combined_image_samplers);
 
 	void draw(vk::CommandBuffer command_buffer, Mesh const& mesh, std::span<RenderInstance::Baked const> instances);
 

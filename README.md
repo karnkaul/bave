@@ -13,7 +13,7 @@
 - [x] Double buffered render resources.
 - [x] Meshes and textures.
 - [x] Shaders, optional custom descriptor sets (but fixed layout).
-- [ ] `Renderable` API.
+- [ ] `Drawable` API.
 
 ## Requirements
 

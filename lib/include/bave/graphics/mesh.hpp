@@ -8,6 +8,8 @@ class Mesh {
   public:
 	explicit Mesh(NotNull<RenderDevice*> render_device);
 
+	[[nodiscard]] auto get_render_device() const -> RenderDevice const& { return *m_render_device; }
+
 	[[nodiscard]] auto get_vertex_count() const -> std::uint32_t { return m_verts; }
 	[[nodiscard]] auto get_index_count() const -> std::uint32_t { return m_indices; }
 
