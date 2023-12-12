@@ -65,4 +65,14 @@ auto App::make_game() -> std::unique_ptr<Game> {
 	assert(m_game_factory);
 	return m_game_factory(*this);
 }
+
+auto App::screen_to_framebuffer(glm::vec2 const position) const -> glm::vec2 {
+	glm::vec2 const window_size = get_window_size();
+	if (window_size.x <= 0.0f || window_size.y <= 0.0f) { return position; }
+
+	auto const offset = 0.5f * window_size;
+	auto const centred = glm::vec2{position.x - offset.x, offset.y - position.y};
+	auto const normalized = centred / window_size;
+	return normalized * render_view.viewport.value_or(get_framebuffer_size());
+}
 } // namespace bave
