@@ -7,7 +7,7 @@ namespace {
 constexpr auto world_space_v = glm::vec2{1440.0f, 2560.0f};
 }
 
-Flappy::Flappy(bave::App& app) : Game(app), m_quad(&app) {
+Flappy::Flappy(bave::App& app) : Game(app), m_quad(&app.get_render_device()) {
 	// m_quad.set_shape(bave::Quad{.size = glm::vec2{300.0f}});
 
 	m_quad.instances = {
@@ -82,6 +82,8 @@ void Flappy::tick() {
 }
 
 void Flappy::render(vk::CommandBuffer command_buffer) const {
-	m_quad.draw(command_buffer);
-	//
+	if (auto shader = get_app().load_shader("shaders/default.vert", "shaders/default.frag")) {
+		m_quad.draw(*shader, command_buffer);
+		//
+	}
 }

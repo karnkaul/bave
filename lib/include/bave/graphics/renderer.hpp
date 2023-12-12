@@ -5,15 +5,16 @@
 #include <bave/graphics/device_blocker.hpp>
 #include <bave/graphics/render_device.hpp>
 #include <bave/graphics/render_resource.hpp>
+#include <bave/graphics/render_view.hpp>
 #include <bave/graphics/rgba.hpp>
 #include <bave/graphics/texture.hpp>
 #include <bave/transform.hpp>
 #include <optional>
 
 namespace bave {
-class FrameRenderer : public Pinned {
+class Renderer : public Pinned {
   public:
-	explicit FrameRenderer(NotNull<RenderDevice*> render_device, NotNull<DataStore const*> data_store);
+	explicit Renderer(NotNull<RenderDevice*> render_device, NotNull<DataStore const*> data_store, NotNull<RenderView const*> render_view);
 
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return *m_render_device; }
 	[[nodiscard]] auto get_frame_index() const -> FrameIndex { return m_render_device->get_frame_index(); }
@@ -29,6 +30,8 @@ class FrameRenderer : public Pinned {
 	[[nodiscard]] auto or_white(Ptr<Texture const> texture) const -> Texture const& { return texture != nullptr ? *texture : m_white; }
 
 	[[nodiscard]] auto get_backbuffer_extent() const -> vk::Extent2D;
+
+	NotNull<RenderView const*> render_view;
 
   private:
 	struct Frame {

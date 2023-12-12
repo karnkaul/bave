@@ -34,21 +34,21 @@ class RenderBuffer : public RenderResource {
 	[[nodiscard]] auto get_capacity() const -> vk::DeviceSize { return m_capacity; }
 	[[nodiscard]] auto get_size() const -> vk::DeviceSize { return m_size; }
 
-	auto resize(std::size_t new_capacity) -> void;
+	auto resize(vk::DeviceSize new_capacity) -> void;
 
 	[[nodiscard]] auto get_mapped() const -> void const* { return m_mapped; }
 	[[nodiscard]] auto get_mapped() -> void* { return m_mapped; }
 
-	auto write(void const* data, std::size_t size) -> void;
+	auto write(void const* data, vk::DeviceSize size) -> void;
 
 	operator vk::Buffer() const { return get_buffer(); }
 
   protected:
 	NotNull<RenderDevice*> m_render_device;
+	ScopedResource<vk::Buffer, Deleter> m_buffer{};
 	vk::BufferUsageFlags m_usage{};
 	vk::DeviceSize m_capacity{};
-	ScopedResource<vk::Buffer, Deleter> m_buffer{};
-	std::size_t m_size{};
+	vk::DeviceSize m_size{};
 	void* m_mapped{};
 };
 

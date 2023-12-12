@@ -92,9 +92,9 @@ auto DesktopApp::do_get_render_device() const -> RenderDevice& {
 	return *m_render_device;
 }
 
-auto DesktopApp::do_get_frame_renderer() const -> FrameRenderer& {
-	if (!m_frame_renderer) { throw Error{"Dereferencing null FrameRenderer"}; }
-	return *m_frame_renderer;
+auto DesktopApp::do_get_renderer() const -> Renderer& {
+	if (!m_renderer) { throw Error{"Dereferencing null FrameRenderer"}; }
+	return *m_renderer;
 }
 
 auto DesktopApp::get_instance_extensions() const -> std::span<char const* const> {
@@ -165,8 +165,8 @@ void DesktopApp::make_window() {
 
 void DesktopApp::init_graphics() {
 	m_render_device = std::make_unique<RenderDevice>(this);
-	m_frame_renderer = std::make_unique<FrameRenderer>(m_render_device.get(), &get_data_store());
-	m_dear_imgui = std::make_unique<DearImGui>(m_window.get(), *m_render_device, m_frame_renderer->get_render_pass());
+	m_renderer = std::make_unique<Renderer>(m_render_device.get(), &get_data_store(), &render_view);
+	m_dear_imgui = std::make_unique<DearImGui>(m_window.get(), *m_render_device, m_renderer->get_render_pass());
 }
 
 void DesktopApp::poll_events() { glfwPollEvents(); }
@@ -180,11 +180,11 @@ void DesktopApp::tick() {
 
 void DesktopApp::render() {
 	m_dear_imgui->end_frame();
-	auto command_buffer = m_frame_renderer->start_render(m_game->clear_colour);
+	auto command_buffer = m_renderer->start_render(m_game->clear_colour);
 	if (command_buffer) {
 		m_game->render(command_buffer);
 		m_dear_imgui->render(command_buffer);
 	}
-	m_frame_renderer->finish_render();
+	m_renderer->finish_render();
 }
 } // namespace bave

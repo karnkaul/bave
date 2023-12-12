@@ -5,8 +5,8 @@
 namespace bave {
 namespace {
 auto make_descriptor_pool(vk::Device device) -> vk::UniqueDescriptorPool {
-	static constexpr std::uint32_t descriptor_count_v{8};
-	static constexpr std::uint32_t max_sets_v{8};
+	static constexpr std::uint32_t descriptor_count_v{16};
+	static constexpr std::uint32_t max_sets_v{256};
 
 	auto const pool_sizes = std::array{
 		vk::DescriptorPoolSize{vk::DescriptorType::eCombinedImageSampler, descriptor_count_v},

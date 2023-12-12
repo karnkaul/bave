@@ -1,7 +1,15 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
+#include <cstdint>
 
 namespace bave {
+template <std::size_t Count>
+constexpr auto make_bindings(vk::DescriptorType const type) -> std::array<vk::DescriptorType, Count> {
+	auto ret = std::array<vk::DescriptorType, Count>{};
+	for (auto& out_type : ret) { out_type = type; }
+	return ret;
+}
+
 struct SetLayout {
 	template <std::size_t Bindings>
 	struct Set {
@@ -11,18 +19,15 @@ struct SetLayout {
 
 	static constexpr std::uint32_t max_textures_v{4};
 
-	static constexpr auto make_textures_set(std::uint32_t const set) -> Set<max_textures_v> {
-		auto ret = Set<max_textures_v>{.set = set};
-		for (auto& type : ret.bindings) { type = vk::DescriptorType::eCombinedImageSampler; }
-		return ret;
-	}
-
 	Set<2> view_instances = Set<2>{
 		.set = 0,
 		.bindings = {vk::DescriptorType::eUniformBuffer, vk::DescriptorType::eStorageBuffer},
 	};
 
-	Set<max_textures_v> textures = make_textures_set(1);
+	Set<max_textures_v> textures = Set<max_textures_v>{
+		.set = 1,
+		.bindings = make_bindings<max_textures_v>(vk::DescriptorType::eCombinedImageSampler),
+	};
 
 	Set<2> buffers = Set<2>{
 		.set = 2,

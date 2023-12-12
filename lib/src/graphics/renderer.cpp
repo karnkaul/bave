@@ -1,6 +1,6 @@
 #include <bave/core/error.hpp>
-#include <bave/graphics/frame_renderer.hpp>
 #include <bave/graphics/image_barrier.hpp>
+#include <bave/graphics/renderer.hpp>
 
 namespace bave {
 namespace {
@@ -57,7 +57,7 @@ auto white_bitmap() -> Bitmap {
 }
 } // namespace
 
-auto FrameRenderer::Frame::make(RenderDevice& render_device) -> Frame {
+auto Renderer::Frame::make(RenderDevice& render_device) -> Frame {
 	auto ret = Frame{};
 
 	auto const device = render_device.get_device();
@@ -77,12 +77,12 @@ auto FrameRenderer::Frame::make(RenderDevice& render_device) -> Frame {
 	return ret;
 }
 
-FrameRenderer::FrameRenderer(NotNull<RenderDevice*> render_device, NotNull<DataStore const*> data_store)
-	: m_render_device(render_device), m_frame(Frame::make(*m_render_device)),
+Renderer::Renderer(NotNull<RenderDevice*> render_device, NotNull<DataStore const*> data_store, NotNull<RenderView const*> render_view)
+	: render_view(render_view), m_render_device(render_device), m_frame(Frame::make(*m_render_device)),
 	  m_pipeline_cache(std::make_unique<PipelineCache>(*m_frame.render_pass, render_device, data_store)), m_white(render_device, white_bitmap()),
 	  m_blocker(render_device->get_device()) {}
 
-auto FrameRenderer::start_render(Rgba clear_colour) -> vk::CommandBuffer {
+auto Renderer::start_render(Rgba clear_colour) -> vk::CommandBuffer {
 	auto& sync = m_frame.syncs.at(get_frame_index());
 	m_frame.render_target = m_render_device->acquire_next_image(*sync.drawn, *sync.draw);
 	if (!m_frame.render_target) { return {}; }
@@ -107,7 +107,7 @@ auto FrameRenderer::start_render(Rgba clear_colour) -> vk::CommandBuffer {
 	return sync.command_buffer;
 }
 
-auto FrameRenderer::finish_render() -> bool {
+auto Renderer::finish_render() -> bool {
 	if (!m_frame.render_target) { return false; }
 
 	auto& sync = m_frame.syncs.at(get_frame_index());
@@ -128,7 +128,7 @@ auto FrameRenderer::finish_render() -> bool {
 	return m_render_device->submit_and_present(si, *sync.drawn, *sync.present);
 }
 
-auto FrameRenderer::get_backbuffer_extent() const -> vk::Extent2D {
+auto Renderer::get_backbuffer_extent() const -> vk::Extent2D {
 	if (!m_frame.render_target) { return {}; }
 	return m_frame.render_target->extent;
 }

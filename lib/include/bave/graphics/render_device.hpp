@@ -20,8 +20,6 @@
 struct GLFWwindow;
 
 namespace bave {
-class Renderer;
-
 struct RenderDeviceCreateInfo {
 	ColourSpace swapchain_colour_space{ColourSpace::eSrgb};
 	bool validation_layers{debug_v};

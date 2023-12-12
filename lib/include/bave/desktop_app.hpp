@@ -49,7 +49,7 @@ class DesktopApp : public App, public IWsi {
 	[[nodiscard]] auto do_get_framebuffer_size() const -> glm::ivec2 final;
 
 	[[nodiscard]] auto do_get_render_device() const -> RenderDevice& final;
-	[[nodiscard]] auto do_get_frame_renderer() const -> FrameRenderer& final;
+	[[nodiscard]] auto do_get_renderer() const -> Renderer& final;
 
 	[[nodiscard]] auto get_instance_extensions() const -> std::span<char const* const> final;
 	[[nodiscard]] auto make_surface(vk::Instance instance) const -> vk::SurfaceKHR final;
@@ -69,7 +69,7 @@ class DesktopApp : public App, public IWsi {
 	std::unique_ptr<GLFWwindow, Glfw::Deleter> m_window{};
 	std::unique_ptr<RenderDevice> m_render_device{};
 	vk::UniqueSurfaceKHR m_surface{};
-	std::unique_ptr<FrameRenderer> m_frame_renderer{};
+	std::unique_ptr<Renderer> m_renderer{};
 	std::unique_ptr<DearImGui> m_dear_imgui{};
 	std::unique_ptr<Game> m_game{};
 };

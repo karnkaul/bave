@@ -1,22 +1,16 @@
 #pragma once
-#include <bave/app.hpp>
 #include <bave/core/polymorphic.hpp>
-#include <bave/graphics/mesh.hpp>
-#include <bave/graphics/render_instance.hpp>
-#include <bave/graphics/set_layout.hpp>
+#include <bave/graphics/shader.hpp>
+#include <bave/graphics/texture.hpp>
 #include <memory>
-#include <string>
 #include <vector>
 
 namespace bave {
 class Drawable : public Polymorphic {
   public:
-	explicit Drawable(NotNull<App*> app);
+	explicit Drawable(NotNull<RenderDevice*> render_device);
 
-	void draw(vk::CommandBuffer command_buffer) const;
-
-	std::string vertex_shader{"shaders/default.vert"};
-	std::string fragment_shader{"shaders/default.frag"};
+	void draw(Shader& shader, vk::CommandBuffer command_buffer) const;
 
 	Transform transform{};
 	Rgba tint{};
@@ -31,8 +25,7 @@ class Drawable : public Polymorphic {
 	void bake_instances() const;
 	void update_textures(Shader& out_shader) const;
 
-	NotNull<App*> m_app;
-	mutable std::vector<RenderInstance::Baked> m_baked_instances{};
 	Mesh m_mesh;
+	mutable std::vector<RenderInstance::Baked> m_baked_instances{};
 };
 } // namespace bave

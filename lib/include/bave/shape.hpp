@@ -19,7 +19,7 @@ class CustomShape : public BasicShape {
 template <typename ShapeT>
 class Shape : public BasicShape {
   public:
-	explicit Shape(NotNull<App*> app, ShapeT const& shape = ShapeT{}) : BasicShape(app) { set_shape(shape); }
+	explicit Shape(NotNull<RenderDevice*> render_device, ShapeT const& shape = ShapeT{}) : BasicShape(render_device) { set_shape(shape); }
 
 	void set_shape(ShapeT const& shape) {
 		m_shape = shape;

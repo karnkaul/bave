@@ -68,9 +68,9 @@ auto AndroidApp::do_get_render_device() const -> RenderDevice& {
 	return *m_render_device;
 }
 
-auto AndroidApp::do_get_frame_renderer() const -> FrameRenderer& {
-	if (!m_frame_renderer) { throw Error{"Dereferencing null FrameRenderer"}; }
-	return *m_frame_renderer;
+auto AndroidApp::do_get_renderer() const -> Renderer& {
+	if (!m_renderer) { throw Error{"Dereferencing null FrameRenderer"}; }
+	return *m_renderer;
 }
 
 auto AndroidApp::get_instance_extensions() const -> std::span<char const* const> {
@@ -150,14 +150,14 @@ void AndroidApp::tick() {
 void AndroidApp::render() {
 	if (!m_can_render) { return; }
 
-	auto command_buffer = m_frame_renderer->start_render(m_game->clear_colour);
+	auto command_buffer = m_renderer->start_render(m_game->clear_colour);
 	if (command_buffer) { m_game->render(command_buffer); }
-	m_frame_renderer->finish_render();
+	m_renderer->finish_render();
 }
 
 void AndroidApp::init_graphics() {
 	m_render_device = std::make_unique<RenderDevice>(this);
-	m_frame_renderer = std::make_unique<FrameRenderer>(m_render_device.get(), &get_data_store());
+	m_renderer = std::make_unique<Renderer>(m_render_device.get(), &get_data_store(), &render_view);
 }
 
 void AndroidApp::pause_render() {
@@ -187,7 +187,7 @@ void AndroidApp::start() {
 void AndroidApp::destroy() {
 	m_render_device->get_device().waitIdle();
 	m_game.reset();
-	m_frame_renderer.reset();
+	m_renderer.reset();
 	m_render_device.reset();
 	m_can_render = false;
 	m_log.debug("destroy");

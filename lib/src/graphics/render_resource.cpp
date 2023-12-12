@@ -172,7 +172,9 @@ RenderBuffer::RenderBuffer(NotNull<RenderDevice*> render_device, vk::BufferUsage
 	resize(capacity);
 }
 
-auto RenderBuffer::resize(std::size_t new_capacity) -> void {
+auto RenderBuffer::resize(vk::DeviceSize const new_capacity) -> void {
+	if (new_capacity == 0) { return; }
+
 	auto vaci = VmaAllocationCreateInfo{};
 	vaci.usage = VMA_MEMORY_USAGE_AUTO;
 	vaci.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
@@ -194,7 +196,7 @@ auto RenderBuffer::resize(std::size_t new_capacity) -> void {
 	assert(m_mapped);
 }
 
-auto RenderBuffer::write(void const* data, std::size_t size) -> void {
+auto RenderBuffer::write(void const* data, vk::DeviceSize const size) -> void {
 	if (size > m_capacity) { resize(size); }
 	if (size > 0) { std::memcpy(m_mapped, data, size); }
 	m_size = size;

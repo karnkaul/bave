@@ -11,17 +11,13 @@
 namespace bave {
 class Shader {
   public:
-	struct Program {
-		vk::ShaderModule vertex{};
-		vk::ShaderModule fragment{};
-	};
+	explicit Shader(NotNull<class Renderer const*> renderer, vk::ShaderModule vertex, vk::ShaderModule fragment);
 
-	explicit Shader(NotNull<class FrameRenderer const*> frame_renderer, Program program, RenderView render_view);
-
-	auto update(std::uint32_t set, std::uint32_t binding, RenderBuffer const& buffer) -> bool;
-	auto update(std::uint32_t set, std::uint32_t binding, ImageSampler combined_image_sampler) -> bool;
-
+	auto update_texture(ImageSampler combined_image_sampler, std::uint32_t binding = 0) -> bool;
 	void update_textures(std::span<ImageSampler const, SetLayout::max_textures_v> combined_image_samplers);
+
+	auto write_ubo(void const* data, vk::DeviceSize size) -> bool;
+	auto write_ssbo(void const* data, vk::DeviceSize size) -> bool;
 
 	void draw(vk::CommandBuffer command_buffer, Mesh const& mesh, std::span<RenderInstance::Baked const> instances);
 
@@ -32,16 +28,27 @@ class Shader {
   private:
 	auto get_descriptor_set(std::uint32_t set) -> vk::DescriptorSet;
 
+	[[nodiscard]] auto allocate_scratch(vk::BufferUsageFlagBits usage) const -> RenderBuffer&;
+
+	auto update(vk::DescriptorSet descriptor_set, std::uint32_t binding, RenderBuffer const& buffer) -> bool;
+
+	template <vk::BufferUsageFlagBits Usage>
+	auto write(vk::DescriptorSet set, std::uint32_t binding, void const* data, vk::DeviceSize size) -> bool {
+		auto& scratch_buffer = allocate_scratch(Usage);
+		scratch_buffer.write(data, size);
+		return update(set, binding, scratch_buffer);
+	}
+
 	void set_viewport_scissor();
-	void set_view_and_instances(std::span<RenderInstance::Baked const> instances);
+	void write_view_and_instances(std::span<RenderInstance::Baked const> instances);
 	void set_white_textures();
+	void set_blank_buffers();
 
 	Logger m_log{"Shader"};
 
-	NotNull<FrameRenderer const*> m_frame_renderer;
+	NotNull<Renderer const*> m_renderer;
 	vk::ShaderModule m_vert{};
 	vk::ShaderModule m_frag{};
-	RenderView m_render_view{};
 
 	std::map<std::uint32_t, vk::DescriptorSet> m_descriptor_sets{};
 	vk::Viewport m_viewport{};
