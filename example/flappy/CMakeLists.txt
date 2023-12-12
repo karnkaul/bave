@@ -1,5 +1,7 @@
 project(bave-flappy)
 
+option(BAVE_BUILD_SHADERS "Build shaders using glslc (if available)" ON)
+
 add_library(${PROJECT_NAME})
 add_library(bave::flappy ALIAS bave-flappy)
 
@@ -19,18 +21,24 @@ target_sources(${PROJECT_NAME} PRIVATE
 
 file(MAKE_DIRECTORY ../assets/shaders)
 
-find_program(glslc glslc)
+if(BAVE_BUILD_SHADERS)
+  find_program(glslc glslc)
 
-add_custom_target(glsl2spirv ALL
-  COMMENT "Building shaders"
-  WORKING_DIRECTORY .
+  if("${glslc}" STREQUAL "glslc-NOTFOUND")
+    message(FATAL_ERROR "Cannot build shaders: glslc not found")
+  endif()
 
-  COMMAND ${glslc} glsl/default.vert -o ../assets/shaders/default.vert.spv
-  COMMAND ${glslc} glsl/default.frag -o ../assets/shaders/default.frag.spv
+  add_custom_target(glsl2spirv ALL
+    COMMENT "Building shaders"
+    WORKING_DIRECTORY .
 
-  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    COMMAND ${glslc} glsl/default.vert -o ../assets/shaders/default.vert.spv
+    COMMAND ${glslc} glsl/default.frag -o ../assets/shaders/default.frag.spv
 
-  VERBATIM USES_TERMINAL
-)
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 
-add_dependencies(${PROJECT_NAME} glsl2spirv)
+    VERBATIM USES_TERMINAL
+  )
+
+  add_dependencies(${PROJECT_NAME} glsl2spirv)
+endif()
