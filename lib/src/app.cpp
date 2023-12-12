@@ -73,6 +73,6 @@ auto App::screen_to_framebuffer(glm::vec2 const position) const -> glm::vec2 {
 	auto const offset = 0.5f * window_size;
 	auto const centred = glm::vec2{position.x - offset.x, offset.y - position.y};
 	auto const normalized = centred / window_size;
-	return normalized * render_view.viewport.value_or(get_framebuffer_size());
+	return normalized * glm::vec2{get_framebuffer_size()};
 }
 } // namespace bave

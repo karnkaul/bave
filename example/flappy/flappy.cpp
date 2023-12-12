@@ -1,6 +1,11 @@
 #include <bave/extent_scaler.hpp>
+#include <bave/projector.hpp>
 #include <flappy.hpp>
 #include <cmath>
+
+namespace {
+constexpr auto world_space_v = glm::vec2{1440.0f, 2560.0f};
+}
 
 Flappy::Flappy(bave::App& app) : Game(app), m_quad(&app) {
 	// m_quad.set_shape(bave::Quad{.size = glm::vec2{300.0f}});
@@ -24,10 +29,12 @@ Flappy::Flappy(bave::App& app) : Game(app), m_quad(&app) {
 	texture->sampler.min = texture->sampler.mag = bave::Sampler::Filter::eNearest;
 	m_quad.set_texture(std::move(texture));
 
-	get_app().render_view.viewport = bave::ExtentScaler{.source = get_app().get_framebuffer_size()}.match_width({1440.0f, 2560.0f});
+	get_app().render_view.viewport = bave::ExtentScaler{.source = get_app().get_framebuffer_size()}.match_width(world_space_v);
 }
 
 void Flappy::tick() {
+	auto prev_pointer = m_pointer;
+
 	for (auto const& event : get_app().get_events()) {
 		if (auto const* focus_change = std::get_if<bave::FocusChange>(&event)) {
 			m_log.info("focus {}", focus_change->in_focus ? "gained" : "lost");
@@ -48,12 +55,23 @@ void Flappy::tick() {
 
 		if (auto const* mouse_click = std::get_if<bave::MouseClick>(&event)) {
 			m_log.info("tap {} at {}x{}", (mouse_click->action == bave::Action::eRelease ? "up" : "down"), mouse_click->position.x, mouse_click->position.y);
+			if (mouse_click->id == 0) {
+				m_drag = mouse_click->action == bave::Action::ePress;
+				prev_pointer = m_pointer = mouse_click->position;
+			}
 		}
+
+		if (auto const* mouse_move = std::get_if<bave::CursorMove>(&event)) { m_pointer = mouse_move->position; }
 	}
 
 	m_elapsed += get_app().get_dt();
 	m_clear_red = 0.5f * std::sin(m_elapsed.count()) + 0.5f;
 	clear_colour = bave::Rgba::from({m_clear_red, 0.0f, 0.0f, 1.0f});
+
+	if (m_drag) {
+		auto const delta = bave::Projector{.source = get_app().get_framebuffer_size(), .target = world_space_v}(m_pointer - prev_pointer);
+		get_app().render_view.transform.position += delta;
+	}
 
 	IFBAVEIMGUI({
 		ImGui::ShowDemoWindow();
