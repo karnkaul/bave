@@ -152,12 +152,14 @@ void DesktopApp::make_window() {
 		push(window, KeyInput{.key = static_cast<Key>(key), .action = to_action(action), .mods = to_mods(mods), .scancode = scancode});
 	});
 	glfwSetCharCallback(m_window.get(), [](Ptr<GLFWwindow> window, std::uint32_t code) { push(window, CharInput{.code = code}); });
-	glfwSetCursorPosCallback(m_window.get(), [](Ptr<GLFWwindow> window, double x, double y) { push(window, CursorMove{.position = {x, y}}); });
+	glfwSetCursorPosCallback(m_window.get(), [](Ptr<GLFWwindow> window, double x, double y) {
+		push(window, CursorMove{.position = self(window).screen_to_framebuffer({x, y})});
+	});
 	glfwSetScrollCallback(m_window.get(), [](Ptr<GLFWwindow> window, double x, double y) { push(window, MouseScroll{.delta = {x, y}}); });
 	glfwSetMouseButtonCallback(m_window.get(), [](Ptr<GLFWwindow> window, int button, int action, int mods) {
 		auto position = glm::dvec2{};
 		glfwGetCursorPos(window, &position.x, &position.y);
-		push(window, MouseClick{.id = button, .action = to_action(action), .mods = to_mods(mods), .position = position});
+		push(window, MouseClick{.id = button, .action = to_action(action), .mods = to_mods(mods), .position = self(window).screen_to_framebuffer(position)});
 	});
 }
 

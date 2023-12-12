@@ -1,5 +1,5 @@
 #pragma once
-#include <glm/vec2.hpp>
+#include <bave/core/is_positive.hpp>
 
 namespace bave {
 ///
@@ -7,8 +7,6 @@ namespace bave {
 ///
 struct ExtentScaler {
 	glm::vec2 source{};
-
-	[[nodiscard]] static constexpr auto is_positive(glm::vec2 const extent) -> bool { return extent.x > 0.0f && extent.y > 0.0f; }
 
 	[[nodiscard]] static constexpr auto aspect_ratio(glm::vec2 const extent) -> float {
 		if (!is_positive(extent)) { return {}; }

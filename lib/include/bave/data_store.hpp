@@ -23,7 +23,7 @@ class DataStore : public Polymorphic {
 	[[nodiscard]] auto get_prefix() const -> std::string_view { return m_prefix; }
 	[[nodiscard]] auto make_full_path(std::string_view uri) const -> std::string;
 
-	[[nodiscard]] auto to_spir_v(std::string_view glsl, bool try_compile = true) const -> std::string;
+	[[nodiscard]] auto to_spir_v(std::string_view glsl) const -> std::string;
 
   protected:
 	std::string m_prefix{};

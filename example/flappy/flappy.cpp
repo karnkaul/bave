@@ -1,9 +1,18 @@
-#include <bave/graphics/extent_scaler.hpp>
+#include <bave/extent_scaler.hpp>
+#include <bave/projector.hpp>
 #include <flappy.hpp>
 #include <cmath>
 
-Flappy::Flappy(bave::App& app) : Game(app), m_mesh(&app.get_render_device()), m_texture(&app.get_render_device()) {
-	m_mesh.write(bave::Geometry::from(bave::Quad{.size = glm::vec2{300.0f}}));
+namespace {
+constexpr auto world_space_v = glm::vec2{1440.0f, 2560.0f};
+}
+
+Flappy::Flappy(bave::App& app) : Game(app), m_quad(&app) {
+	// m_quad.set_shape(bave::Quad{.size = glm::vec2{300.0f}});
+
+	m_quad.instances = {
+		bave::RenderInstance{.transform = bave::Transform{.position = glm::vec2{400.0f}, .rotation = bave::Degrees{15.0f}}, .tint = bave::yellow_v},
+	};
 
 	auto pixels = std::array<std::uint32_t, 4>{
 		0xff0000ff,
@@ -15,13 +24,17 @@ Flappy::Flappy(bave::App& app) : Game(app), m_mesh(&app.get_render_device()), m_
 		.bytes = {reinterpret_cast<std::byte const*>(pixels.data()), pixels.size() * sizeof(pixels[0])},
 		.extent = {2, 2},
 	};
-	m_texture.write(bitmap);
-	m_texture.sampler.min = m_texture.sampler.mag = bave::Sampler::Filter::eNearest;
+	auto texture = std::make_shared<bave::Texture>(&app.get_render_device());
+	texture->write(bitmap);
+	texture->sampler.min = texture->sampler.mag = bave::Sampler::Filter::eNearest;
+	m_quad.set_texture(std::move(texture));
 
-	get_app().render_view.viewport = bave::ExtentScaler{.source = get_app().get_framebuffer_size()}.match_width({1440.0f, 2560.0f});
+	get_app().render_view.viewport = bave::ExtentScaler{.source = get_app().get_framebuffer_size()}.match_width(world_space_v);
 }
 
 void Flappy::tick() {
+	auto prev_pointer = m_pointer;
+
 	for (auto const& event : get_app().get_events()) {
 		if (auto const* focus_change = std::get_if<bave::FocusChange>(&event)) {
 			m_log.info("focus {}", focus_change->in_focus ? "gained" : "lost");
@@ -40,14 +53,27 @@ void Flappy::tick() {
 			}
 		}
 
-		if (auto const* mouse_click = std::get_if<bave::MouseClick>(&event)) {
-			m_log.info("tap {} at {}x{}", (mouse_click->action == bave::Action::eRelease ? "up" : "down"), mouse_click->position.x, mouse_click->position.y);
+		if (auto const* tap = std::get_if<bave::MouseClick>(&event)) {
+			m_log.info("tap {} at {}x{}", (tap->action == bave::Action::eRelease ? "up" : "down"), tap->position.x, tap->position.y);
+			if (tap->id == 0) {
+				m_drag = tap->action == bave::Action::ePress;
+				prev_pointer = m_pointer = tap->position;
+			}
 		}
+
+		if (auto const* cursor_move = std::get_if<bave::CursorMove>(&event)) { m_pointer = cursor_move->position; }
 	}
 
 	m_elapsed += get_app().get_dt();
 	m_clear_red = 0.5f * std::sin(m_elapsed.count()) + 0.5f;
 	clear_colour = bave::Rgba::from({m_clear_red, 0.0f, 0.0f, 1.0f});
+
+	m_quad.instances.front().transform.rotation.value += bave::Degrees{get_app().get_dt().count() * 10.0f}.to_radians().value;
+
+	if (m_drag) {
+		auto const delta = bave::Projector{.source = get_app().get_framebuffer_size(), .target = world_space_v}(m_pointer - prev_pointer);
+		get_app().render_view.transform.position -= delta;
+	}
 
 	IFBAVEIMGUI({
 		ImGui::ShowDemoWindow();
@@ -56,13 +82,6 @@ void Flappy::tick() {
 }
 
 void Flappy::render(vk::CommandBuffer command_buffer) const {
-	auto shader = get_app().load_shader("shaders/default.vert", "shaders/default.frag");
-	if (shader) {
-		shader->update(1, 0, m_texture.combined_image_sampler());
-		auto const instances = std::array{
-			bave::RenderInstance::Baked{.transform = glm::mat4{1.0f}, .rgba = glm::vec4{1.0f}},
-			bave::RenderInstance{.transform = bave::Transform{.position = glm::vec2{400.0f}}, .rgba = bave::yellow_v}.bake(),
-		};
-		shader->draw(command_buffer, m_mesh, instances);
-	}
+	m_quad.draw(command_buffer);
+	//
 }

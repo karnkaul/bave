@@ -53,6 +53,8 @@ class App : public PolyPinned {
 	void push_event(Event event) { m_events.push_back(event); }
 	[[nodiscard]] auto make_game() -> std::unique_ptr<Game>;
 
+	[[nodiscard]] auto screen_to_framebuffer(glm::vec2 position) const -> glm::vec2;
+
 	Logger m_log{};
 
   private:

@@ -121,7 +121,7 @@ void AndroidApp::setup_event_callbacks() {
 			return 1;
 		}
 		if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
-			auto const position = glm::vec2{AMotionEvent_getX(event, 0), AMotionEvent_getY(event, 0)};
+			auto const position = self(app).screen_to_framebuffer(glm::vec2{AMotionEvent_getX(event, 0), AMotionEvent_getY(event, 0)});
 			switch (AMotionEvent_getAction(event)) {
 			case AMOTION_EVENT_ACTION_MOVE: push(app, CursorMove{.position = position}); break;
 			case AMOTION_EVENT_ACTION_DOWN: push(app, TouchTap{.action = Action::ePress, .position = position}); break;

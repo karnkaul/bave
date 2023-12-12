@@ -8,9 +8,9 @@ jobs:
       - name: init
         run: sudo apt update -yqq && sudo apt install -yqq ninja-build xorg-dev g++-13 clang-15
       - name: configure gcc
-        run: cmake -S . --preset=default -B build -DBAVE_USE_FREETYPE=OFF -DCAPO_USE_OPENAL=OFF -DCMAKE_CXX_COMPILER=g++-13
+        run: cmake -S . --preset=default -B build -DBAVE_BUILD_SHADERS=OFF -DBAVE_USE_FREETYPE=OFF -DCAPO_USE_OPENAL=OFF -DCMAKE_CXX_COMPILER=g++-13
       - name: configure clang
-        run: cmake -S . --preset=default -B clang -DBAVE_USE_FREETYPE=OFF -DCAPO_USE_OPENAL=OFF -DCMAKE_CXX_COMPILER=clang++-15
+        run: cmake -S . --preset=default -B clang -DBAVE_BUILD_SHADERS=OFF -DBAVE_USE_FREETYPE=OFF -DCAPO_USE_OPENAL=OFF -DCMAKE_CXX_COMPILER=clang++-15
       - name: build gcc
         run: cmake --build build --config=Release -- -d explain
       - name: build clang
@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: configure
-        run: cmake -S . --preset=vs22 -B build -DBAVE_USE_FREETYPE=OFF -DCAPO_USE_OPENAL=OFF
+        run: cmake -S . --preset=vs22 -B build -DBAVE_BUILD_SHADERS=OFF -DBAVE_USE_FREETYPE=OFF -DCAPO_USE_OPENAL=OFF
       - name: build
         run: cmake --build build --config=Release
       - name: test
@@ -34,7 +34,7 @@ jobs:
       - name: init
         run: brew install ninja
       - name: configure
-        run: cmake -S . --preset=default -B build -DBAVE_USE_FREETYPE=OFF -DCAPO_USE_OPENAL=OFF
+        run: cmake -S . --preset=default -B build -DBAVE_BUILD_SHADERS=OFF -DBAVE_USE_FREETYPE=OFF -DCAPO_USE_OPENAL=OFF
       - name: build
         run: cmake --build build --config=Release
       - name: test

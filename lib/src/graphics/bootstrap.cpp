@@ -8,6 +8,8 @@ namespace bave {
 namespace {
 [[nodiscard]] auto to_vk_version(Version const& v) -> std::uint32_t { return VK_MAKE_VERSION(v.major, v.minor, v.patch); }
 
+constexpr auto vk_api_v = VK_API_VERSION_1_1;
+
 auto const g_log = Logger{"Vulkan"};
 
 auto make_instance(std::vector<char const*> extensions, bool& out_validation) -> vk::UniqueInstance {
@@ -30,7 +32,7 @@ auto make_instance(std::vector<char const*> extensions, bool& out_validation) ->
 	}
 
 	auto const version = to_vk_version(build_version_v);
-	auto const vai = vk::ApplicationInfo{"bave", version, "bave", version, VK_API_VERSION_1_2};
+	auto const vai = vk::ApplicationInfo{"bave", version, "bave", version, vk_api_v};
 	auto ici = vk::InstanceCreateInfo{};
 	ici.pApplicationInfo = &vai;
 #if defined(__APPLE__)
@@ -107,6 +109,7 @@ auto get_ranked_gpus(vk::Instance const instance, vk::SurfaceKHR const surface) 
 	for (auto const& device : devices) {
 		auto entry = Entry{.gpu = {device}};
 		entry.gpu.properties = device.getProperties();
+		if (entry.gpu.properties.apiVersion < vk_api_v) { continue; }
 		if (!get_queue_family(device, entry.gpu.queue_family)) { continue; }
 		if (entry.gpu.properties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu) { entry.preference += static_cast<int>(Preference::eDiscrete); }
 		entries.push_back(entry);
