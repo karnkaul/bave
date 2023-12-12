@@ -4,7 +4,7 @@
 
 namespace bave {
 namespace {
-struct Std140View {
+struct Std140ViewProjection {
 	glm::mat4 view;
 	glm::mat4 projection;
 };
@@ -118,12 +118,17 @@ void Shader::set_view_and_instances(std::span<RenderInstance::Baked const> insta
 	}();
 	auto const proj_xy = 0.5f * world_space;
 	auto const proj_z = m_render_view.z_plane;
-	auto const view = Std140View{
-		.view = m_render_view.transform.matrix(),
+	auto const view = Transform{
+		.position = -m_render_view.transform.position,
+		.rotation = -m_render_view.transform.rotation,
+		.scale = m_render_view.transform.scale,
+	};
+	auto const view_projection = Std140ViewProjection{
+		.view = view.matrix(),
 		.projection = glm::ortho(-proj_xy.x, proj_xy.x, -proj_xy.y, proj_xy.y, proj_z.near, proj_z.far),
 	};
 	auto& view_buffer = m_frame_renderer->get_render_device().get_scratch_buffer_cache().allocate(vk::BufferUsageFlagBits::eUniformBuffer);
-	view_buffer.write(&view, sizeof(view));
+	view_buffer.write(&view_projection, sizeof(view_projection));
 	update(set_layout_v.view_instances.set, 0, view_buffer);
 
 	auto& instances_buffer = m_frame_renderer->get_render_device().get_scratch_buffer_cache().allocate(vk::BufferUsageFlagBits::eStorageBuffer);
