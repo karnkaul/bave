@@ -11,7 +11,7 @@ Flappy::Flappy(bave::App& app) : Game(app), m_quad(&app) {
 	// m_quad.set_shape(bave::Quad{.size = glm::vec2{300.0f}});
 
 	m_quad.instances = {
-		bave::RenderInstance{.transform = bave::Transform{.position = glm::vec2{400.0f}}, .tint = bave::yellow_v},
+		bave::RenderInstance{.transform = bave::Transform{.position = glm::vec2{400.0f}, .rotation = bave::Degrees{15.0f}}, .tint = bave::yellow_v},
 	};
 
 	auto pixels = std::array<std::uint32_t, 4>{
@@ -53,24 +53,26 @@ void Flappy::tick() {
 			}
 		}
 
-		if (auto const* mouse_click = std::get_if<bave::MouseClick>(&event)) {
-			m_log.info("tap {} at {}x{}", (mouse_click->action == bave::Action::eRelease ? "up" : "down"), mouse_click->position.x, mouse_click->position.y);
-			if (mouse_click->id == 0) {
-				m_drag = mouse_click->action == bave::Action::ePress;
-				prev_pointer = m_pointer = mouse_click->position;
+		if (auto const* tap = std::get_if<bave::MouseClick>(&event)) {
+			m_log.info("tap {} at {}x{}", (tap->action == bave::Action::eRelease ? "up" : "down"), tap->position.x, tap->position.y);
+			if (tap->id == 0) {
+				m_drag = tap->action == bave::Action::ePress;
+				prev_pointer = m_pointer = tap->position;
 			}
 		}
 
-		if (auto const* mouse_move = std::get_if<bave::CursorMove>(&event)) { m_pointer = mouse_move->position; }
+		if (auto const* cursor_move = std::get_if<bave::CursorMove>(&event)) { m_pointer = cursor_move->position; }
 	}
 
 	m_elapsed += get_app().get_dt();
 	m_clear_red = 0.5f * std::sin(m_elapsed.count()) + 0.5f;
 	clear_colour = bave::Rgba::from({m_clear_red, 0.0f, 0.0f, 1.0f});
 
+	m_quad.instances.front().transform.rotation.value += bave::Degrees{get_app().get_dt().count() * 10.0f}.to_radians().value;
+
 	if (m_drag) {
 		auto const delta = bave::Projector{.source = get_app().get_framebuffer_size(), .target = world_space_v}(m_pointer - prev_pointer);
-		get_app().render_view.transform.position += delta;
+		get_app().render_view.transform.position -= delta;
 	}
 
 	IFBAVEIMGUI({
