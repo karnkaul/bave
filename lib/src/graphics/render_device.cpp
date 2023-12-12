@@ -3,7 +3,6 @@
 #include <bave/graphics/render_device.hpp>
 #include <bave/graphics/utils.hpp>
 #include <graphics/bootstrap.hpp>
-#include <graphics/glslc.hpp>
 
 namespace bave {
 namespace {
@@ -77,8 +76,6 @@ RenderDevice::RenderDevice(NotNull<IWsi*> wsi, CreateInfo create_info) : m_wsi(w
 
 	auto const line_width_range = get_gpu().device.getProperties().limits.lineWidthRange;
 	m_line_width_limits = {line_width_range[0], line_width_range[1]};
-
-	if (glslc::is_online()) { m_log.info("glslc online"); }
 }
 
 auto RenderDevice::wait_for(vk::Fence const fence, std::uint64_t const timeout) const -> bool {
