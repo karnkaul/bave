@@ -17,8 +17,8 @@ Shader::Shader(NotNull<Renderer const*> renderer, vk::ShaderModule vertex, vk::S
 	set_blank_buffers();
 }
 
-auto Shader::update_texture(ImageSampler const combined_image_sampler, std::uint32_t binding) -> bool {
-	auto const& [image_view, sampler] = combined_image_sampler;
+auto Shader::update_texture(CombinedImageSampler const cis, std::uint32_t binding) -> bool {
+	auto const& [image_view, sampler] = cis;
 	if (!image_view || !sampler || binding >= SetLayout::max_textures_v) { return false; }
 	auto descriptor_set = get_descriptor_set(set_layout_v.textures.set);
 	if (!descriptor_set) { return false; }
@@ -31,13 +31,13 @@ auto Shader::update_texture(ImageSampler const combined_image_sampler, std::uint
 	return true;
 }
 
-void Shader::update_textures(std::span<ImageSampler const, SetLayout::max_textures_v> combined_image_samplers) {
+void Shader::update_textures(std::span<CombinedImageSampler const, SetLayout::max_textures_v> cis) {
 	auto descriptor_set = get_descriptor_set(set_layout_v.textures.set);
 	auto diis = std::array<vk::DescriptorImageInfo, SetLayout::max_textures_v>{};
 	auto wdss = std::array<vk::WriteDescriptorSet, SetLayout::max_textures_v>{};
 	auto size = std::size_t{};
 	for (std::size_t binding = 0; binding < wdss.size(); ++binding) {
-		auto const [image_view, sampler] = combined_image_samplers[binding];
+		auto const [image_view, sampler] = cis[binding];
 		if (!image_view || !sampler) { continue; }
 		auto const type = set_layout_v.textures.bindings.at(binding);
 		auto& dii = diis.at(size);
@@ -66,7 +66,7 @@ void Shader::draw(vk::CommandBuffer command_buffer, Mesh const& mesh, std::span<
 	if (mesh.get_vertex_count() == 0 || instances.empty()) { return; }
 
 	auto& pipeline_cache = m_renderer->get_pipeline_cache();
-	auto const pipeline_state = PipelineCache::State{.line_width = line_width, .topology = topology, .polygon_mode = polygon_mode};
+	auto const pipeline_state = detail::PipelineCache::State{.line_width = line_width, .topology = topology, .polygon_mode = polygon_mode};
 	auto pipeline = pipeline_cache.load_pipeline({.vertex = m_vert, .fragment = m_frag}, pipeline_state);
 	if (!pipeline) {
 		m_log.error("failed to load pipeline");
@@ -100,11 +100,11 @@ auto Shader::get_descriptor_set(std::uint32_t set) -> vk::DescriptorSet {
 	return descriptor_set;
 }
 
-auto Shader::allocate_scratch(vk::BufferUsageFlagBits const usage) const -> RenderBuffer& {
+auto Shader::allocate_scratch(vk::BufferUsageFlagBits const usage) const -> detail::RenderBuffer& {
 	return m_renderer->get_render_device().get_scratch_buffer_cache().allocate(usage);
 }
 
-auto Shader::update(vk::DescriptorSet descriptor_set, std::uint32_t binding, RenderBuffer const& buffer) -> bool {
+auto Shader::update(vk::DescriptorSet descriptor_set, std::uint32_t binding, detail::RenderBuffer const& buffer) -> bool {
 	if (!descriptor_set) { throw Error{"Null DescriptorSet"}; }
 
 	auto const descriptor_type = [usage = buffer.get_usage()] {
@@ -152,7 +152,7 @@ void Shader::write_view_and_instances(std::span<RenderInstance::Baked const> ins
 
 void Shader::set_white_textures() {
 	auto const combined_image_sampler = m_renderer->get_white_texture().combined_image_sampler();
-	auto image_samplers = std::array<ImageSampler, SetLayout::max_textures_v>{};
+	auto image_samplers = std::array<CombinedImageSampler, SetLayout::max_textures_v>{};
 	for (auto& image_sampler : image_samplers) { image_sampler = combined_image_sampler; }
 	update_textures(image_samplers);
 }

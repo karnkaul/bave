@@ -16,11 +16,11 @@ class Mesh {
 	void write(Geometry const& geometry);
 
   private:
-	[[nodiscard]] auto get_buffer() const -> Ptr<RenderBuffer>;
+	[[nodiscard]] auto get_buffer() const -> Ptr<detail::RenderBuffer>;
 	void draw(vk::CommandBuffer command_buffer, std::uint32_t instance_count = 1) const;
 
 	NotNull<RenderDevice const*> m_render_device;
-	Defer<Buffered<std::shared_ptr<RenderBuffer>>> m_vbo{};
+	detail::Defer<detail::Buffered<std::shared_ptr<detail::RenderBuffer>>> m_vbo{};
 	std::vector<std::byte> m_data{};
 	std::uint32_t m_verts{};
 	std::uint32_t m_indices{};

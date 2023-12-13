@@ -1,6 +1,6 @@
 #pragma once
 #include <bave/core/not_null.hpp>
-#include <bave/font/font_atlas.hpp>
+#include <bave/font/detail/font_atlas.hpp>
 #include <bave/font/font_library.hpp>
 #include <bave/graphics/geometry.hpp>
 #include <bave/graphics/rgba.hpp>
@@ -13,17 +13,18 @@ class Font {
 
 	static auto try_make(NotNull<RenderDevice*> render_device, std::vector<std::byte> file_bytes, float scale = 2.0f) -> std::optional<Font>;
 
-	explicit Font(NotNull<RenderDevice*> render_device, std::unique_ptr<GlyphSlot::Factory> slot_factory, float scale);
-
-	[[nodiscard]] auto get_font_atlas(TextHeight height) -> FontAtlas&;
+	explicit Font(NotNull<RenderDevice*> render_device, std::unique_ptr<detail::GlyphSlot::Factory> slot_factory, float scale);
 
 	[[nodiscard]] auto glyph_for(TextHeight height, Codepoint codepoint) -> Glyph { return get_font_atlas(height).glyph_for(codepoint); }
+	[[nodiscard]] auto get_texture(TextHeight height) -> std::shared_ptr<Texture const> const& { return get_font_atlas(height).get_texture(); }
+
+	[[nodiscard]] auto get_font_atlas(TextHeight height) -> detail::FontAtlas const&;
 
   private:
 	NotNull<RenderDevice*> m_render_device;
-	std::unique_ptr<GlyphSlot::Factory> m_slot_factory{};
+	std::unique_ptr<detail::GlyphSlot::Factory> m_slot_factory{};
 	float m_scale{};
-	std::unordered_map<TextHeight, FontAtlas> m_atlases{};
+	std::unordered_map<TextHeight, detail::FontAtlas> m_atlases{};
 };
 
 class Font::Pen {

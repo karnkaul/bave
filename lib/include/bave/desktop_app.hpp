@@ -1,9 +1,8 @@
 #pragma once
 #include <bave/app.hpp>
 #include <bave/core/ptr.hpp>
-#include <bave/dear_imgui.hpp>
+#include <bave/detail/dear_imgui.hpp>
 #include <bave/game.hpp>
-#include <bave/graphics/wsi.hpp>
 #include <bave/platform.hpp>
 #include <functional>
 #include <span>
@@ -15,7 +14,7 @@ struct GLFWwindow;
 namespace bave {
 [[nodiscard]] constexpr auto make_args(int argc, char const* const* argv) -> std::span<char const* const> { return {argv, static_cast<size_t>(argc)}; }
 
-class DesktopApp : public App, public IWsi {
+class DesktopApp : public App, public detail::IWsi {
   public:
 	struct CreateInfo {
 		std::span<char const* const> args{};
@@ -70,7 +69,7 @@ class DesktopApp : public App, public IWsi {
 	std::unique_ptr<RenderDevice> m_render_device{};
 	vk::UniqueSurfaceKHR m_surface{};
 	std::unique_ptr<Renderer> m_renderer{};
-	std::unique_ptr<DearImGui> m_dear_imgui{};
+	std::unique_ptr<detail::DearImGui> m_dear_imgui{};
 	std::unique_ptr<Game> m_game{};
 };
 } // namespace bave

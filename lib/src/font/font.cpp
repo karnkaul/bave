@@ -11,17 +11,16 @@ auto Font::try_make(NotNull<RenderDevice*> render_device, std::vector<std::byte>
 	return ret;
 }
 
-Font::Font(NotNull<RenderDevice*> render_device, std::unique_ptr<GlyphSlot::Factory> slot_factory, float scale)
+Font::Font(NotNull<RenderDevice*> render_device, std::unique_ptr<detail::GlyphSlot::Factory> slot_factory, float scale)
 	: m_render_device(render_device), m_slot_factory(std::move(slot_factory)), m_scale(scale) {
 	if (!m_slot_factory) { throw Error{"Null GlyphSlot::Factory"}; }
 }
 
-auto Font::get_font_atlas(TextHeight height) -> FontAtlas& {
+auto Font::get_font_atlas(TextHeight height) -> detail::FontAtlas const& {
 	height = clamp_text_height(height);
 	if (auto it = m_atlases.find(height); it != m_atlases.end()) { return it->second; }
 
-	auto const create_info = FontAtlas::CreateInfo{.height = scale_text_height(height, m_scale)};
-	auto [it, _] = m_atlases.insert_or_assign(height, FontAtlas{m_render_device, m_slot_factory.get(), create_info});
+	auto [it, _] = m_atlases.insert_or_assign(height, detail::FontAtlas{m_render_device, m_slot_factory.get(), scale_text_height(height, m_scale)});
 	return it->second;
 }
 

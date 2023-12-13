@@ -1,5 +1,5 @@
 #include <bave/core/error.hpp>
-#include <bave/graphics/image_barrier.hpp>
+#include <bave/graphics/detail/image_barrier.hpp>
 #include <bave/graphics/renderer.hpp>
 
 namespace bave {
@@ -79,7 +79,7 @@ auto Renderer::Frame::make(RenderDevice& render_device) -> Frame {
 
 Renderer::Renderer(NotNull<RenderDevice*> render_device, NotNull<DataStore const*> data_store, NotNull<RenderView const*> render_view)
 	: render_view(render_view), m_render_device(render_device), m_frame(Frame::make(*m_render_device)),
-	  m_pipeline_cache(std::make_unique<PipelineCache>(*m_frame.render_pass, render_device, data_store)), m_white(render_device, white_bitmap()),
+	  m_pipeline_cache(std::make_unique<detail::PipelineCache>(*m_frame.render_pass, render_device, data_store)), m_white(render_device, white_bitmap()),
 	  m_blocker(render_device->get_device()) {}
 
 auto Renderer::start_render(Rgba clear_colour) -> vk::CommandBuffer {

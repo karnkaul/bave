@@ -1,5 +1,5 @@
 #pragma once
-#include <bave/font/glyph_slot.hpp>
+#include <bave/font/detail/glyph_slot.hpp>
 #include <memory>
 
 namespace bave {
@@ -15,14 +15,14 @@ class FontLibrary {
 	FontLibrary() = default;
 	virtual ~FontLibrary() = default;
 
-	[[nodiscard]] virtual auto load(std::vector<std::byte> bytes) const -> std::unique_ptr<GlyphSlot::Factory> = 0;
+	[[nodiscard]] virtual auto load(std::vector<std::byte> bytes) const -> std::unique_ptr<detail::GlyphSlot::Factory> = 0;
 
 	[[nodiscard]] static auto make() -> std::unique_ptr<FontLibrary>;
 };
 
 struct FontLibrary::Null : FontLibrary {
-	[[nodiscard]] auto load(std::vector<std::byte> /*bytes*/) const -> std::unique_ptr<GlyphSlot::Factory> final {
-		return std::make_unique<GlyphSlot::Factory::Null>();
+	[[nodiscard]] auto load(std::vector<std::byte> /*bytes*/) const -> std::unique_ptr<detail::GlyphSlot::Factory> final {
+		return std::make_unique<detail::GlyphSlot::Factory::Null>();
 	}
 };
 } // namespace bave

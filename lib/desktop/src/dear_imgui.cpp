@@ -2,13 +2,13 @@
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui.h>
 #include <bave/core/error.hpp>
-#include <bave/dear_imgui.hpp>
-#include <bave/graphics/command_buffer.hpp>
+#include <bave/detail/dear_imgui.hpp>
+#include <bave/graphics/detail/command_buffer.hpp>
 #include <bave/graphics/render_device.hpp>
 #include <glm/gtc/color_space.hpp>
 #include <glm/mat4x4.hpp>
 
-namespace bave {
+namespace bave::detail {
 void DearImGui::Instance::Deleter::operator()(Instance /*instance*/) const noexcept {
 	ImGui_ImplVulkan_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
@@ -64,7 +64,7 @@ DearImGui::DearImGui(Ptr<GLFWwindow> window, RenderDevice& render_device, vk::Re
 
 	ImGui_ImplVulkan_Init(&init_info, render_pass);
 
-	auto command_buffer = CommandBuffer{render_device};
+	auto command_buffer = detail::CommandBuffer{render_device};
 	ImGui_ImplVulkan_CreateFontsTexture(command_buffer.get());
 	command_buffer.submit(render_device);
 	ImGui_ImplVulkan_DestroyFontUploadObjects();
@@ -91,4 +91,4 @@ auto DearImGui::render(vk::CommandBuffer const command_buffer) -> void {
 	if (m_state == State::eEndFrame) { end_frame(); }
 	if (auto* data = ImGui::GetDrawData()) { ImGui_ImplVulkan_RenderDrawData(data, command_buffer); }
 }
-} // namespace bave
+} // namespace bave::detail

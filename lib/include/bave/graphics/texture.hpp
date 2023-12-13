@@ -1,9 +1,13 @@
 #pragma once
-#include <bave/graphics/image_sampler.hpp>
-#include <bave/graphics/render_resource.hpp>
+#include <bave/graphics/detail/render_resource.hpp>
 #include <bave/graphics/sampler.hpp>
 
 namespace bave {
+struct CombinedImageSampler {
+	vk::ImageView image_view{};
+	vk::Sampler sampler{};
+};
+
 class Texture {
   public:
 	explicit Texture(NotNull<RenderDevice*> render_device, bool mip_map = false);
@@ -12,13 +16,13 @@ class Texture {
 	auto load_image(std::span<std::byte const> compressed, bool mip_map = false) -> bool;
 	void write(BitmapView bitmap, bool mip_map = false);
 
-	[[nodiscard]] auto get_image() const -> RenderImage const& { return m_image; }
+	[[nodiscard]] auto combined_image_sampler() const -> CombinedImageSampler;
 
-	[[nodiscard]] auto combined_image_sampler() const -> ImageSampler;
+	[[nodiscard]] auto get_image() const -> detail::RenderImage const& { return m_image; }
 
 	Sampler sampler{};
 
   private:
-	RenderImage m_image;
+	detail::RenderImage m_image;
 };
 } // namespace bave

@@ -4,14 +4,14 @@
 #include <bave/core/ptr.hpp>
 #include <bave/core/scoped_resource.hpp>
 #include <bave/font/font_library.hpp>
-#include <bave/graphics/buffering.hpp>
-#include <bave/graphics/cache/render_buffer_cache.hpp>
-#include <bave/graphics/cache/sampler_cache.hpp>
-#include <bave/graphics/cache/scratch_buffer_cache.hpp>
-#include <bave/graphics/defer.hpp>
-#include <bave/graphics/device_blocker.hpp>
-#include <bave/graphics/swapchain.hpp>
-#include <bave/graphics/wsi.hpp>
+#include <bave/graphics/detail/buffering.hpp>
+#include <bave/graphics/detail/defer.hpp>
+#include <bave/graphics/detail/device_blocker.hpp>
+#include <bave/graphics/detail/render_buffer_cache.hpp>
+#include <bave/graphics/detail/sampler_cache.hpp>
+#include <bave/graphics/detail/scratch_buffer_cache.hpp>
+#include <bave/graphics/detail/swapchain.hpp>
+#include <bave/graphics/detail/wsi.hpp>
 #include <bave/logger.hpp>
 #include <bave/platform.hpp>
 #include <limits>
@@ -33,7 +33,7 @@ class RenderDevice {
 
 	using CreateInfo = RenderDeviceCreateInfo;
 
-	explicit RenderDevice(NotNull<IWsi*> wsi, CreateInfo create_info = {});
+	explicit RenderDevice(NotNull<detail::IWsi*> wsi, CreateInfo create_info = {});
 
 	[[nodiscard]] auto get_instance() const -> vk::Instance { return *m_instance; }
 	[[nodiscard]] auto get_surface() const -> vk::SurfaceKHR { return *m_surface; }
@@ -44,13 +44,8 @@ class RenderDevice {
 	[[nodiscard]] auto get_swapchain_format() const -> vk::Format { return m_swapchain.create_info.imageFormat; }
 	[[nodiscard]] auto get_font_library() const -> FontLibrary& { return *m_font_library; }
 
-	[[nodiscard]] auto get_defer_queue() -> DeferQueue& { return m_defer_queue; }
-	[[nodiscard]] auto get_vertex_buffer_cache() const -> RenderBufferCache& { return *m_vbo_cache; }
-	[[nodiscard]] auto get_scratch_buffer_cache() const -> ScratchBufferCache& { return *m_sbo_cache; }
-	[[nodiscard]] auto get_sampler_cache() const -> SamplerCache& { return *m_sampler_cache; }
-
 	[[nodiscard]] auto get_line_width_limits() const -> InclusiveRange<float> { return m_line_width_limits; }
-	[[nodiscard]] auto get_frame_index() const -> FrameIndex { return m_frame_index; }
+	[[nodiscard]] auto get_frame_index() const -> detail::FrameIndex { return m_frame_index; }
 
 	auto wait_for(vk::Fence fence, std::uint64_t timeout = max_timeout_v) const -> bool;
 	auto reset_fence(vk::Fence fence, bool wait_first = true) const -> bool;
@@ -62,6 +57,11 @@ class RenderDevice {
 	auto submit_and_present(vk::SubmitInfo const& submit_info, vk::Fence draw_signal, vk::Semaphore present_wait) -> bool;
 
 	auto recreate_surface() -> bool;
+
+	[[nodiscard]] auto get_defer_queue() -> detail::DeferQueue& { return m_defer_queue; }
+	[[nodiscard]] auto get_vertex_buffer_cache() const -> detail::RenderBufferCache& { return *m_vbo_cache; }
+	[[nodiscard]] auto get_scratch_buffer_cache() const -> detail::ScratchBufferCache& { return *m_sbo_cache; }
+	[[nodiscard]] auto get_sampler_cache() const -> detail::SamplerCache& { return *m_sampler_cache; }
 
   private:
 	struct Deleter {
@@ -75,26 +75,26 @@ class RenderDevice {
 
 	mutable std::mutex m_queue_mutex{};
 
-	NotNull<IWsi*> m_wsi;
+	NotNull<detail::IWsi*> m_wsi;
 
 	vk::UniqueInstance m_instance{};
 	vk::UniqueDebugUtilsMessengerEXT m_debug_messenger{};
 	vk::UniqueSurfaceKHR m_surface{};
 	vk::UniqueDevice m_device{};
 	ScopedResource<VmaAllocator, Deleter> m_allocator{};
-	DeferQueue m_defer_queue{};
+	detail::DeferQueue m_defer_queue{};
 	Gpu m_gpu{};
 	vk::Queue m_queue{};
-	Swapchain m_swapchain{};
-	std::unique_ptr<RenderBufferCache> m_vbo_cache{};
-	std::unique_ptr<ScratchBufferCache> m_sbo_cache{};
-	std::unique_ptr<SamplerCache> m_sampler_cache{};
+	detail::Swapchain m_swapchain{};
+	std::unique_ptr<detail::RenderBufferCache> m_vbo_cache{};
+	std::unique_ptr<detail::ScratchBufferCache> m_sbo_cache{};
+	std::unique_ptr<detail::SamplerCache> m_sampler_cache{};
 	std::unique_ptr<FontLibrary> m_font_library{FontLibrary::make()};
 
-	DeviceBlocker m_blocker{};
+	detail::DeviceBlocker m_blocker{};
 
 	InclusiveRange<float> m_line_width_limits{};
-	FrameIndex m_frame_index{};
+	detail::FrameIndex m_frame_index{};
 };
 
 constexpr auto to_vsync_string(vk::PresentModeKHR const mode) -> std::string_view {

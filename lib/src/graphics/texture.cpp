@@ -6,10 +6,10 @@
 namespace bave {
 namespace {} // namespace
 
-Texture::Texture(NotNull<RenderDevice*> render_device, bool mip_map) : m_image(render_device, RenderImage::CreateInfo{.mip_map = mip_map}) {}
+Texture::Texture(NotNull<RenderDevice*> render_device, bool mip_map) : m_image(render_device, detail::RenderImage::CreateInfo{.mip_map = mip_map}) {}
 
 Texture::Texture(NotNull<RenderDevice*> render_device, BitmapView bitmap, bool mip_map)
-	: m_image(render_device, RenderImage::CreateInfo{.mip_map = mip_map}, RenderImage::to_vk_extent(bitmap.extent)) {
+	: m_image(render_device, detail::RenderImage::CreateInfo{.mip_map = mip_map}, detail::RenderImage::to_vk_extent(bitmap.extent)) {
 	m_image.overwrite(bitmap, {});
 }
 
@@ -26,11 +26,11 @@ void Texture::write(BitmapView bitmap, bool mip_map) {
 
 	auto& render_device = m_image.get_render_device();
 	render_device.get_defer_queue().push(std::move(m_image));
-	m_image = RenderImage{&render_device, RenderImage::CreateInfo{.mip_map = mip_map}, RenderImage::to_vk_extent(bitmap.extent)};
+	m_image = detail::RenderImage{&render_device, detail::RenderImage::CreateInfo{.mip_map = mip_map}, detail::RenderImage::to_vk_extent(bitmap.extent)};
 	m_image.overwrite(bitmap, {});
 }
 
-auto Texture::combined_image_sampler() const -> ImageSampler {
+auto Texture::combined_image_sampler() const -> CombinedImageSampler {
 	auto& sampler_cache = get_image().get_render_device().get_sampler_cache();
 	return {.image_view = get_image().get_image_view(), .sampler = sampler_cache.get(sampler)};
 }
