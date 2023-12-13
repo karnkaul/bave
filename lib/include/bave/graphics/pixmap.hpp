@@ -23,6 +23,8 @@ class Pixmap {
 
 	[[nodiscard]] auto make_bitmap() const -> Bitmap;
 
+	[[nodiscard]] auto is_empty() const -> bool { return m_pixels.empty(); }
+
   private:
 	glm::ivec2 m_size{};
 	std::vector<Rgba> m_pixels{};
@@ -39,7 +41,9 @@ class Pixmap::Builder {
   public:
 	using Id = Atlas::Id;
 
-	explicit Builder(int max_cols, glm::ivec2 pad = {1, 1});
+	static constexpr int min_width_v{16};
+
+	explicit Builder(int max_width, glm::ivec2 pad = {1, 1});
 
 	void add(Id id, Pixmap pixmap);
 
@@ -55,14 +59,13 @@ class Pixmap::Builder {
 	};
 
 	std::vector<Entry> m_entries{};
-	int m_max_cols;
+	int m_max_width;
 	glm::ivec2 m_pad;
 
 	struct {
+		glm::ivec2 cursor{};
 		int current_height{};
 		int line_height{};
-		glm::ivec2 cursor{};
-		int col{};
 		glm::ivec2 size{};
 	} m_data{};
 };

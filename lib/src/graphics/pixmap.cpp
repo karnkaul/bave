@@ -2,16 +2,18 @@
 #include <bave/graphics/pixmap.hpp>
 #include <utility>
 
-#include <iostream>
-
 namespace bave {
 namespace {
-[[nodiscard]] constexpr auto ensure_positive(int const in) -> int { return in > 0 ? in : 1; }
-[[nodiscard]] constexpr auto ensure_positive(glm::ivec2 const in) -> glm::vec2 { return {ensure_positive(in.x), ensure_positive(in.y)}; }
+constexpr auto ceil_pot(int const size) -> int {
+	auto ret = 1;
+	while (ret < size) { ret <<= 1; }
+	return ret;
+}
+
+constexpr auto ceil_pot(glm::ivec2 const size) -> glm::ivec2 { return {ceil_pot(size.x), ceil_pot(size.y)}; }
 } // namespace
 
-Pixmap::Pixmap(glm::ivec2 const size, Rgba const background)
-	: m_size(ensure_positive(size)), m_pixels(static_cast<std::size_t>(m_size.x * m_size.y), background) {}
+Pixmap::Pixmap(glm::ivec2 const size, Rgba const background) : m_size(size), m_pixels(static_cast<std::size_t>(m_size.x * m_size.y), background) {}
 
 auto Pixmap::overwrite(Pixmap const& source, Index2D const left_top) -> bool {
 	auto const rb = Index2D{left_top.x + source.m_size.x, left_top.y + source.m_size.y};
@@ -34,7 +36,7 @@ auto Pixmap::at(Index2D index) -> Rgba& {
 }
 
 auto Pixmap::make_bitmap() const -> Bitmap {
-	auto ret = Bitmap{};
+	auto ret = Bitmap{.extent = m_size};
 	ret.bytes.reserve(m_pixels.size() * 4);
 	for (auto const& pixel : m_pixels) {
 		auto const bytes = pixel.to_bytes();
@@ -43,12 +45,14 @@ auto Pixmap::make_bitmap() const -> Bitmap {
 	return ret;
 }
 
-Pixmap::Builder::Builder(int max_cols, glm::ivec2 pad) : m_max_cols(ensure_positive(max_cols)), m_pad(pad) { m_data.cursor = m_pad; }
+Pixmap::Builder::Builder(int max_width, glm::ivec2 pad) : m_max_width(max_width > min_width_v ? ceil_pot(max_width) : min_width_v), m_pad(pad) {
+	m_data.cursor = m_pad;
+}
 
 void Pixmap::Builder::add(Id id, Pixmap pixmap) {
 	if (pixmap.m_pixels.empty()) { return; }
 
-	if (m_data.col >= m_max_cols) { line_break(); }
+	if (m_data.cursor.x + pixmap.m_size.x + m_pad.x >= m_max_width) { line_break(); }
 
 	auto const lt = m_data.cursor;
 	auto const rb = lt + pixmap.m_size;
@@ -57,7 +61,6 @@ void Pixmap::Builder::add(Id id, Pixmap pixmap) {
 	m_data.cursor.x += pixmap.m_size.x + m_pad.x;
 	m_data.size.x = std::max(m_data.size.x, m_data.cursor.x);
 	m_data.size.y = std::max(m_data.size.y, m_data.current_height + m_data.line_height + m_pad.y);
-	++m_data.col;
 }
 
 auto Pixmap::Builder::build(Rgba const background) const -> Atlas {
@@ -76,8 +79,7 @@ auto Pixmap::Builder::build(Rgba const background) const -> Atlas {
 
 void Pixmap::Builder::line_break() {
 	m_data.cursor.x = m_pad.x;
-	m_data.cursor.y = m_data.line_height + 2 * m_pad.y;
+	m_data.cursor.y += m_data.line_height + 2 * m_pad.y;
 	m_data.current_height = m_data.cursor.y;
-	m_data.col = m_data.line_height = 0;
 }
 } // namespace bave

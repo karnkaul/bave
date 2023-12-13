@@ -225,7 +225,6 @@ auto RenderImage::copy_from(BitmapView const bitmap) -> bool {
 		bitmap.bytes.size(),
 	};
 
-	auto* ptr = static_cast<std::byte*>(staging.get_mapped());
 	std::memcpy(staging.get_mapped(), bitmap.bytes.data(), bitmap.bytes.size());
 
 	auto cmd = CommandBuffer{*m_render_device};
@@ -255,6 +254,11 @@ auto RenderImage::recreate(vk::Extent2D extent) -> void {
 	m_extent = extent;
 	m_layout = vk::ImageLayout::eUndefined;
 	m_mip_levels = mip_levels;
+
+	auto cmd = CommandBuffer{*m_render_device};
+	auto barrier = ImageBarrier{m_image, mip_levels, 1};
+	barrier.set_full_barrier(vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal).transition(cmd);
+	cmd.submit(*m_render_device);
 }
 
 auto RenderImage::overwrite(BitmapView const bitmap, glm::ivec2 top_left) -> bool {

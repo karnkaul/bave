@@ -22,9 +22,7 @@ endif()
 option(BAVE_USE_PCH "Use PCH for bave builds" ON)
 option(BAVE_BUILD_EXAMPLE "Build bave example" ${is_root_project})
 option(BAVE_BUILD_TESTS "Build bave tests" ${build_tests})
-
-# TODO: set ON
-option(BAVE_USE_FREETYPE "Use freetype for text rendering in bave" OFF)
+option(BAVE_USE_FREETYPE "Use freetype for text rendering in bave" ON)
 
 add_library(${project_prefix}-compile-options INTERFACE)
 add_library(${project_prefix}::${project_prefix}-compile-options ALIAS ${project_prefix}-compile-options)

@@ -45,7 +45,7 @@ struct Quad {
 	glm::vec2 size{size_v};
 	UvRect uv{uv_rect_v};
 	Rgba rgba{white_v};
-	glm::vec3 origin{};
+	glm::vec2 origin{};
 
 	[[nodiscard]] auto to_geometry() const -> Geometry { return Geometry::from(*this); }
 
@@ -59,7 +59,7 @@ struct Circle {
 	float diameter{diameter_v};
 	int resolution{resolution_v};
 	Rgba rgba{white_v};
-	glm::vec3 origin{};
+	glm::vec2 origin{};
 
 	[[nodiscard]] auto to_geometry() const -> Geometry;
 
@@ -90,7 +90,7 @@ struct NineSlice {
 	UvRect top_uv{.lt = {}, .rb = glm::vec2{0.25f}};
 	UvRect bottom_uv{.lt = glm::vec2{0.75f}, .rb = glm::vec2{1.0f}};
 	Rgba rgba{white_v};
-	glm::vec3 origin{};
+	glm::vec2 origin{};
 
 	[[nodiscard]] auto to_geometry() const -> Geometry { return Geometry::from(*this); }
 

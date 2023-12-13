@@ -1,9 +1,9 @@
 #pragma once
-#include <bave/core/ptr.hpp>
-// #include <le/graphics/font/font_library.hpp>
 #include <vk_mem_alloc.h>
 #include <bave/core/inclusive_range.hpp>
+#include <bave/core/ptr.hpp>
 #include <bave/core/scoped_resource.hpp>
+#include <bave/font/font_library.hpp>
 #include <bave/graphics/buffering.hpp>
 #include <bave/graphics/cache/render_buffer_cache.hpp>
 #include <bave/graphics/cache/sampler_cache.hpp>
@@ -42,7 +42,7 @@ class RenderDevice {
 	[[nodiscard]] auto get_queue() const -> vk::Queue { return m_queue; }
 	[[nodiscard]] auto get_allocator() const -> VmaAllocator { return m_allocator.get(); }
 	[[nodiscard]] auto get_swapchain_format() const -> vk::Format { return m_swapchain.create_info.imageFormat; }
-	// [[nodiscard]] auto get_font_library() const -> FontLibrary& { return *m_font_library; }
+	[[nodiscard]] auto get_font_library() const -> FontLibrary& { return *m_font_library; }
 
 	[[nodiscard]] auto get_defer_queue() -> DeferQueue& { return m_defer_queue; }
 	[[nodiscard]] auto get_vertex_buffer_cache() const -> RenderBufferCache& { return *m_vbo_cache; }
@@ -89,13 +89,12 @@ class RenderDevice {
 	std::unique_ptr<RenderBufferCache> m_vbo_cache{};
 	std::unique_ptr<ScratchBufferCache> m_sbo_cache{};
 	std::unique_ptr<SamplerCache> m_sampler_cache{};
+	std::unique_ptr<FontLibrary> m_font_library{FontLibrary::make()};
 
 	DeviceBlocker m_blocker{};
 
 	InclusiveRange<float> m_line_width_limits{};
 	FrameIndex m_frame_index{};
-
-	// std::unique_ptr<FontLibrary> m_font_library{FontLibrary::make()};
 };
 
 constexpr auto to_vsync_string(vk::PresentModeKHR const mode) -> std::string_view {
