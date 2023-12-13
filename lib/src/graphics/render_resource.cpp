@@ -1,4 +1,5 @@
 #include <bave/core/error.hpp>
+#include <bave/core/is_positive.hpp>
 #include <bave/graphics/command_buffer.hpp>
 #include <bave/graphics/image_barrier.hpp>
 #include <bave/graphics/render_device.hpp>
@@ -213,6 +214,36 @@ RenderImage::RenderImage(NotNull<RenderDevice*> render_device, CreateInfo const&
 	recreate(extent);
 }
 
+auto RenderImage::copy_from(BitmapView const bitmap) -> bool {
+	if (!is_positive(bitmap.extent)) { return false; }
+
+	auto const extent = to_vk_extent(bitmap.extent);
+	if (m_extent != extent) { recreate(extent); }
+	auto staging = RenderBuffer{
+		m_render_device,
+		vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst,
+		bitmap.bytes.size(),
+	};
+
+	auto* ptr = static_cast<std::byte*>(staging.get_mapped());
+	std::memcpy(staging.get_mapped(), bitmap.bytes.data(), bitmap.bytes.size());
+
+	auto cmd = CommandBuffer{*m_render_device};
+	CopyBufferToImage{
+		.target_image = m_image,
+		.image_extent = m_extent,
+		.target_offset = {},
+		.source_bytes = staging.get_buffer(),
+		.source_extent = extent,
+		.array_layers = 1,
+		.mip_levels = m_mip_levels,
+	}(cmd.get());
+
+	cmd.submit(*m_render_device);
+
+	return true;
+}
+
 auto RenderImage::recreate(vk::Extent2D extent) -> void {
 	if (extent.width == 0 || extent.height == 0) { return; }
 
@@ -226,43 +257,11 @@ auto RenderImage::recreate(vk::Extent2D extent) -> void {
 	m_mip_levels = mip_levels;
 }
 
-auto RenderImage::copy_from(std::span<Layer const> layers, vk::Extent2D target_extent) -> bool {
-	auto const array_layers = m_create_info.view_type == vk::ImageViewType::eCube ? cubemap_layers_v : 1;
-	if (target_extent.width == 0 || target_extent.height == 0) { return false; }
-	if (layers.size() != array_layers) { return false; }
-
-	if (m_extent != target_extent) { recreate(target_extent); }
-	auto const accumulate_size = [](std::size_t total, Layer const layer) { return total + layer.size_bytes(); };
-	auto const size = std::accumulate(layers.begin(), layers.end(), std::size_t{}, accumulate_size);
-	auto staging = RenderBuffer{m_render_device, vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst, size};
-
-	auto* ptr = static_cast<std::byte*>(staging.get_mapped());
-	for (auto const& image : layers) {
-		std::memcpy(ptr, image.data(), image.size_bytes());
-		ptr += image.size_bytes(); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-	}
-
-	auto cmd = CommandBuffer{*m_render_device};
-	CopyBufferToImage{
-		.target_image = m_image,
-		.image_extent = m_extent,
-		.target_offset = {},
-		.source_bytes = staging.get_buffer(),
-		.source_extent = target_extent,
-		.array_layers = array_layers,
-		.mip_levels = m_mip_levels,
-	}(cmd.get());
-
-	cmd.submit(*m_render_device);
-
-	return true;
-}
-
-auto RenderImage::overwrite(Bitmap const& bitmap, glm::uvec2 top_left) -> bool {
-	if (m_create_info.view_type == vk::ImageViewType::eCube || bitmap.extent.x == 0 || bitmap.extent.y == 0) { return false; }
+auto RenderImage::overwrite(BitmapView const bitmap, glm::ivec2 top_left) -> bool {
+	if (m_create_info.view_type == vk::ImageViewType::eCube || !is_positive(bitmap.extent)) { return false; }
 
 	auto const overwrite_extent = bitmap.extent + top_left;
-	auto const current_extent = glm::uvec2{m_extent.width, m_extent.height};
+	auto const current_extent = glm::ivec2{m_extent.width, m_extent.height};
 	if (overwrite_extent.x > current_extent.x || overwrite_extent.y > current_extent.y) { return false; }
 
 	auto staging = RenderBuffer{m_render_device, vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst, bitmap.bytes.size_bytes()};
@@ -275,45 +274,10 @@ auto RenderImage::overwrite(Bitmap const& bitmap, glm::uvec2 top_left) -> bool {
 		.image_extent = m_extent,
 		.target_offset = {offset.x, offset.y},
 		.source_bytes = staging.get_buffer(),
-		.source_extent = {bitmap.extent.x, bitmap.extent.y},
+		.source_extent = to_vk_extent(bitmap.extent),
 		.array_layers = 1,
 		.mip_levels = m_mip_levels,
 	}(cmd.get());
-
-	cmd.submit(*m_render_device);
-
-	return true;
-}
-
-auto RenderImage::overwrite(std::span<BitmapWrite const> writes) -> bool {
-	if (m_create_info.view_type == vk::ImageViewType::eCube) { return false; }
-
-	auto const accumulate_size = [](std::size_t total, BitmapWrite const& iw) { return total + iw.bitmap.bytes.size_bytes(); };
-	auto const size = std::accumulate(writes.begin(), writes.end(), std::size_t{}, accumulate_size);
-	auto staging = RenderBuffer{m_render_device, vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst, size};
-
-	auto const isrl = vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
-	auto bics = std::vector<vk::BufferImageCopy>{};
-	bics.reserve(writes.size());
-	auto* ptr = static_cast<std::byte*>(staging.get_mapped());
-	auto buffer_offset = vk::DeviceSize{};
-	for (auto const& iw : writes) {
-		std::memcpy(ptr + buffer_offset, iw.bitmap.bytes.data(), iw.bitmap.bytes.size_bytes()); // NOLINT
-		auto const image_offset = glm::ivec2{iw.top_left};
-		auto const bic = vk::BufferImageCopy{
-			buffer_offset, {}, {}, isrl, vk::Offset3D{image_offset.x, image_offset.y, 0}, {iw.bitmap.extent.x, iw.bitmap.extent.y, 1},
-		};
-		bics.push_back(bic);
-		buffer_offset += iw.bitmap.bytes.size_bytes();
-	}
-
-	auto cmd = CommandBuffer{*m_render_device};
-	auto barrier = ImageBarrier{m_image, m_mip_levels, 1};
-	barrier.set_full_barrier(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal).transition(cmd);
-	cmd.get().copyBufferToImage(staging.get_buffer(), m_image, vk::ImageLayout::eTransferDstOptimal, bics);
-	barrier.set_full_barrier(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal).transition(cmd);
-
-	if (m_mip_levels > 1) { MipMapWriter{barrier, m_extent, cmd, m_mip_levels, 1}(); }
 
 	cmd.submit(*m_render_device);
 

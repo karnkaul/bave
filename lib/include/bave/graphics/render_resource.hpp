@@ -73,13 +73,18 @@ class RenderImage : public RenderResource {
 
 	static auto compute_mip_levels(vk::Extent2D extent) -> std::uint32_t;
 
+	template <typename Type>
+	static constexpr auto to_vk_extent(glm::tvec2<Type> const in) -> vk::Extent2D {
+		auto const uextent = glm::uvec2{in};
+		return {uextent.x, uextent.y};
+	}
+
 	explicit RenderImage(NotNull<RenderDevice*> render_device, CreateInfo const& create_info, vk::Extent2D extent = min_extent_v);
 
-	auto copy_from(std::span<Layer const> layers, vk::Extent2D target_extent) -> bool;
+	auto copy_from(BitmapView bitmap) -> bool;
 
 	auto recreate(vk::Extent2D extent) -> void;
-	auto overwrite(Bitmap const& bitmap, glm::uvec2 top_left) -> bool;
-	auto overwrite(std::span<BitmapWrite const> writes) -> bool;
+	auto overwrite(BitmapView bitmap, glm::ivec2 top_left) -> bool;
 	auto resize(vk::Extent2D extent) -> void;
 
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return *m_render_device; }

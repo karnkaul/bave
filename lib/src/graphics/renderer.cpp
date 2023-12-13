@@ -50,10 +50,10 @@ auto make_single_render_pass(vk::Device device, vk::Format colour) -> vk::Unique
 	return device.createRenderPassUnique(rpci);
 }
 
-auto white_bitmap() -> Bitmap {
+auto white_bitmap() -> BitmapView {
 	static constexpr auto pixels = std::array<std::uint8_t, 4>{0xff, 0xff, 0xff, 0xff};
 	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-	return Bitmap{.bytes = {reinterpret_cast<std::byte const*>(pixels.data()), pixels.size()}, .extent = {1, 1}};
+	return BitmapView{.bytes = {reinterpret_cast<std::byte const*>(pixels.data()), pixels.size()}, .extent = {1, 1}};
 }
 } // namespace
 

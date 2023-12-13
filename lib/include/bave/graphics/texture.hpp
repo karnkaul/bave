@@ -7,10 +7,10 @@ namespace bave {
 class Texture {
   public:
 	explicit Texture(NotNull<RenderDevice*> render_device, bool mip_map = false);
-	explicit Texture(NotNull<RenderDevice*> render_device, Bitmap bitmap, bool mip_map = false);
+	explicit Texture(NotNull<RenderDevice*> render_device, BitmapView bitmap, bool mip_map = false);
 
 	auto load_image(std::span<std::byte const> compressed, bool mip_map = false) -> bool;
-	void write(Bitmap bitmap, bool mip_map = false);
+	void write(BitmapView bitmap, bool mip_map = false);
 
 	[[nodiscard]] auto get_image() const -> RenderImage const& { return m_image; }
 

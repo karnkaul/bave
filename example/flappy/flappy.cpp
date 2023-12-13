@@ -3,6 +3,8 @@
 #include <flappy.hpp>
 #include <cmath>
 
+#include <bave/graphics/pixmap.hpp>
+
 namespace {
 constexpr auto world_space_v = glm::vec2{1440.0f, 2560.0f};
 }
@@ -20,7 +22,7 @@ Flappy::Flappy(bave::App& app) : Game(app), m_quad(&app.get_render_device()) {
 		0xffff0000,
 		0xffff00ff,
 	};
-	auto const bitmap = bave::Bitmap{
+	auto const bitmap = bave::BitmapView{
 		.bytes = {reinterpret_cast<std::byte const*>(pixels.data()), pixels.size() * sizeof(pixels[0])},
 		.extent = {2, 2},
 	};

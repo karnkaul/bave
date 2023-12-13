@@ -1,6 +1,8 @@
 #pragma once
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
+#include <array>
+#include <cstddef>
 
 namespace bave {
 ///
@@ -59,6 +61,18 @@ struct Rgba {
 	/// \returns 4 normalized floats
 	///
 	[[nodiscard]] constexpr auto to_vec4(float intensity = 1.0f) const -> glm::vec4 { return glm::vec4{intensity * glm::vec3{to_tint()}, to_f32(channels.w)}; }
+
+	///
+	/// \brief
+	///
+	[[nodiscard]] constexpr auto to_bytes() const -> std::array<std::byte, 4> {
+		return {
+			static_cast<std::byte>(channels.x),
+			static_cast<std::byte>(channels.y),
+			static_cast<std::byte>(channels.z),
+			static_cast<std::byte>(channels.w),
+		};
+	}
 
 	auto operator==(Rgba const&) const -> bool = default;
 };
