@@ -66,8 +66,8 @@ void Pixmap::Builder::add(Id id, Pixmap pixmap) {
 auto Pixmap::Builder::build(Rgba const background) const -> Atlas {
 	if (m_entries.empty()) { return {}; }
 	auto ret = Atlas{};
-	ret.pixmap = Pixmap{m_data.size, background};
-	auto const fsize = glm::vec2{m_data.size};
+	ret.pixmap = Pixmap{ceil_pot(m_data.size), background};
+	auto const fsize = glm::vec2{ret.pixmap.m_size};
 	for (auto const& entry : m_entries) {
 		ret.pixmap.overwrite(entry.pixmap, {entry.rect.lt.x, entry.rect.lt.y});
 		auto const fu = glm::vec2{entry.rect.top_left()} / fsize;
