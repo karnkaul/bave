@@ -1,5 +1,5 @@
 #pragma once
-#include <bave/graphics/sampler.hpp>
+#include <bave/graphics/texture.hpp>
 #include <vulkan/vulkan.hpp>
 #include <unordered_map>
 
@@ -8,16 +8,16 @@ class SamplerCache {
   public:
 	explicit SamplerCache(vk::Device device) : m_device(device) {}
 
-	auto get(Sampler const& sampler) -> vk::Sampler;
+	auto get(Texture::Sampler const& sampler) -> vk::Sampler;
 
 	float anisotropy{};
 
   private:
 	struct Hasher {
-		auto operator()(Sampler const& sampler) const -> std::size_t;
+		auto operator()(Texture::Sampler const& sampler) const -> std::size_t;
 	};
 
 	vk::Device m_device{};
-	std::unordered_map<Sampler, vk::UniqueSampler, Hasher> m_map{};
+	std::unordered_map<Texture::Sampler, vk::UniqueSampler, Hasher> m_map{};
 };
 } // namespace bave::detail

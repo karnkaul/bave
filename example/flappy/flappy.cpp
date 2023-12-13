@@ -28,7 +28,7 @@ Flappy::Flappy(bave::App& app) : Game(app), m_quad(&app.get_render_device()) {
 	};
 	auto texture = std::make_shared<bave::Texture>(&app.get_render_device());
 	texture->write(bitmap);
-	texture->sampler.min = texture->sampler.mag = bave::Sampler::Filter::eNearest;
+	texture->sampler.min = texture->sampler.mag = bave::Texture::Filter::eNearest;
 	m_quad.set_texture(std::move(texture));
 
 	get_app().render_view.viewport = bave::ExtentScaler{.source = get_app().get_framebuffer_size()}.match_width(world_space_v);

@@ -1,6 +1,5 @@
 #pragma once
 #include <bave/graphics/detail/render_resource.hpp>
-#include <bave/graphics/sampler.hpp>
 
 namespace bave {
 struct CombinedImageSampler {
@@ -10,6 +9,20 @@ struct CombinedImageSampler {
 
 class Texture {
   public:
+	enum class Wrap : int { eRepeat, eClampEdge, eClampBorder };
+	enum class Filter : int { eLinear, eNearest };
+	enum class Border : int { eOpaqueBlack, eOpaqueWhite, eTransparentBlack };
+
+	struct Sampler {
+		Wrap wrap_s{Wrap::eRepeat};
+		Wrap wrap_t{Wrap::eRepeat};
+		Filter min{Filter::eLinear};
+		Filter mag{Filter::eLinear};
+		Border border{Border::eOpaqueBlack};
+
+		auto operator==(Sampler const&) const -> bool = default;
+	};
+
 	explicit Texture(NotNull<RenderDevice*> render_device, bool mip_map = false);
 	explicit Texture(NotNull<RenderDevice*> render_device, BitmapView bitmap, bool mip_map = false);
 

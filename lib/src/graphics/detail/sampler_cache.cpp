@@ -3,36 +3,36 @@
 
 namespace bave::detail {
 namespace {
-constexpr auto from(Sampler::Wrap const wrap) -> vk::SamplerAddressMode {
+constexpr auto from(Texture::Wrap const wrap) -> vk::SamplerAddressMode {
 	switch (wrap) {
-	case Sampler::Wrap::eClampBorder: return vk::SamplerAddressMode::eClampToBorder;
-	case Sampler::Wrap::eClampEdge: return vk::SamplerAddressMode::eClampToEdge;
+	case Texture::Wrap::eClampBorder: return vk::SamplerAddressMode::eClampToBorder;
+	case Texture::Wrap::eClampEdge: return vk::SamplerAddressMode::eClampToEdge;
 	default: return vk::SamplerAddressMode::eRepeat;
 	}
 }
 
-constexpr auto from(Sampler::Filter const filter) -> vk::Filter {
+constexpr auto from(Texture::Filter const filter) -> vk::Filter {
 	switch (filter) {
-	case Sampler::Filter::eNearest: return vk::Filter::eNearest;
+	case Texture::Filter::eNearest: return vk::Filter::eNearest;
 	default: return vk::Filter::eLinear;
 	}
 }
 
-constexpr auto from(Sampler::Border const border) -> vk::BorderColor {
+constexpr auto from(Texture::Border const border) -> vk::BorderColor {
 	switch (border) {
 	default:
-	case Sampler::Border::eOpaqueBlack: return vk::BorderColor::eFloatOpaqueBlack;
-	case Sampler::Border::eOpaqueWhite: return vk::BorderColor::eFloatOpaqueWhite;
-	case Sampler::Border::eTransparentBlack: return vk::BorderColor::eFloatTransparentBlack;
+	case Texture::Border::eOpaqueBlack: return vk::BorderColor::eFloatOpaqueBlack;
+	case Texture::Border::eOpaqueWhite: return vk::BorderColor::eFloatOpaqueWhite;
+	case Texture::Border::eTransparentBlack: return vk::BorderColor::eFloatTransparentBlack;
 	}
 }
 } // namespace
 
-auto SamplerCache::Hasher::operator()(Sampler const& sampler) const -> std::size_t {
+auto SamplerCache::Hasher::operator()(Texture::Sampler const& sampler) const -> std::size_t {
 	return make_combined_hash(sampler.min, sampler.mag, sampler.wrap_s, sampler.wrap_t, sampler.border);
 }
 
-auto SamplerCache::get(Sampler const& sampler) -> vk::Sampler {
+auto SamplerCache::get(Texture::Sampler const& sampler) -> vk::Sampler {
 	if (auto it = m_map.find(sampler); it != m_map.end()) { return *it->second; }
 	auto sci = vk::SamplerCreateInfo{};
 	sci.minFilter = from(sampler.min);
