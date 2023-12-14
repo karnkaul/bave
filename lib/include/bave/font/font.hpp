@@ -17,12 +17,12 @@ class Font {
 
 	auto load_font(std::vector<std::byte> file_bytes, float scale = scale_v) -> bool;
 
-	[[nodiscard]] auto glyph_for(TextHeight height, Codepoint codepoint) -> Glyph { return get_font_atlas(height).glyph_for(codepoint); }
-	[[nodiscard]] auto get_texture(TextHeight height) -> std::shared_ptr<Texture const> const& { return get_font_atlas(height).get_texture(); }
+	[[nodiscard]] auto glyph_for(TextHeight height, Codepoint codepoint) -> Glyph;
+	[[nodiscard]] auto get_texture(TextHeight height) -> std::shared_ptr<Texture const>;
 
 	[[nodiscard]] auto is_loaded() const -> bool { return m_slot_factory != nullptr; }
 
-	[[nodiscard]] auto get_font_atlas(TextHeight height) -> detail::FontAtlas const&;
+	[[nodiscard]] auto get_font_atlas(TextHeight height) -> Ptr<detail::FontAtlas const>;
 
   private:
 	NotNull<RenderDevice*> m_render_device;
@@ -42,7 +42,7 @@ class Font::Pen {
 
 	[[nodiscard]] auto calc_line_extent(std::string_view line) const -> glm::vec2;
 
-	[[nodiscard]] auto get_texture() const -> std::shared_ptr<Texture const> const& { return m_font->get_font_atlas(m_height).get_texture(); }
+	[[nodiscard]] auto get_texture() const -> std::shared_ptr<Texture const> { return m_font->get_texture(m_height); }
 	[[nodiscard]] auto get_height() const -> TextHeight { return m_height; }
 
 	glm::vec2 cursor{};

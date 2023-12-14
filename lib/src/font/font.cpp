@@ -13,15 +13,24 @@ auto Font::load_font(std::vector<std::byte> file_bytes, float scale) -> bool {
 	return true;
 }
 
-auto Font::get_font_atlas(TextHeight height) -> detail::FontAtlas const& {
-	height = clamp_text_height(height);
-	if (auto it = m_atlases.find(height); it != m_atlases.end()) { return it->second; }
+auto Font::glyph_for(TextHeight height, Codepoint codepoint) -> Glyph {
+	if (auto const* atlas = get_font_atlas(height)) { return atlas->glyph_for(codepoint); }
+	return {};
+}
+auto Font::get_texture(TextHeight height) -> std::shared_ptr<Texture const> {
+	if (auto const* atlas = get_font_atlas(height)) { return atlas->get_texture(); }
+	return {};
+}
 
-	if (!is_loaded()) { throw Error{"Font not loaded"}; }
+auto Font::get_font_atlas(TextHeight height) -> Ptr<detail::FontAtlas const> {
+	height = clamp_text_height(height);
+	if (auto it = m_atlases.find(height); it != m_atlases.end()) { return &it->second; }
+
+	if (!is_loaded()) { return {}; }
 
 	auto const scaled_height = scale_text_height(height, m_scale);
 	auto [it, _] = m_atlases.insert_or_assign(height, detail::FontAtlas{m_render_device, m_slot_factory.get(), scaled_height});
-	return it->second;
+	return &it->second;
 }
 
 struct Font::Pen::Writer {
@@ -29,7 +38,6 @@ struct Font::Pen::Writer {
 
 	template <typename Func>
 	void operator()(std::string_view const line, Func func) const {
-		if (!pen.m_font->is_loaded()) { return; }
 		for (char const ch : line) {
 			if (ch == '\n') { return; }
 			auto glyph = pen.m_font->glyph_for(pen.m_height, static_cast<Codepoint>(ch));
