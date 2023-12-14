@@ -2,8 +2,8 @@
 
 namespace bave {
 enum struct TextHeight : int {
-	eMin = 10,
 	eDefault = 40,
+	eMin = 10,
 	eMax = 256,
 };
 

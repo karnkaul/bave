@@ -6,7 +6,7 @@ class BasicShape : public Drawable {
   public:
 	using Drawable::Drawable;
 
-	void set_texture(std::shared_ptr<Texture const> texture) { textures.front() = std::move(texture); }
+	void set_texture(std::shared_ptr<Texture const> texture) { Drawable::set_texture(std::move(texture)); }
 	[[nodiscard]] auto get_texture() const -> std::shared_ptr<Texture const> const& { return textures.front(); }
 };
 

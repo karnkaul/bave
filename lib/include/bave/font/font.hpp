@@ -22,6 +22,7 @@ class Font {
 
 	[[nodiscard]] auto is_loaded() const -> bool { return m_slot_factory != nullptr; }
 
+	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return *m_render_device; }
 	[[nodiscard]] auto get_font_atlas(TextHeight height) -> Ptr<detail::FontAtlas const>;
 
   private:

@@ -20,6 +20,7 @@ class Drawable : public Polymorphic {
 
   protected:
 	void set_geometry(Geometry const& geometry) { m_mesh.write(geometry); }
+	void set_texture(std::shared_ptr<Texture const> texture) { textures.front() = std::move(texture); }
 
   private:
 	void bake_instances() const;
