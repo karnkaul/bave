@@ -2,7 +2,7 @@
 #include <bave/font/detail/glyph_slot.hpp>
 #include <memory>
 
-namespace bave {
+namespace bave::detail {
 class FontLibrary {
   public:
 	struct Null;
@@ -25,4 +25,4 @@ struct FontLibrary::Null : FontLibrary {
 		return std::make_unique<detail::GlyphSlot::Factory::Null>();
 	}
 };
-} // namespace bave
+} // namespace bave::detail

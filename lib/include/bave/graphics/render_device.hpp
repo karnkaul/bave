@@ -3,7 +3,7 @@
 #include <bave/core/inclusive_range.hpp>
 #include <bave/core/ptr.hpp>
 #include <bave/core/scoped_resource.hpp>
-#include <bave/font/font_library.hpp>
+#include <bave/font/detail/font_library.hpp>
 #include <bave/graphics/detail/buffering.hpp>
 #include <bave/graphics/detail/defer.hpp>
 #include <bave/graphics/detail/device_blocker.hpp>
@@ -42,7 +42,6 @@ class RenderDevice {
 	[[nodiscard]] auto get_queue() const -> vk::Queue { return m_queue; }
 	[[nodiscard]] auto get_allocator() const -> VmaAllocator { return m_allocator.get(); }
 	[[nodiscard]] auto get_swapchain_format() const -> vk::Format { return m_swapchain.create_info.imageFormat; }
-	[[nodiscard]] auto get_font_library() const -> FontLibrary& { return *m_font_library; }
 
 	[[nodiscard]] auto get_line_width_limits() const -> InclusiveRange<float> { return m_line_width_limits; }
 	[[nodiscard]] auto get_frame_index() const -> detail::FrameIndex { return m_frame_index; }
@@ -62,6 +61,7 @@ class RenderDevice {
 	[[nodiscard]] auto get_vertex_buffer_cache() const -> detail::RenderBufferCache& { return *m_vbo_cache; }
 	[[nodiscard]] auto get_scratch_buffer_cache() const -> detail::ScratchBufferCache& { return *m_sbo_cache; }
 	[[nodiscard]] auto get_sampler_cache() const -> detail::SamplerCache& { return *m_sampler_cache; }
+	[[nodiscard]] auto get_font_library() const -> detail::FontLibrary& { return *m_font_library; }
 
   private:
 	struct Deleter {
@@ -89,7 +89,7 @@ class RenderDevice {
 	std::unique_ptr<detail::RenderBufferCache> m_vbo_cache{};
 	std::unique_ptr<detail::ScratchBufferCache> m_sbo_cache{};
 	std::unique_ptr<detail::SamplerCache> m_sampler_cache{};
-	std::unique_ptr<FontLibrary> m_font_library{FontLibrary::make()};
+	std::unique_ptr<detail::FontLibrary> m_font_library{detail::FontLibrary::make()};
 
 	detail::DeviceBlocker m_blocker{};
 

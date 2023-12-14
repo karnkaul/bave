@@ -3,24 +3,24 @@
 #include <bave/graphics/render_device.hpp>
 
 namespace bave {
-auto Font::try_make(NotNull<RenderDevice*> render_device, std::vector<std::byte> file_bytes, float scale) -> std::optional<Font> {
-	auto ret = std::optional<Font>{};
-	auto slot_factory = render_device->get_font_library().load(std::move(file_bytes));
-	if (!slot_factory) { return ret; }
-	ret.emplace(render_device, std::move(slot_factory), scale);
-	return ret;
-}
+Font::Font(NotNull<RenderDevice*> render_device) : m_render_device(render_device) {}
 
-Font::Font(NotNull<RenderDevice*> render_device, std::unique_ptr<detail::GlyphSlot::Factory> slot_factory, float scale)
-	: m_render_device(render_device), m_slot_factory(std::move(slot_factory)), m_scale(scale) {
-	if (!m_slot_factory) { throw Error{"Null GlyphSlot::Factory"}; }
+auto Font::load_font(std::vector<std::byte> file_bytes, float scale) -> bool {
+	auto slot_factory = m_render_device->get_font_library().load(std::move(file_bytes));
+	if (!slot_factory) { return false; }
+	m_slot_factory = std::move(slot_factory);
+	m_scale = scale;
+	return true;
 }
 
 auto Font::get_font_atlas(TextHeight height) -> detail::FontAtlas const& {
 	height = clamp_text_height(height);
 	if (auto it = m_atlases.find(height); it != m_atlases.end()) { return it->second; }
 
-	auto [it, _] = m_atlases.insert_or_assign(height, detail::FontAtlas{m_render_device, m_slot_factory.get(), scale_text_height(height, m_scale)});
+	if (!is_loaded()) { throw Error{"Font not loaded"}; }
+
+	auto const scaled_height = scale_text_height(height, m_scale);
+	auto [it, _] = m_atlases.insert_or_assign(height, detail::FontAtlas{m_render_device, m_slot_factory.get(), scaled_height});
 	return it->second;
 }
 
@@ -29,6 +29,7 @@ struct Font::Pen::Writer {
 
 	template <typename Func>
 	void operator()(std::string_view const line, Func func) const {
+		if (!pen.m_font->is_loaded()) { return; }
 		for (char const ch : line) {
 			if (ch == '\n') { return; }
 			auto glyph = pen.m_font->glyph_for(pen.m_height, static_cast<Codepoint>(ch));

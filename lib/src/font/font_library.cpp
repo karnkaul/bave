@@ -1,7 +1,7 @@
-#include <bave/font/font_library.hpp>
+#include <bave/font/detail/font_library.hpp>
 #include <font/detail/freetype.hpp>
 
-namespace bave {
+namespace bave::detail {
 auto FontLibrary::make() -> std::unique_ptr<FontLibrary> {
 	auto ret = std::unique_ptr<FontLibrary>{};
 #if defined(BAVE_USE_FREETYPE)
@@ -11,4 +11,4 @@ auto FontLibrary::make() -> std::unique_ptr<FontLibrary> {
 #endif
 	return ret;
 }
-} // namespace bave
+} // namespace bave::detail

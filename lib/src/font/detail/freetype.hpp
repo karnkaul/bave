@@ -1,6 +1,6 @@
 #pragma once
 #include <bave/core/scoped_resource.hpp>
-#include <bave/font/font_library.hpp>
+#include <bave/font/detail/font_library.hpp>
 #include <bave/logger.hpp>
 
 #if defined(BAVE_USE_FREETYPE)
