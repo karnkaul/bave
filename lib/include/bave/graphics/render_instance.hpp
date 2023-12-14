@@ -1,6 +1,6 @@
 #pragma once
 #include <bave/graphics/rgba.hpp>
-#include <bave/transform.hpp>
+#include <bave/graphics/transform.hpp>
 
 namespace bave {
 struct RenderInstance {

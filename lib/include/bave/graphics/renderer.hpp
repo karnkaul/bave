@@ -8,7 +8,7 @@
 #include <bave/graphics/render_view.hpp>
 #include <bave/graphics/rgba.hpp>
 #include <bave/graphics/texture.hpp>
-#include <bave/transform.hpp>
+#include <bave/graphics/transform.hpp>
 #include <optional>
 
 namespace bave {

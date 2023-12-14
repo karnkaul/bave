@@ -1,4 +1,4 @@
-#include <bave/drawable.hpp>
+#include <bave/graphics/drawable.hpp>
 #include <bave/graphics/shader.hpp>
 
 namespace bave {

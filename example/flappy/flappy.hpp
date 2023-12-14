@@ -1,6 +1,6 @@
 #pragma once
 #include <bave/game.hpp>
-#include <bave/shape.hpp>
+#include <bave/graphics/shape.hpp>
 
 class Flappy : public bave::Game {
 	void tick() final;

@@ -1,5 +1,5 @@
 #pragma once
-#include <bave/drawable.hpp>
+#include <bave/graphics/drawable.hpp>
 
 namespace bave {
 class BasicShape : public Drawable {
