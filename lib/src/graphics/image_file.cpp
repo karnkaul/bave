@@ -25,10 +25,10 @@ auto ImageFile::decompress(std::span<std::byte const> compressed) -> bool {
 	return true;
 }
 
-auto ImageFile::bitmap() const -> Bitmap {
+auto ImageFile::bitmap() const -> BitmapView {
 	if (!m_impl) { return {}; }
 
-	return Bitmap{
+	return BitmapView{
 		.bytes = {reinterpret_cast<std::byte const*>(m_impl->stb_data), m_impl->size}, // NOLINT
 		.extent = m_impl->extent,
 	};

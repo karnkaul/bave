@@ -1,8 +1,8 @@
 #include <bave/build_version.hpp>
 #include <bave/core/error.hpp>
+#include <bave/graphics/detail/utils.hpp>
 #include <bave/graphics/render_device.hpp>
-#include <bave/graphics/utils.hpp>
-#include <graphics/bootstrap.hpp>
+#include <graphics/detail/bootstrap.hpp>
 
 namespace bave {
 namespace {
@@ -43,9 +43,9 @@ constexpr auto composite_alpha(vk::SurfaceCapabilitiesKHR const& caps) -> vk::Co
 }
 } // namespace
 
-RenderDevice::RenderDevice(NotNull<IWsi*> wsi, CreateInfo create_info) : m_wsi(wsi) {
-	auto instance_bootstrap = InstanceBuilder{.extensions = wsi->get_instance_extensions(), .validation = create_info.validation_layers};
-	auto instance = instance_bootstrap.build();
+RenderDevice::RenderDevice(NotNull<detail::IWsi*> wsi, CreateInfo create_info) : m_wsi(wsi) {
+	auto instance_builder = detail::InstanceBuilder{.extensions = wsi->get_instance_extensions(), .validation = create_info.validation_layers};
+	auto instance = instance_builder.build();
 	if (!instance.instance) { throw Error{"Failed to create Vulkan Instance"}; }
 	m_instance = std::move(instance.instance);
 	m_debug_messenger = std::move(instance.debug_messenger);
@@ -53,10 +53,10 @@ RenderDevice::RenderDevice(NotNull<IWsi*> wsi, CreateInfo create_info) : m_wsi(w
 	m_surface = vk::UniqueSurfaceKHR{wsi->make_surface(*m_instance), *m_instance};
 	if (!m_surface) { throw Error{"Failed to create Vulkan Surface"}; }
 
-	auto device_bootstrap = DeviceBuilder{*m_instance, *m_surface};
-	m_gpu = m_wsi->select_gpu(device_bootstrap.get_gpus());
+	auto device_builder = detail::DeviceBuilder{*m_instance, *m_surface};
+	m_gpu = m_wsi->select_gpu(device_builder.get_gpus());
 
-	auto device = device_bootstrap.build();
+	auto device = device_builder.build();
 	if (!device.device) { throw Error{"Failed to create Vulkan Device"}; }
 	m_device = std::move(device.device);
 	m_queue = device.queue;
@@ -64,15 +64,15 @@ RenderDevice::RenderDevice(NotNull<IWsi*> wsi, CreateInfo create_info) : m_wsi(w
 	m_allocator = {make_vma(get_instance(), get_gpu().device, get_device())};
 
 	m_swapchain.present_modes = get_gpu().device.getSurfacePresentModesKHR(get_surface());
-	m_swapchain.formats = Swapchain::Formats::make(get_gpu().device.getSurfaceFormatsKHR(get_surface()));
+	m_swapchain.formats = detail::Swapchain::Formats::make(get_gpu().device.getSurfaceFormatsKHR(get_surface()));
 	m_swapchain.make_create_info(*m_surface, m_gpu.queue_family, create_info.swapchain_colour_space);
 	m_swapchain.create_info.compositeAlpha = composite_alpha(get_gpu().device.getSurfaceCapabilitiesKHR(get_surface()));
 
 	recreate_swapchain(wsi->get_framebuffer_extent());
 
-	m_vbo_cache = std::make_unique<RenderBufferCache>(this, vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndexBuffer);
-	m_sbo_cache = std::make_unique<ScratchBufferCache>(this);
-	m_sampler_cache = std::make_unique<SamplerCache>(get_device());
+	m_vbo_cache = std::make_unique<detail::RenderBufferCache>(this, vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndexBuffer);
+	m_sbo_cache = std::make_unique<detail::ScratchBufferCache>(this);
+	m_sampler_cache = std::make_unique<detail::SamplerCache>(get_device());
 
 	auto const line_width_range = get_gpu().device.getProperties().limits.lineWidthRange;
 	m_line_width_limits = {line_width_range[0], line_width_range[1]};
@@ -193,7 +193,7 @@ auto RenderDevice::recreate_swapchain(vk::Extent2D framebuffer) -> bool {
 	m_swapchain.active.render_targets.clear();
 	m_swapchain.active.views.clear();
 	for (auto const image : images) {
-		m_swapchain.active.views.push_back(MakeImageView{.image = image, .format = m_swapchain.create_info.imageFormat}(get_device()));
+		m_swapchain.active.views.push_back(detail::MakeImageView{.image = image, .format = m_swapchain.create_info.imageFormat}(get_device()));
 		m_swapchain.active.render_targets.push_back({
 			.image = image,
 			.view = *m_swapchain.active.views.back(),
@@ -206,7 +206,7 @@ auto RenderDevice::recreate_swapchain(vk::Extent2D framebuffer) -> bool {
 
 	m_log.info("swapchain extent: [{}x{}] | images: [{}] | colour space: [{}] | vsync: [{}]", m_swapchain.create_info.imageExtent.width,
 			   m_swapchain.create_info.imageExtent.height, m_swapchain.active.render_targets.size(),
-			   Swapchain::is_srgb_format(info.imageFormat) ? "sRGB" : "linear", to_vsync_string(info.presentMode));
+			   detail::Swapchain::is_srgb_format(info.imageFormat) ? "sRGB" : "linear", to_vsync_string(info.presentMode));
 
 	return true;
 }

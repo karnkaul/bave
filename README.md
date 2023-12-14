@@ -12,7 +12,7 @@
 - [x] Meshes and textures.
 - [x] Shaders, optional custom descriptor sets (but fixed layout).
 - [x] `Drawable` API.
-- [ ] Fonts and text.
+- [x] Fonts and text.
 - [ ] Audio playback.
 
 ## Requirements

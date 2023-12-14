@@ -2,5 +2,8 @@
 #include <glm/vec2.hpp>
 
 namespace bave {
-[[nodiscard]] constexpr auto is_positive(glm::vec2 const extent) -> bool { return extent.x > 0.0f && extent.y > 0.0f; }
+template <typename Type>
+[[nodiscard]] constexpr auto is_positive(glm::tvec2<Type> const extent) -> bool {
+	return extent.x > Type{0} && extent.y > Type{0};
+}
 } // namespace bave

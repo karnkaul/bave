@@ -13,7 +13,7 @@ class ANativeWindow;
 }
 
 namespace bave {
-class AndroidApp : public App, public IWsi {
+class AndroidApp : public App, public detail::IWsi {
   public:
 	explicit AndroidApp(android_app& app);
 

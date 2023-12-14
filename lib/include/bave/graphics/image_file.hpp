@@ -7,7 +7,7 @@ class ImageFile {
   public:
 	auto decompress(std::span<std::byte const> compressed) -> bool;
 
-	[[nodiscard]] auto bitmap() const -> Bitmap;
+	[[nodiscard]] auto bitmap() const -> BitmapView;
 
 	[[nodiscard]] auto is_empty() const -> bool { return m_impl == nullptr; }
 

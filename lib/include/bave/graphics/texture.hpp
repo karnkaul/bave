@@ -1,24 +1,41 @@
 #pragma once
-#include <bave/graphics/image_sampler.hpp>
-#include <bave/graphics/render_resource.hpp>
-#include <bave/graphics/sampler.hpp>
+#include <bave/graphics/detail/render_resource.hpp>
 
 namespace bave {
+struct CombinedImageSampler {
+	vk::ImageView image_view{};
+	vk::Sampler sampler{};
+};
+
 class Texture {
   public:
+	enum class Wrap : int { eRepeat, eClampEdge, eClampBorder };
+	enum class Filter : int { eLinear, eNearest };
+	enum class Border : int { eOpaqueBlack, eOpaqueWhite, eTransparentBlack };
+
+	struct Sampler {
+		Wrap wrap_s{Wrap::eRepeat};
+		Wrap wrap_t{Wrap::eRepeat};
+		Filter min{Filter::eLinear};
+		Filter mag{Filter::eLinear};
+		Border border{Border::eOpaqueBlack};
+
+		auto operator==(Sampler const&) const -> bool = default;
+	};
+
 	explicit Texture(NotNull<RenderDevice*> render_device, bool mip_map = false);
-	explicit Texture(NotNull<RenderDevice*> render_device, Bitmap bitmap, bool mip_map = false);
+	explicit Texture(NotNull<RenderDevice*> render_device, BitmapView bitmap, bool mip_map = false);
 
 	auto load_image(std::span<std::byte const> compressed, bool mip_map = false) -> bool;
-	void write(Bitmap bitmap, bool mip_map = false);
+	void write(BitmapView bitmap, bool mip_map = false);
 
-	[[nodiscard]] auto get_image() const -> RenderImage const& { return m_image; }
+	[[nodiscard]] auto combined_image_sampler() const -> CombinedImageSampler;
 
-	[[nodiscard]] auto combined_image_sampler() const -> ImageSampler;
+	[[nodiscard]] auto get_image() const -> detail::RenderImage const& { return m_image; }
 
 	Sampler sampler{};
 
   private:
-	RenderImage m_image;
+	detail::RenderImage m_image;
 };
 } // namespace bave

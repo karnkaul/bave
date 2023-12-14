@@ -36,7 +36,7 @@ void Mesh::draw(vk::CommandBuffer command_buffer, std::uint32_t instance_count) 
 	}
 }
 
-auto Mesh::get_buffer() const -> Ptr<RenderBuffer> {
+auto Mesh::get_buffer() const -> Ptr<detail::RenderBuffer> {
 	if (m_data.empty()) { return {}; }
 
 	auto const& ret = m_vbo.get().at(m_render_device->get_frame_index());

@@ -42,7 +42,7 @@ class App : public PolyPinned {
 	[[nodiscard]] auto get_dt() const -> Seconds { return m_dt.dt; }
 	[[nodiscard]] auto get_window_size() const -> glm::ivec2 { return do_get_window_size(); }
 	[[nodiscard]] auto get_framebuffer_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
-	[[nodiscard]] auto get_pipeline_cache() const -> PipelineCache& { return do_get_renderer().get_pipeline_cache(); }
+	[[nodiscard]] auto get_pipeline_cache() const -> detail::PipelineCache& { return do_get_renderer().get_pipeline_cache(); }
 
 	[[nodiscard]] auto load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader>;
 
