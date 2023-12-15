@@ -17,10 +17,7 @@ void App::set_data_store(std::unique_ptr<DataStore> data_store) {
 
 auto App::run() -> ErrCode {
 	try {
-		m_log.info("run");
-		do_run();
-		m_log.info("exit");
-		return ErrCode::eSuccess;
+		return do_run();
 	} catch (std::runtime_error const& e) {
 		m_log.error("FATAL: {}", e.what());
 		return ErrCode::eFailure;

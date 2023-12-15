@@ -41,7 +41,7 @@ class DesktopApp : public App, public detail::IWsi {
 	static auto self(Ptr<GLFWwindow> window) -> DesktopApp&;
 	static void push(Ptr<GLFWwindow> window, Event event);
 
-	void do_run() final;
+	auto do_run() -> ErrCode final;
 	void do_shutdown() final;
 
 	[[nodiscard]] auto do_get_window_size() const -> glm::ivec2 final;

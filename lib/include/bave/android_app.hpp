@@ -21,7 +21,7 @@ class AndroidApp : public App, public detail::IWsi {
 	static auto self(Ptr<android_app> app) -> AndroidApp&;
 	static void push(Ptr<android_app> window, Event event);
 
-	void do_run() final;
+	auto do_run() -> ErrCode final;
 	void do_shutdown() final;
 
 	[[nodiscard]] auto do_get_framebuffer_size() const -> glm::ivec2 final;

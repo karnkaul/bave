@@ -58,7 +58,7 @@ class App : public PolyPinned {
 	Logger m_log{};
 
   private:
-	virtual void do_run() = 0;
+	virtual auto do_run() -> ErrCode = 0;
 	virtual void do_shutdown() = 0;
 
 	[[nodiscard]] virtual auto do_get_window_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }

@@ -1,4 +1,4 @@
-#include <font/detail/freetype.hpp>
+#include <src/font/detail/freetype.hpp>
 
 #if defined(BAVE_USE_FREETYPE)
 

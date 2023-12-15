@@ -12,6 +12,7 @@ enum class Key : int {
 	eComma = 44,
 	eMinus = 45,
 	eFullstop = 46,
+	ePeriod = eFullstop,
 	eSlash = 47,
 	e0 = 48,
 	e1 = 49,

@@ -78,3 +78,26 @@ if(NOT ANDROID)
     glfw::glfw
   )
 endif()
+
+if(ANDROID)
+  set(app_glue_src "${ANDROID_NDK}/sources/android/native_app_glue")
+
+  add_library(android-app-glue STATIC
+    ${app_glue_src}/android_native_app_glue.c
+  )
+
+  target_include_directories(android-app-glue PUBLIC
+    ${app_glue_src}
+  )
+
+  target_link_libraries(android-app-glue PUBLIC
+    android
+  )
+
+  target_link_libraries(${PROJECT_NAME} INTERFACE
+    android-app-glue
+    log
+  )
+
+  target_compile_definitions(dyvk PUBLIC -DVK_USE_PLATFORM_ANDROID_KHR=1)
+endif()

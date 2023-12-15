@@ -2,7 +2,7 @@
 #include <bave/core/error.hpp>
 #include <bave/graphics/detail/utils.hpp>
 #include <bave/graphics/render_device.hpp>
-#include <graphics/detail/bootstrap.hpp>
+#include <src/graphics/detail/bootstrap.hpp>
 
 namespace bave {
 namespace {

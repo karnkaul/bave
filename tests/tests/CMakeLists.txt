@@ -1,6 +1,6 @@
 project(${project_prefix}-tests)
 
-file(GLOB_RECURSE sources CONFIGURE_DEPENDS "*.cpp")
+file(GLOB_RECURSE sources CONFIGURE_DEPENDS LIST_DIRECTORIES false "*.cpp")
 
 if(NOT "${sources}" STREQUAL "")
   add_executable(${PROJECT_NAME})
