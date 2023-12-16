@@ -4,13 +4,17 @@
 
 namespace bave::clap {
 namespace {
-auto find_option(OptionSpec const& in_, std::string_view const word) -> Option const* {
-	if (auto itr = std::ranges::find_if(in_.options, [word](Option const& opt) { return opt.key == word; }); itr != in_.options.end()) { return &*itr; }
+auto find_option(OptionSpec const& in, std::string_view const word) -> Option const* {
+	if (auto itr = std::find_if(in.options.begin(), in.options.end(), [word](Option const& opt) { return opt.key == word; }); itr != in.options.end()) {
+		return &*itr;
+	}
 	return {};
 }
 
-auto find_option(OptionSpec const& in_, char const letter) -> Option const* {
-	if (auto itr = std::ranges::find_if(in_.options, [letter](Option const& opt) { return opt.letter == letter; }); itr != in_.options.end()) { return &*itr; }
+auto find_option(OptionSpec const& in, char const letter) -> Option const* {
+	if (auto itr = std::find_if(in.options.begin(), in.options.end(), [letter](Option const& opt) { return opt.letter == letter; }); itr != in.options.end()) {
+		return &*itr;
+	}
 	return {};
 }
 

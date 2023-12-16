@@ -77,6 +77,11 @@ void Flappy::tick() {
 
 	m_quad.instances.front().transform.rotation.value += bave::Degrees{get_app().get_dt().count() * 10.0f}.to_radians().value;
 
+	if (auto const pinch = m_pinch.update(get_app().get_active_pointers())) {
+		get_app().render_view.transform.scale += 0.1f * *pinch * get_app().get_dt().count();
+		m_drag = false;
+	}
+
 	if (m_drag) {
 		auto const delta = bave::Projector{.source = get_app().get_framebuffer_size(), .target = world_space_v}(m_pointer - prev_pointer);
 		get_app().render_view.transform.position -= delta;
