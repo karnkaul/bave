@@ -1,3 +1,4 @@
+#include <android/window.h>
 #include <android_native_app_glue.h>
 #include <jni.h>
 #include <bave/android_app.hpp>
@@ -119,6 +120,14 @@ constexpr auto to_key_mods(int const mods) {
 	if ((mods & AMETA_NUM_LOCK_ON) != 0) { ret.set(mod::numlock); }
 	return ret;
 }
+
+auto find_index(Ptr<AInputEvent const> event, int32_t id) -> int32_t {
+	auto const count = AMotionEvent_getPointerCount(event);
+	for (uint32_t index = 0; index < count; ++index) {
+		if (id == AMotionEvent_getPointerId(event, index)) { return index; }
+	}
+	return -1;
+}
 } // namespace
 
 AndroidApp::AndroidApp(android_app& app) : m_app(app) { m_app.userData = this; }
@@ -202,16 +211,7 @@ void AndroidApp::setup_event_callbacks() {
 			push(app, KeyInput{.key = key, .action = action, .mods = mods});
 			return 1;
 		}
-		if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
-			auto const position = self(app).screen_to_framebuffer(glm::vec2{AMotionEvent_getX(event, 0), AMotionEvent_getY(event, 0)});
-			switch (AMotionEvent_getAction(event)) {
-			case AMOTION_EVENT_ACTION_MOVE: push(app, CursorMove{.position = position}); break;
-			case AMOTION_EVENT_ACTION_DOWN: push(app, TouchTap{.action = Action::ePress, .position = position}); break;
-			case AMOTION_EVENT_ACTION_UP: push(app, TouchTap{.action = Action::eRelease, .position = position}); break;
-			default: return 0;
-			}
-			return 1;
-		}
+		if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) { return self(app).handle_motion(event); }
 		return 0;
 	};
 }
@@ -259,6 +259,7 @@ void AndroidApp::resume_render() {
 }
 
 void AndroidApp::start() {
+	ANativeActivity_setWindowFlags(m_app.activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
 	set_data_store(std::make_unique<AndroidDataStore>(&m_app));
 	init_graphics();
 	m_game = make_game();
@@ -273,5 +274,56 @@ void AndroidApp::destroy() {
 	m_render_device.reset();
 	m_can_render = false;
 	m_log.debug("destroy");
+}
+
+auto AndroidApp::handle_motion(Ptr<AInputEvent> event) -> int {
+	auto const action = AMotionEvent_getAction(event);
+	auto const flags = action & AMOTION_EVENT_ACTION_MASK;
+	auto const pointer_0 = get_pointer(event, 0);
+	switch (flags) {
+	case AMOTION_EVENT_ACTION_DOWN: {
+		m_pointers.insert(0);
+		push_event(TouchTap{.id = pointer_0.id, .action = Action::ePress, .position = pointer_0.position});
+		break;
+	}
+	case AMOTION_EVENT_ACTION_UP: {
+		m_pointers.clear();
+		push_event(TouchTap{.id = pointer_0.id, .action = Action::eRelease, .position = pointer_0.position});
+		break;
+	}
+	case AMOTION_EVENT_ACTION_POINTER_DOWN: {
+		auto const index = (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+		auto const pointer = get_pointer(event, index);
+		m_pointers.insert(pointer.id);
+		push_event(TouchTap{.id = pointer.id, .action = Action::ePress, .position = pointer.position});
+		break;
+	}
+	case AMOTION_EVENT_ACTION_POINTER_UP: {
+		auto const index = (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+		auto const pointer = get_pointer(event, index);
+		m_pointers.erase(pointer.id);
+		push_event(TouchTap{.id = pointer.id, .action = Action::eRelease, .position = pointer.position});
+		break;
+	}
+	case AMOTION_EVENT_ACTION_MOVE: {
+		for (auto const id : m_pointers) {
+			auto const index = find_index(event, id);
+			if (index >= 0) {
+				auto const pointer = get_pointer(event, index);
+				push_event(CursorMove{.id = pointer.id, .position = pointer.position});
+			}
+		}
+		break;
+	}
+	default: return 0;
+	}
+	return 1;
+}
+
+auto AndroidApp::get_pointer(Ptr<AInputEvent> event, std::uint32_t index) const -> Pointer {
+	return Pointer{
+		.id = AMotionEvent_getPointerId(event, index),
+		.position = screen_to_framebuffer({AMotionEvent_getX(event, index), AMotionEvent_getY(event, index)}),
+	};
 }
 } // namespace bave

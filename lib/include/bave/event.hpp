@@ -28,6 +28,7 @@ struct CharInput {
 };
 
 struct CursorMove {
+	int id{};
 	glm::vec2 position{};
 };
 

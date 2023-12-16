@@ -13,6 +13,7 @@
 - [x] Shaders, optional custom descriptor sets (but fixed layout).
 - [x] `Drawable` API.
 - [x] Fonts and text.
+- [x] Multi touch support.
 - [ ] Audio playback.
 
 ## Requirements
