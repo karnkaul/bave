@@ -52,6 +52,8 @@ auto DesktopApp::do_run() -> ErrCode {
 	auto const result = options.parse(m_create_info.args.subspan(1));
 	if (clap::should_quit(result)) { return static_cast<ErrCode>(clap::return_code(result)); }
 
+	m_active_pointers.emplace_back();
+
 	m_log.debug("glfwInit");
 	glfwInit();
 	m_glfw = {Glfw{.init = true}};
@@ -164,13 +166,14 @@ void DesktopApp::make_window() {
 	});
 	glfwSetCharCallback(m_window.get(), [](Ptr<GLFWwindow> window, std::uint32_t code) { push(window, CharInput{.code = code}); });
 	glfwSetCursorPosCallback(m_window.get(), [](Ptr<GLFWwindow> window, double x, double y) {
-		push(window, CursorMove{.position = self(window).screen_to_framebuffer({x, y})});
+		auto& primary = self(window).m_active_pointers[0];
+		primary.position = self(window).screen_to_framebuffer({x, y});
+		push(window, PointerMove{.pointer = primary});
 	});
 	glfwSetScrollCallback(m_window.get(), [](Ptr<GLFWwindow> window, double x, double y) { push(window, MouseScroll{.delta = {x, y}}); });
 	glfwSetMouseButtonCallback(m_window.get(), [](Ptr<GLFWwindow> window, int button, int action, int mods) {
-		auto position = glm::dvec2{};
-		glfwGetCursorPos(window, &position.x, &position.y);
-		push(window, MouseClick{.id = button, .action = to_action(action), .mods = to_mods(mods), .position = self(window).screen_to_framebuffer(position)});
+		auto const& primary = self(window).m_active_pointers[0];
+		push(window, PointerTap{.pointer = primary, .action = to_action(action), .mods = to_mods(mods), .button = static_cast<MouseButton>(button)});
 	});
 }
 

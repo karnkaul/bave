@@ -121,12 +121,12 @@ constexpr auto to_key_mods(int const mods) {
 	return ret;
 }
 
-auto find_index(Ptr<AInputEvent const> event, int32_t id) -> int32_t {
+auto find_index(Ptr<AInputEvent const> event, Pointer::Id id) -> std::optional<std::uint32_t> {
 	auto const count = AMotionEvent_getPointerCount(event);
 	for (uint32_t index = 0; index < count; ++index) {
-		if (id == AMotionEvent_getPointerId(event, index)) { return index; }
+		if (static_cast<std::int32_t>(id) == AMotionEvent_getPointerId(event, index)) { return index; }
 	}
-	return -1;
+	return {};
 }
 } // namespace
 
@@ -189,7 +189,7 @@ auto AndroidApp::self(Ptr<android_app> app) -> AndroidApp& {
 	return *ret;
 }
 
-void AndroidApp::push(android_app* app, bave::Event event) { self(app).push_event(event); }
+void AndroidApp::push(Ptr<android_app> app, bave::Event event) { self(app).push_event(event); }
 
 void AndroidApp::setup_event_callbacks() {
 	m_app.onAppCmd = [](Ptr<android_app> app, int32_t cmd) {
@@ -276,41 +276,40 @@ void AndroidApp::destroy() {
 	m_log.debug("destroy");
 }
 
-auto AndroidApp::handle_motion(Ptr<AInputEvent> event) -> int {
+auto AndroidApp::handle_motion(Ptr<AInputEvent const> event) -> int {
 	auto const action = AMotionEvent_getAction(event);
 	auto const flags = action & AMOTION_EVENT_ACTION_MASK;
-	auto const pointer_0 = get_pointer(event, 0);
 	switch (flags) {
 	case AMOTION_EVENT_ACTION_DOWN: {
-		m_pointers.insert(0);
-		push_event(TouchTap{.id = pointer_0.id, .action = Action::ePress, .position = pointer_0.position});
+		auto const pointer = get_pointer(event, 0);
+		m_active_pointers.push_back(pointer);
+		push_event(PointerTap{.pointer = pointer, .action = Action::ePress});
 		break;
 	}
 	case AMOTION_EVENT_ACTION_UP: {
-		m_pointers.clear();
-		push_event(TouchTap{.id = pointer_0.id, .action = Action::eRelease, .position = pointer_0.position});
+		m_active_pointers.clear(); // last finger has been lifted
+		push_event(PointerTap{.pointer = get_pointer(event, 0), .action = Action::eRelease});
 		break;
 	}
 	case AMOTION_EVENT_ACTION_POINTER_DOWN: {
 		auto const index = (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-		auto const pointer = get_pointer(event, index);
-		m_pointers.insert(pointer.id);
-		push_event(TouchTap{.id = pointer.id, .action = Action::ePress, .position = pointer.position});
+		auto const pointer = get_pointer(event, static_cast<std::uint32_t>(index));
+		m_active_pointers.push_back(pointer);
+		push_event(PointerTap{.pointer = pointer, .action = Action::ePress});
 		break;
 	}
 	case AMOTION_EVENT_ACTION_POINTER_UP: {
 		auto const index = (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-		auto const pointer = get_pointer(event, index);
-		m_pointers.erase(pointer.id);
-		push_event(TouchTap{.id = pointer.id, .action = Action::eRelease, .position = pointer.position});
+		auto const pointer = get_pointer(event, static_cast<std::uint32_t>(index));
+		std::erase_if(m_active_pointers, [&](Pointer const& p) { return p.id == pointer.id; });
+		push_event(PointerTap{.pointer = pointer, .action = Action::eRelease});
 		break;
 	}
 	case AMOTION_EVENT_ACTION_MOVE: {
-		for (auto const id : m_pointers) {
-			auto const index = find_index(event, id);
-			if (index >= 0) {
-				auto const pointer = get_pointer(event, index);
-				push_event(CursorMove{.id = pointer.id, .position = pointer.position});
+		for (auto& pointer : m_active_pointers) {
+			if (auto const index = find_index(event, pointer.id)) {
+				pointer = get_pointer(event, *index);
+				push_event(PointerMove{.pointer = pointer});
 			}
 		}
 		break;
@@ -320,9 +319,9 @@ auto AndroidApp::handle_motion(Ptr<AInputEvent> event) -> int {
 	return 1;
 }
 
-auto AndroidApp::get_pointer(Ptr<AInputEvent> event, std::uint32_t index) const -> Pointer {
+auto AndroidApp::get_pointer(Ptr<AInputEvent const> event, std::uint32_t const index) const -> Pointer {
 	return Pointer{
-		.id = AMotionEvent_getPointerId(event, index),
+		.id = static_cast<Pointer::Id>(AMotionEvent_getPointerId(event, index)),
 		.position = screen_to_framebuffer({AMotionEvent_getX(event, index), AMotionEvent_getY(event, index)}),
 	};
 }

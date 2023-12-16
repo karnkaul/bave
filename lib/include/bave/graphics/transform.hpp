@@ -1,5 +1,6 @@
 #pragma once
 #include <bave/core/radians.hpp>
+#include <glm/gtx/norm.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
 

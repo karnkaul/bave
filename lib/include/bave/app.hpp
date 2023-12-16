@@ -3,13 +3,14 @@
 #include <bave/core/polymorphic.hpp>
 #include <bave/core/time.hpp>
 #include <bave/data_store.hpp>
-#include <bave/event.hpp>
 #include <bave/graphics/renderer.hpp>
 #include <bave/graphics/shader.hpp>
+#include <bave/input/event.hpp>
 #include <bave/logger.hpp>
 #include <functional>
 #include <memory>
 #include <span>
+#include <unordered_map>
 #include <vector>
 
 #if defined(BAVE_IMGUI)
@@ -39,6 +40,7 @@ class App : public PolyPinned {
 	[[nodiscard]] auto get_data_store() const -> DataStore&;
 
 	[[nodiscard]] auto get_events() const -> std::span<Event const> { return m_events; }
+	[[nodiscard]] auto get_active_pointers() const -> std::span<Pointer const> { return m_active_pointers; }
 	[[nodiscard]] auto get_dt() const -> Seconds { return m_dt.dt; }
 	[[nodiscard]] auto get_window_size() const -> glm::ivec2 { return do_get_window_size(); }
 	[[nodiscard]] auto get_framebuffer_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
@@ -56,6 +58,7 @@ class App : public PolyPinned {
 	[[nodiscard]] auto screen_to_framebuffer(glm::vec2 position) const -> glm::vec2;
 
 	Logger m_log{};
+	std::vector<Pointer> m_active_pointers{};
 
   private:
 	virtual auto do_run() -> ErrCode = 0;

@@ -1,5 +1,4 @@
 #pragma once
-#include <bitset>
 
 namespace bave {
 ///
@@ -131,45 +130,4 @@ enum class Key : int {
 	eLast = eMenu,
 	eCOUNT_,
 };
-
-///
-/// \brief Set of all mouse buttons.
-///
-enum class MouseButton : int {
-	e1,
-	e2,
-	e3,
-	e4,
-	e5,
-	e6,
-	e7,
-	e8,
-	eEnd = e8,
-	eCOUNT_,
-
-	eLeft = e1,
-	eRight = e2,
-	eMiddle = e3,
-};
-
-///
-/// \brief Set of all key / button actions.
-///
-enum class Action : int { eNone, eRelease, ePress, eRepeat };
-
-namespace mod {
-constexpr size_t none{0};
-constexpr size_t shift{1};
-constexpr size_t ctrl{2};
-constexpr size_t alt{3};
-constexpr size_t super{4};
-constexpr size_t capslock{5};
-constexpr size_t numlock{6};
-constexpr size_t count_v{numlock};
-}; // namespace mod
-
-///
-/// \brief Bit flags for modifier keys.
-///
-using KeyMods = std::bitset<mod::count_v>;
 } // namespace bave

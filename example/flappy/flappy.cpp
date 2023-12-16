@@ -55,15 +55,20 @@ void Flappy::tick() {
 			}
 		}
 
-		if (auto const* tap = std::get_if<bave::MouseClick>(&event)) {
-			m_log.info("tap {} at {}x{}", (tap->action == bave::Action::eRelease ? "up" : "down"), tap->position.x, tap->position.y);
-			if (tap->id == 0) {
+		if (auto const* tap = std::get_if<bave::PointerTap>(&event)) {
+			auto const& pointer = tap->pointer;
+			m_log.info("tap [{}] {} at {}x{}", int(pointer.id), (tap->action == bave::Action::eRelease ? "up" : "down"), pointer.position.x,
+					   pointer.position.y);
+			if (pointer.id == bave::Pointer::Id::ePrimary) {
 				m_drag = tap->action == bave::Action::ePress;
-				prev_pointer = m_pointer = tap->position;
+				prev_pointer = m_pointer = tap->pointer.position;
 			}
 		}
 
-		if (auto const* cursor_move = std::get_if<bave::CursorMove>(&event)) { m_pointer = cursor_move->position; }
+		if (auto const* cursor_move = std::get_if<bave::PointerMove>(&event)) {
+			auto const& pointer = cursor_move->pointer;
+			if (pointer.id == bave::Pointer::Id::ePrimary) { m_pointer = pointer.position; }
+		}
 	}
 
 	m_elapsed += get_app().get_dt();
