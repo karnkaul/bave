@@ -35,10 +35,10 @@ class App : public PolyPinned {
 	void shutdown();
 	[[nodiscard]] auto is_shutting_down() const { return m_shutting_down; }
 
+	[[nodiscard]] auto get_data_store() const -> DataStore& { return *m_data_store; }
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return do_get_render_device(); }
-	[[nodiscard]] auto get_audio_device() const -> capo::Device& { return *m_audio_device; }
 	[[nodiscard]] auto get_renderer() const -> Renderer const& { return do_get_renderer(); }
-	[[nodiscard]] auto get_data_store() const -> DataStore&;
+	[[nodiscard]] auto get_audio_device() const -> capo::Device& { return *m_audio_device; }
 
 	[[nodiscard]] auto get_events() const -> std::span<Event const> { return m_events; }
 	[[nodiscard]] auto get_active_pointers() const -> std::span<Pointer const> { return m_active_pointers; }
@@ -72,7 +72,7 @@ class App : public PolyPinned {
 	[[nodiscard]] virtual auto do_get_renderer() const -> Renderer& = 0;
 
 	std::function<std::unique_ptr<Game>(App&)> m_game_factory{};
-	std::unique_ptr<DataStore> m_data_store{};
+	std::unique_ptr<DataStore> m_data_store{std::make_unique<DataStore>()};
 	std::unique_ptr<capo::Device> m_audio_device{};
 
 	std::vector<Event> m_events{};
