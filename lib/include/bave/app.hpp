@@ -7,10 +7,10 @@
 #include <bave/graphics/shader.hpp>
 #include <bave/input/event.hpp>
 #include <bave/logger.hpp>
+#include <capo/capo.hpp>
 #include <functional>
 #include <memory>
 #include <span>
-#include <unordered_map>
 #include <vector>
 
 #if defined(BAVE_IMGUI)
@@ -36,6 +36,7 @@ class App : public PolyPinned {
 	[[nodiscard]] auto is_shutting_down() const { return m_shutting_down; }
 
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return do_get_render_device(); }
+	[[nodiscard]] auto get_audio_device() const -> capo::Device& { return *m_audio_device; }
 	[[nodiscard]] auto get_renderer() const -> Renderer const& { return do_get_renderer(); }
 	[[nodiscard]] auto get_data_store() const -> DataStore&;
 
@@ -72,6 +73,7 @@ class App : public PolyPinned {
 
 	std::function<std::unique_ptr<Game>(App&)> m_game_factory{};
 	std::unique_ptr<DataStore> m_data_store{};
+	std::unique_ptr<capo::Device> m_audio_device{};
 
 	std::vector<Event> m_events{};
 	DeltaTime m_dt{};

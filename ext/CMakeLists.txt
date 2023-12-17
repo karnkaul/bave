@@ -29,8 +29,7 @@ endif()
 
 set(CAPO_BUILD_EXAMPLES OFF)
 
-# TODO set ON
-set(CAPO_USE_OPENAL OFF)
+set(CAPO_USE_OPENAL ON)
 add_subdirectory(src/capo-lite)
 
 add_subdirectory(src/djson)

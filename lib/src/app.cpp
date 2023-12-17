@@ -1,9 +1,15 @@
 #include <bave/app.hpp>
 #include <bave/core/error.hpp>
 #include <bave/game.hpp>
+#include <capo/error_handler.hpp>
 
 namespace bave {
-App::App(std::string tag) : m_log{std::move(tag)}, m_game_factory([](App& app) { return std::make_unique<Game>(app); }) {}
+App::App(std::string tag) : m_log{std::move(tag)}, m_game_factory([](App& app) { return std::make_unique<Game>(app); }) {
+	capo::set_error_handler([](std::string_view msg) {
+		static auto const log = Logger{"capo"};
+		log.error("{}", msg);
+	});
+}
 
 void App::set_game_factory(std::function<std::unique_ptr<class Game>(App&)> game_factory) {
 	if (!game_factory) { return; }
@@ -17,6 +23,7 @@ void App::set_data_store(std::unique_ptr<DataStore> data_store) {
 
 auto App::run() -> ErrCode {
 	try {
+		m_audio_device = std::make_unique<capo::Device>();
 		return do_run();
 	} catch (std::runtime_error const& e) {
 		m_log.error("FATAL: {}", e.what());

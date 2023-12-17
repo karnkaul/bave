@@ -41,12 +41,21 @@ struct Rgba {
 	static auto to_linear(glm::vec4 const& srgb) -> glm::vec4;
 
 	///
-	/// \brief Construct an Rgb instance using normalized input and intensity.
+	/// \brief Construct an Rgb instance using normalized input.
 	/// \param normalized 3 channels of normalized [0-1] floats
 	/// \returns Rgb instance
 	///
 	static constexpr auto from(glm::vec4 const& normalized) -> Rgba {
 		return {.channels = {to_u8(normalized.x), to_u8(normalized.y), to_u8(normalized.z), to_u8(normalized.w)}};
+	}
+
+	///
+	/// \brief Construct an Rgb instance using hex encoding.
+	/// \param hex 32 bits encoded as RGBA.
+	/// \returns Rgb instance
+	///
+	static constexpr auto from(std::uint32_t const hex) -> Rgba {
+		return {.channels = {(hex >> 24) & max_v, (hex >> 16) & max_v, (hex >> 8) & max_v, hex & max_v}}; // NOLINT
 	}
 
 	///
