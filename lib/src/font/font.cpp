@@ -5,7 +5,7 @@
 namespace bave {
 Font::Font(NotNull<RenderDevice*> render_device) : m_render_device(render_device) {}
 
-auto Font::load_font(std::vector<std::byte> file_bytes, float scale) -> bool {
+auto Font::load_from_bytes(std::vector<std::byte> file_bytes, float scale) -> bool {
 	auto slot_factory = m_render_device->get_font_library().load(std::move(file_bytes));
 	if (!slot_factory) { return false; }
 	m_slot_factory = std::move(slot_factory);
