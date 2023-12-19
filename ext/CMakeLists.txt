@@ -28,8 +28,6 @@ if(BAVE_USE_FREETYPE)
 endif()
 
 set(CAPO_BUILD_EXAMPLES OFF)
-
-set(CAPO_USE_OPENAL ON)
 add_subdirectory(src/capo-lite)
 
 add_subdirectory(src/djson)
