@@ -29,7 +29,7 @@ Flappy::Flappy(bave::App& app) : Game(app), m_quad(&app.get_render_device()) {
 		m_quad.set_texture(std::move(texture));
 	}
 
-	// get_app().get_render_device().render_view.viewport = bave::ExtentScaler{.source = get_app().get_framebuffer_size()}.match_width(world_space_v);
+	get_app().get_render_device().render_view.viewport = get_app().get_render_device().get_viewport_scaler().match_width(world_space_v);
 }
 
 void Flappy::tick() {
@@ -79,10 +79,9 @@ void Flappy::tick() {
 		get_app().get_render_device().render_view.transform.scale += 0.1f * *pinch * get_app().get_dt().count();
 		m_drag = false;
 	}
-	auto const projector = bave::Projector{.source = get_app().get_framebuffer_size(), .target = get_app().get_framebuffer_size()};
 
 	if (m_drag) {
-		auto const delta = projector(m_pointer - prev_pointer);
+		auto const delta = get_app().get_render_device().project_to(world_space_v, m_pointer - prev_pointer);
 		get_app().get_render_device().render_view.transform.position -= delta;
 	}
 
