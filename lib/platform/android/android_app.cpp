@@ -239,7 +239,7 @@ void AndroidApp::render() {
 
 void AndroidApp::init_graphics() {
 	m_render_device = std::make_unique<RenderDevice>(this);
-	m_renderer = std::make_unique<Renderer>(m_render_device.get(), &get_data_store(), &render_view);
+	m_renderer = std::make_unique<Renderer>(m_render_device.get(), &get_data_store());
 }
 
 void AndroidApp::pause_render() {

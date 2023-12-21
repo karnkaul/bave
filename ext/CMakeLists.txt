@@ -39,7 +39,7 @@ target_compile_definitions(glm INTERFACE
   GLM_ENABLE_EXPERIMENTAL
 )
 
-string(FIND CMAKE_CXX_COMPILER_ID Clang is_clang)
+string(FIND "${CMAKE_CXX_COMPILER_ID}" "Clang" is_clang)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
   target_compile_options(glm INTERFACE -Wno-volatile)
