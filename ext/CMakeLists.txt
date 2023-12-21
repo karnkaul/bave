@@ -39,9 +39,11 @@ target_compile_definitions(glm INTERFACE
   GLM_ENABLE_EXPERIMENTAL
 )
 
+string(FIND CMAKE_CXX_COMPILER_ID Clang is_clang)
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
   target_compile_options(glm INTERFACE -Wno-volatile)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+elseif(NOT is_clang EQUAL -1)
   target_compile_options(glm INTERFACE -Wno-deprecated-volatile)
 endif()
 

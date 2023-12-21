@@ -50,8 +50,6 @@ class App : public PolyPinned {
 
 	[[nodiscard]] auto load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader>;
 
-	RenderView render_view{};
-
   protected:
 	void start_next_frame();
 	void push_event(Event event) { m_events.push_back(event); }

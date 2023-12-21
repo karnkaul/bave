@@ -1,9 +1,7 @@
 #include <bave/extent_scaler.hpp>
-#include <bave/projector.hpp>
-#include <flappy.hpp>
-#include <cmath>
-
 #include <bave/graphics/pixmap.hpp>
+#include <bave/graphics/projector.hpp>
+#include <flappy.hpp>
 
 namespace {
 constexpr auto world_space_v = glm::vec2{1440.0f, 2560.0f};
@@ -16,22 +14,22 @@ Flappy::Flappy(bave::App& app) : Game(app), m_quad(&app.get_render_device()) {
 		bave::RenderInstance{.transform = bave::Transform{.position = glm::vec2{400.0f}, .rotation = bave::Degrees{15.0f}}, .tint = bave::yellow_v},
 	};
 
-	auto pixels = std::array<std::uint32_t, 4>{
-		0xff0000ff,
-		0xff00ff00,
-		0xffff0000,
-		0xffff00ff,
-	};
-	auto const bitmap = bave::BitmapView{
-		.bytes = {reinterpret_cast<std::byte const*>(pixels.data()), pixels.size() * sizeof(pixels[0])},
-		.extent = {2, 2},
-	};
-	auto texture = std::make_shared<bave::Texture>(&app.get_render_device());
-	texture->write(bitmap);
-	texture->sampler.min = texture->sampler.mag = bave::Texture::Filter::eNearest;
-	m_quad.set_texture(std::move(texture));
+	auto pixels = bave::Pixmap{{2, 2}};
+	pixels.at({0, 0}) = bave::red_v;
+	pixels.at({0, 1}) = bave::green_v;
+	pixels.at({1, 0}) = bave::blue_v;
+	pixels.at({1, 1}) = bave::magenta_v;
+	auto const bitmap = pixels.make_bitmap();
 
-	get_app().render_view.viewport = bave::ExtentScaler{.source = get_app().get_framebuffer_size()}.match_width(world_space_v);
+
+	if (!m_quad.get_texture()) {
+		auto texture = std::make_shared<bave::Texture>(&app.get_render_device());
+		texture->write(bitmap.view());
+		texture->sampler.min = texture->sampler.mag = bave::Texture::Filter::eNearest;
+		m_quad.set_texture(std::move(texture));
+	}
+
+	// get_app().get_render_device().render_view.viewport = bave::ExtentScaler{.source = get_app().get_framebuffer_size()}.match_width(world_space_v);
 }
 
 void Flappy::tick() {
@@ -78,13 +76,14 @@ void Flappy::tick() {
 	m_quad.instances.front().transform.rotation.value += bave::Degrees{get_app().get_dt().count() * 10.0f}.to_radians().value;
 
 	if (auto const pinch = m_pinch.update(get_app().get_active_pointers())) {
-		get_app().render_view.transform.scale += 0.1f * *pinch * get_app().get_dt().count();
+		get_app().get_render_device().render_view.transform.scale += 0.1f * *pinch * get_app().get_dt().count();
 		m_drag = false;
 	}
+	auto const projector = bave::Projector{.source = get_app().get_framebuffer_size(), .target = get_app().get_framebuffer_size()};
 
 	if (m_drag) {
-		auto const delta = bave::Projector{.source = get_app().get_framebuffer_size(), .target = world_space_v}(m_pointer - prev_pointer);
-		get_app().render_view.transform.position -= delta;
+		auto const delta = projector(m_pointer - prev_pointer);
+		get_app().get_render_device().render_view.transform.position -= delta;
 	}
 
 	IFBAVEIMGUI({

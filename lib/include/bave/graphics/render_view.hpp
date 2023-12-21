@@ -1,6 +1,5 @@
 #pragma once
 #include <bave/graphics/transform.hpp>
-#include <optional>
 
 namespace bave {
 struct ZPlane {
@@ -12,7 +11,9 @@ struct ZPlane {
 
 struct RenderView {
 	Transform transform{};
-	std::optional<glm::vec2> viewport{};
+	glm::vec2 viewport{};
 	ZPlane z_plane{};
+
+	[[nodiscard]] auto unproject(glm::vec2 ndc) const -> glm::vec2;
 };
 } // namespace bave

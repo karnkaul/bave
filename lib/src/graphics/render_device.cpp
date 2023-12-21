@@ -76,6 +76,9 @@ RenderDevice::RenderDevice(NotNull<detail::IWsi*> wsi, CreateInfo create_info) :
 
 	auto const line_width_range = get_gpu().device.getProperties().limits.lineWidthRange;
 	m_line_width_limits = {line_width_range[0], line_width_range[1]};
+
+	auto const extent = get_swapchain_extent();
+	render_view.viewport = glm::vec2{extent.width, extent.height};
 }
 
 auto RenderDevice::wait_for(vk::Fence const fence, std::uint64_t const timeout) const -> bool {

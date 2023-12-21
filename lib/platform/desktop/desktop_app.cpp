@@ -179,7 +179,7 @@ void DesktopApp::make_window() {
 
 void DesktopApp::init_graphics() {
 	m_render_device = std::make_unique<RenderDevice>(this);
-	m_renderer = std::make_unique<Renderer>(m_render_device.get(), &get_data_store(), &render_view);
+	m_renderer = std::make_unique<Renderer>(m_render_device.get(), &get_data_store());
 	m_dear_imgui = std::make_unique<detail::DearImGui>(m_window.get(), *m_render_device, m_renderer->get_render_pass());
 }
 

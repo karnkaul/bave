@@ -61,7 +61,7 @@ struct Circle {
 	Rgba rgba{white_v};
 	glm::vec2 origin{};
 
-	[[nodiscard]] auto to_geometry() const -> Geometry;
+	[[nodiscard]] auto to_geometry() const -> Geometry { return Geometry::from(*this); }
 
 	auto operator==(Circle const&) const -> bool = default;
 };
