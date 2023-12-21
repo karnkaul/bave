@@ -13,5 +13,7 @@ struct Transform {
 	[[nodiscard]] auto matrix() const -> glm::mat4;
 };
 
+auto get_rotation_matrix(Radians rotation) -> glm::mat4;
+
 static_assert(std::is_trivially_copyable_v<Transform>);
 } // namespace bave
