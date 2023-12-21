@@ -5,7 +5,6 @@
 #include <bave/graphics/render_view.hpp>
 #include <bave/graphics/set_layout.hpp>
 #include <bave/graphics/texture.hpp>
-#include <bave/logger.hpp>
 
 namespace bave {
 class Shader {
@@ -33,21 +32,8 @@ class Shader {
 
 	[[nodiscard]] auto allocate_scratch(vk::BufferUsageFlagBits usage) const -> detail::RenderBuffer&;
 
-	auto update(vk::DescriptorSet descriptor_set, std::uint32_t binding, detail::RenderBuffer const& buffer) -> bool;
-
-	template <vk::BufferUsageFlagBits Usage>
-	auto write(vk::DescriptorSet set, std::uint32_t binding, void const* data, vk::DeviceSize size) -> bool {
-		auto& scratch_buffer = allocate_scratch(Usage);
-		scratch_buffer.write(data, size);
-		return update(set, binding, scratch_buffer);
-	}
-
 	void set_viewport_scissor();
-	void write_view_and_instances(vk::DescriptorSet descriptor_set, std::span<RenderInstance::Baked const> instances);
-	void update_textures(vk::DescriptorSet descriptor_set);
-	void update_buffers(vk::DescriptorSet descriptor_set);
-
-	Logger m_log{"Shader"};
+	void update_and_bind_sets(vk::CommandBuffer command_buffer, std::span<RenderInstance::Baked const> instances);
 
 	NotNull<Renderer const*> m_renderer;
 	vk::ShaderModule m_vert{};

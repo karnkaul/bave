@@ -1,4 +1,3 @@
-#include <bave/extent_scaler.hpp>
 #include <bave/graphics/pixmap.hpp>
 #include <bave/graphics/projector.hpp>
 #include <flappy.hpp>
