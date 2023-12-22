@@ -77,8 +77,8 @@ auto Renderer::Frame::make(RenderDevice& render_device) -> Frame {
 	return ret;
 }
 
-Renderer::Renderer(NotNull<RenderDevice*> render_device, NotNull<DataStore const*> data_store, NotNull<RenderView const*> render_view)
-	: render_view(render_view), m_render_device(render_device), m_frame(Frame::make(*m_render_device)),
+Renderer::Renderer(NotNull<RenderDevice*> render_device, NotNull<DataStore const*> data_store)
+	: m_render_device(render_device), m_frame(Frame::make(*m_render_device)),
 	  m_pipeline_cache(std::make_unique<detail::PipelineCache>(*m_frame.render_pass, render_device, data_store)), m_white(render_device, white_bitmap()),
 	  m_blocker(render_device->get_device()) {}
 

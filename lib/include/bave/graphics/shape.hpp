@@ -27,6 +27,8 @@ class Shape : public BasicShape {
 		set_geometry(shape.to_geometry());
 	}
 
+	[[nodiscard]] auto get_bounds() const -> Rect<> { return m_shape.get_bounds(transform.position); }
+
   private:
 	ShapeT m_shape{};
 };

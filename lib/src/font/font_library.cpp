@@ -1,5 +1,5 @@
 #include <bave/font/detail/font_library.hpp>
-#include <font/detail/freetype.hpp>
+#include <src/font/detail/freetype.hpp>
 
 namespace bave::detail {
 auto FontLibrary::make() -> std::unique_ptr<FontLibrary> {

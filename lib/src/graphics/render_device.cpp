@@ -1,8 +1,9 @@
 #include <bave/build_version.hpp>
 #include <bave/core/error.hpp>
 #include <bave/graphics/detail/utils.hpp>
+#include <bave/graphics/projector.hpp>
 #include <bave/graphics/render_device.hpp>
-#include <graphics/detail/bootstrap.hpp>
+#include <src/graphics/detail/bootstrap.hpp>
 
 namespace bave {
 namespace {
@@ -76,6 +77,23 @@ RenderDevice::RenderDevice(NotNull<detail::IWsi*> wsi, CreateInfo create_info) :
 
 	auto const line_width_range = get_gpu().device.getProperties().limits.lineWidthRange;
 	m_line_width_limits = {line_width_range[0], line_width_range[1]};
+
+	render_view = get_default_view();
+}
+
+auto RenderDevice::get_default_view() const -> RenderView {
+	auto const extent = get_swapchain_extent();
+	return RenderView{.viewport = glm::vec2{extent.width, extent.height}};
+}
+
+auto RenderDevice::get_viewport_scaler() const -> ExtentScaler {
+	auto const extent = get_swapchain_extent();
+	return ExtentScaler{.source = glm::vec2{extent.width, extent.height}};
+}
+
+auto RenderDevice::project_to(glm::vec2 const target_space, glm::vec2 const point) const -> glm::vec2 {
+	auto const extent = get_swapchain_extent();
+	return Projector{.source = glm::vec2{extent.width, extent.height}, .target = target_space}.project(point);
 }
 
 auto RenderDevice::wait_for(vk::Fence const fence, std::uint64_t const timeout) const -> bool {

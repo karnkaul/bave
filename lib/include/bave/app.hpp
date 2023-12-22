@@ -1,12 +1,14 @@
 #pragma once
+#include <bave/audio/audio_device.hpp>
 #include <bave/build_version.hpp>
 #include <bave/core/polymorphic.hpp>
 #include <bave/core/time.hpp>
 #include <bave/data_store.hpp>
-#include <bave/event.hpp>
 #include <bave/graphics/renderer.hpp>
 #include <bave/graphics/shader.hpp>
+#include <bave/input/event.hpp>
 #include <bave/logger.hpp>
+#include <capo/capo.hpp>
 #include <functional>
 #include <memory>
 #include <span>
@@ -34,19 +36,19 @@ class App : public PolyPinned {
 	void shutdown();
 	[[nodiscard]] auto is_shutting_down() const { return m_shutting_down; }
 
+	[[nodiscard]] auto get_data_store() const -> DataStore& { return *m_data_store; }
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return do_get_render_device(); }
 	[[nodiscard]] auto get_renderer() const -> Renderer const& { return do_get_renderer(); }
-	[[nodiscard]] auto get_data_store() const -> DataStore&;
+	[[nodiscard]] auto get_audio_device() const -> AudioDevice& { return *m_audio_device; }
 
 	[[nodiscard]] auto get_events() const -> std::span<Event const> { return m_events; }
+	[[nodiscard]] auto get_active_pointers() const -> std::span<Pointer const> { return m_active_pointers; }
 	[[nodiscard]] auto get_dt() const -> Seconds { return m_dt.dt; }
 	[[nodiscard]] auto get_window_size() const -> glm::ivec2 { return do_get_window_size(); }
 	[[nodiscard]] auto get_framebuffer_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
 	[[nodiscard]] auto get_pipeline_cache() const -> detail::PipelineCache& { return do_get_renderer().get_pipeline_cache(); }
 
 	[[nodiscard]] auto load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader>;
-
-	RenderView render_view{};
 
   protected:
 	void start_next_frame();
@@ -56,9 +58,10 @@ class App : public PolyPinned {
 	[[nodiscard]] auto screen_to_framebuffer(glm::vec2 position) const -> glm::vec2;
 
 	Logger m_log{};
+	std::vector<Pointer> m_active_pointers{};
 
   private:
-	virtual void do_run() = 0;
+	virtual auto do_run() -> ErrCode = 0;
 	virtual void do_shutdown() = 0;
 
 	[[nodiscard]] virtual auto do_get_window_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
@@ -68,7 +71,8 @@ class App : public PolyPinned {
 	[[nodiscard]] virtual auto do_get_renderer() const -> Renderer& = 0;
 
 	std::function<std::unique_ptr<Game>(App&)> m_game_factory{};
-	std::unique_ptr<DataStore> m_data_store{};
+	std::unique_ptr<DataStore> m_data_store{std::make_unique<DataStore>()};
+	std::unique_ptr<AudioDevice> m_audio_device{};
 
 	std::vector<Event> m_events{};
 	DeltaTime m_dt{};

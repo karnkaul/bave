@@ -9,131 +9,75 @@ struct Std140ViewProjection {
 	glm::mat4 view;
 	glm::mat4 projection;
 };
-} // namespace
 
-Shader::Shader(NotNull<Renderer const*> renderer, vk::ShaderModule vertex, vk::ShaderModule fragment) : m_renderer(renderer), m_vert(vertex), m_frag(fragment) {
-	set_viewport_scissor();
-	set_white_textures();
-	set_blank_buffers();
-}
+struct DescriptorBuffer {
+	vk::Buffer buffer{};
+	vk::DeviceSize offset{};
+	vk::DeviceSize size{};
+	vk::DescriptorType type{};
 
-auto Shader::update_texture(CombinedImageSampler const cis, std::uint32_t binding) -> bool {
-	auto const& [image_view, sampler] = cis;
-	if (!image_view || !sampler || binding >= SetLayout::max_textures_v) { return false; }
-	auto descriptor_set = get_descriptor_set(set_layout_v.textures.set);
-	if (!descriptor_set) { return false; }
+	DescriptorBuffer(detail::RenderBuffer const& buffer)
+		: buffer(buffer.get_buffer()), size(buffer.get_size()),
+		  type(buffer.get_usage() & vk::BufferUsageFlagBits::eStorageBuffer ? vk::DescriptorType::eStorageBuffer : vk::DescriptorType::eUniformBuffer) {}
+};
 
-	auto wds = vk::WriteDescriptorSet{descriptor_set, binding, 0, 1, vk::DescriptorType::eCombinedImageSampler};
-	auto const dii = vk::DescriptorImageInfo{sampler, image_view, vk::ImageLayout::eShaderReadOnlyOptimal};
-	wds.pImageInfo = &dii;
+template <typename Type>
+struct ResourceBinding {
+	Type resource{};
+	std::uint32_t binding{};
+};
 
-	m_renderer->get_render_device().get_device().updateDescriptorSets(wds, {});
-	return true;
-}
+template <typename Type, std::size_t Size>
+struct DescriptorWrite {
+	std::array<Type, Size> infos{};
+	std::array<vk::WriteDescriptorSet, Size> writes{};
+};
 
-void Shader::update_textures(std::span<CombinedImageSampler const, SetLayout::max_textures_v> cis) {
-	auto descriptor_set = get_descriptor_set(set_layout_v.textures.set);
-	auto diis = std::array<vk::DescriptorImageInfo, SetLayout::max_textures_v>{};
-	auto wdss = std::array<vk::WriteDescriptorSet, SetLayout::max_textures_v>{};
-	auto size = std::size_t{};
-	for (std::size_t binding = 0; binding < wdss.size(); ++binding) {
-		auto const [image_view, sampler] = cis[binding];
-		if (!image_view || !sampler) { continue; }
-		auto const type = set_layout_v.textures.bindings.at(binding);
-		auto& dii = diis.at(size);
-		dii = {sampler, image_view, vk::ImageLayout::eShaderReadOnlyOptimal};
-		auto& wds = wdss.at(size);
-		wds = vk::WriteDescriptorSet{descriptor_set, static_cast<std::uint32_t>(binding), 0, 1, type};
-		wds.pImageInfo = &dii;
-		++size;
+using BufferBinding = ResourceBinding<DescriptorBuffer>;
+using ImageBinding = ResourceBinding<CombinedImageSampler>;
+
+template <std::size_t Size>
+using BufferWrite = DescriptorWrite<vk::DescriptorBufferInfo, Size>;
+
+template <std::size_t Size>
+using ImageWrite = DescriptorWrite<vk::DescriptorImageInfo, Size>;
+
+template <std::size_t Size>
+auto make_buffer_write(std::array<BufferBinding, Size> const& bindings, vk::DescriptorSet descriptor_set) -> BufferWrite<Size> {
+	auto ret = BufferWrite<Size>{};
+	for (std::size_t i = 0; i < Size; ++i) {
+		auto const& resource = bindings[i].resource;													  // NOLINT
+		ret.infos[i] = vk::DescriptorBufferInfo{resource.buffer, resource.offset, resource.size};		  // NOLINT
+		ret.writes[i] = vk::WriteDescriptorSet{descriptor_set, bindings[i].binding, 0, 1, resource.type}; // NOLINT
+		ret.writes[i].pBufferInfo = &ret.infos[i];														  // NOLINT
 	}
-	if (size == 0) { return; }
-
-	m_renderer->get_render_device().get_device().updateDescriptorSets(std::span{wdss.data(), size}, {});
+	return ret;
 }
 
-auto Shader::write_ubo(void const* data, vk::DeviceSize const size) -> bool {
-	if (data == nullptr || size == 0) { return false; }
-	return write<vk::BufferUsageFlagBits::eUniformBuffer>(get_descriptor_set(set_layout_v.buffers.set), 0, data, size);
-}
-
-auto Shader::write_ssbo(void const* data, vk::DeviceSize const size) -> bool {
-	if (data == nullptr || size == 0) { return false; }
-	return write<vk::BufferUsageFlagBits::eStorageBuffer>(get_descriptor_set(set_layout_v.buffers.set), 1, data, size);
-}
-
-void Shader::draw(vk::CommandBuffer command_buffer, Mesh const& mesh, std::span<RenderInstance::Baked const> instances) {
-	if (mesh.get_vertex_count() == 0 || instances.empty()) { return; }
-
-	auto& pipeline_cache = m_renderer->get_pipeline_cache();
-	auto const pipeline_state = detail::PipelineCache::State{.line_width = line_width, .topology = topology, .polygon_mode = polygon_mode};
-	auto pipeline = pipeline_cache.load_pipeline({.vertex = m_vert, .fragment = m_frag}, pipeline_state);
-	if (!pipeline) {
-		m_log.error("failed to load pipeline");
-		return;
+template <std::size_t Size>
+auto make_image_write(std::array<ImageBinding, Size> const& bindings, vk::DescriptorSet descriptor_set) -> ImageWrite<Size> {
+	auto ret = ImageWrite<Size>{};
+	for (std::size_t i = 0; i < Size; ++i) {
+		auto const cis = bindings[i].resource;																						  // NOLINT
+		ret.infos[i] = vk::DescriptorImageInfo{cis.sampler, cis.image_view, vk::ImageLayout::eShaderReadOnlyOptimal};				  // NOLINT
+		ret.writes[i] = vk::WriteDescriptorSet{descriptor_set, bindings[i].binding, 0, 1, vk::DescriptorType::eCombinedImageSampler}; // NOLINT
+		ret.writes[i].pImageInfo = &ret.infos[i];																					  // NOLINT
 	}
+	return ret;
+}
 
-	write_view_and_instances(instances);
-
-	for (auto& [number, descriptor_set] : m_descriptor_sets) {
-		if (!descriptor_set) { continue; }
-		command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline_cache.get_pipeline_layout(), number, descriptor_set, {});
-		descriptor_set = vk::DescriptorSet{};
+auto allocate_descriptor_sets(detail::PipelineCache& pipeline_cache) -> std::array<vk::DescriptorSet, 3> {
+	auto const descriptor_set_layouts = pipeline_cache.get_descriptor_set_layouts();
+	auto ret = std::array<vk::DescriptorSet, 3>{};
+	for (std::size_t i = 0; i < ret.size(); ++i) {
+		ret[i] = pipeline_cache.get_descriptor_cache().allocate(descriptor_set_layouts[i]); // NOLINT
 	}
-
-	command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
-	command_buffer.setViewport(0, m_viewport);
-	command_buffer.setScissor(0, m_scissor);
-	mesh.draw(command_buffer, static_cast<std::uint32_t>(instances.size()));
+	return ret;
 }
 
-auto Shader::get_descriptor_set(std::uint32_t set) -> vk::DescriptorSet {
-	auto& pipeline_cache = m_renderer->get_pipeline_cache();
-	auto const set_layouts = pipeline_cache.get_descriptor_set_layouts();
-	if (set >= set_layouts.size()) {
-		m_log.error("invalid set: '{}'", set);
-		return {};
-	}
-
-	auto& descriptor_set = m_descriptor_sets[set];
-	if (!descriptor_set) { descriptor_set = pipeline_cache.get_descriptor_cache().allocate(set_layouts[set]); }
-	return descriptor_set;
-}
-
-auto Shader::allocate_scratch(vk::BufferUsageFlagBits const usage) const -> detail::RenderBuffer& {
-	return m_renderer->get_render_device().get_scratch_buffer_cache().allocate(usage);
-}
-
-auto Shader::update(vk::DescriptorSet descriptor_set, std::uint32_t binding, detail::RenderBuffer const& buffer) -> bool {
-	if (!descriptor_set) { throw Error{"Null DescriptorSet"}; }
-
-	auto const descriptor_type = [usage = buffer.get_usage()] {
-		if (usage & vk::BufferUsageFlagBits::eStorageBuffer) { return vk::DescriptorType::eStorageBuffer; }
-		return vk::DescriptorType::eUniformBuffer;
-	}();
-	auto wds = vk::WriteDescriptorSet{descriptor_set, binding, 0, 1, descriptor_type};
-	auto const dbi = vk::DescriptorBufferInfo{buffer, {}, buffer.get_size()};
-	wds.pBufferInfo = &dbi;
-
-	m_renderer->get_render_device().get_device().updateDescriptorSets(wds, {});
-	return true;
-}
-
-void Shader::set_viewport_scissor() {
-	m_scissor.extent = m_renderer->get_backbuffer_extent();
-	glm::vec2 const viewport = glm::uvec2{m_scissor.extent.width, m_scissor.extent.height};
-	m_viewport = vk::Viewport{0.0f, viewport.y, viewport.x, -viewport.y};
-}
-
-void Shader::write_view_and_instances(std::span<RenderInstance::Baked const> instances) {
-	auto const& render_view = *m_renderer->render_view;
-	auto const world_space = [&] {
-		if (render_view.viewport) { return *render_view.viewport; }
-		auto const view_extent = m_renderer->get_backbuffer_extent();
-		auto const uview_extent = glm::uvec2{view_extent.width, view_extent.height};
-		return glm::vec2{uview_extent};
-	}();
-	auto const proj_xy = 0.5f * world_space;
+auto make_vpi_bindings(RenderDevice const& render_device, std::span<RenderInstance::Baked const> instances) {
+	auto const& render_view = render_device.render_view;
+	auto const proj_xy = 0.5f * render_view.viewport;
 	auto const proj_z = render_view.z_plane;
 	auto const view = Transform{
 		.position = -render_view.transform.position,
@@ -144,24 +88,124 @@ void Shader::write_view_and_instances(std::span<RenderInstance::Baked const> ins
 		.view = view.matrix(),
 		.projection = glm::ortho(-proj_xy.x, proj_xy.x, -proj_xy.y, proj_xy.y, proj_z.near, proj_z.far),
 	};
-
-	auto const descriptor_set = get_descriptor_set(set_layout_v.view_instances.set);
-	write<vk::BufferUsageFlagBits::eUniformBuffer>(descriptor_set, 0, &view_projection, sizeof(view_projection));
-	write<vk::BufferUsageFlagBits::eStorageBuffer>(descriptor_set, 1, instances.data(), instances.size_bytes());
+	auto& vp_buf = render_device.get_scratch_buffer_cache().allocate(vk::BufferUsageFlagBits::eUniformBuffer);
+	vp_buf.write(&view_projection, sizeof(view_projection));
+	auto& instances_buf = render_device.get_scratch_buffer_cache().allocate(vk::BufferUsageFlagBits::eStorageBuffer);
+	instances_buf.write(instances.data(), instances.size_bytes());
+	return std::array{
+		BufferBinding{.resource = vp_buf, .binding = 0},
+		BufferBinding{.resource = instances_buf, .binding = 1},
+	};
 }
 
-void Shader::set_white_textures() {
-	auto const combined_image_sampler = m_renderer->get_white_texture().combined_image_sampler();
-	auto image_samplers = std::array<CombinedImageSampler, SetLayout::max_textures_v>{};
-	for (auto& image_sampler : image_samplers) { image_sampler = combined_image_sampler; }
-	update_textures(image_samplers);
+auto make_texture_bindings(std::span<CombinedImageSampler const, SetLayout::max_textures_v> textures, CombinedImageSampler const white) {
+	auto ret = std::array<ImageBinding, SetLayout::max_textures_v>{};
+	for (std::uint32_t i = 0; i < ret.size(); ++i) {
+		auto cis = textures[i]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+		if (!cis.image_view || !cis.sampler) { cis = white; }
+		ret[i] = ImageBinding{.resource = cis, .binding = i}; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+	}
+	return ret;
 }
 
-void Shader::set_blank_buffers() {
-	auto const descriptor_set = get_descriptor_set(set_layout_v.buffers.set);
-	auto const& blank_ubo = m_renderer->get_render_device().get_scratch_buffer_cache().get_empty(vk::BufferUsageFlagBits::eUniformBuffer);
-	auto const& blank_ssbo = m_renderer->get_render_device().get_scratch_buffer_cache().get_empty(vk::BufferUsageFlagBits::eStorageBuffer);
-	update(descriptor_set, 0, blank_ubo);
-	update(descriptor_set, 1, blank_ssbo);
+auto make_buffer_bindings(detail::ScratchBufferCache& scratch_buffer_cache, Ptr<detail::RenderBuffer const> ubo, Ptr<detail::RenderBuffer const> ssbo) {
+	auto const& custom_ubo = ubo == nullptr ? scratch_buffer_cache.get_empty(vk::BufferUsageFlagBits::eUniformBuffer) : *ubo;
+	auto const& custom_ssbo = ssbo == nullptr ? scratch_buffer_cache.get_empty(vk::BufferUsageFlagBits::eStorageBuffer) : *ssbo;
+	return std::array{
+		BufferBinding{.resource = custom_ubo, .binding = 0},
+		BufferBinding{.resource = custom_ssbo, .binding = 1},
+	};
+}
+} // namespace
+
+Shader::Shader(NotNull<Renderer const*> renderer, vk::ShaderModule vertex, vk::ShaderModule fragment) : m_renderer(renderer), m_vert(vertex), m_frag(fragment) {
+	set_viewport_scissor();
+}
+
+auto Shader::update_texture(CombinedImageSampler const cis, std::uint32_t binding) -> bool {
+	if (binding >= m_sets.cis.size()) { return false; }
+
+	m_sets.cis.at(binding) = cis;
+	return true;
+}
+
+void Shader::update_textures(std::span<CombinedImageSampler const, SetLayout::max_textures_v> cis) { std::copy(cis.begin(), cis.end(), m_sets.cis.begin()); }
+
+auto Shader::write_ubo(void const* data, vk::DeviceSize const size) -> bool {
+	if (data == nullptr || size == 0) { return false; }
+
+	if (m_sets.ubo == nullptr) { m_sets.ubo = &allocate_scratch(vk::BufferUsageFlagBits::eUniformBuffer); }
+	m_sets.ubo->write(data, size);
+	return true;
+}
+
+auto Shader::write_ssbo(void const* data, vk::DeviceSize const size) -> bool {
+	if (data == nullptr || size == 0) { return false; }
+
+	if (m_sets.ssbo == nullptr) { m_sets.ssbo = &allocate_scratch(vk::BufferUsageFlagBits::eStorageBuffer); }
+	m_sets.ssbo->write(data, size);
+	return true;
+}
+
+void Shader::draw(vk::CommandBuffer command_buffer, Mesh const& mesh, std::span<RenderInstance::Baked const> instances) {
+	if (mesh.get_vertex_count() == 0 || instances.empty()) { return; }
+
+	auto& pipeline_cache = m_renderer->get_pipeline_cache();
+	auto const pipeline_state = detail::PipelineCache::State{.line_width = line_width, .topology = topology, .polygon_mode = polygon_mode};
+	auto pipeline = pipeline_cache.load_pipeline({.vertex = m_vert, .fragment = m_frag}, pipeline_state);
+	if (!pipeline) { return; }
+
+	update_and_bind_sets(command_buffer, instances);
+
+	command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
+	command_buffer.setViewport(0, m_viewport);
+	command_buffer.setScissor(0, m_scissor);
+	mesh.draw(command_buffer, static_cast<std::uint32_t>(instances.size()));
+
+	m_sets = {}; // clear for next draw
+}
+
+auto Shader::allocate_scratch(vk::BufferUsageFlagBits const usage) const -> detail::RenderBuffer& {
+	return m_renderer->get_render_device().get_scratch_buffer_cache().allocate(usage);
+}
+
+void Shader::set_viewport_scissor() {
+	m_scissor.extent = m_renderer->get_backbuffer_extent();
+	glm::vec2 const viewport = glm::uvec2{m_scissor.extent.width, m_scissor.extent.height};
+	m_viewport = vk::Viewport{0.0f, viewport.y, viewport.x, -viewport.y};
+}
+
+void Shader::update_and_bind_sets(vk::CommandBuffer command_buffer, std::span<RenderInstance::Baked const> instances) {
+	static_assert(set_layout_v.view_instances.set == 0);
+	static_assert(set_layout_v.textures.set == 1);
+	static_assert(set_layout_v.buffers.set == 2);
+	static_assert(set_layout_v.view_instances.bindings[0] == vk::DescriptorType::eUniformBuffer);
+	static_assert(set_layout_v.view_instances.bindings[1] == vk::DescriptorType::eStorageBuffer);
+	static_assert(set_layout_v.buffers.bindings[0] == vk::DescriptorType::eUniformBuffer);
+	static_assert(set_layout_v.buffers.bindings[1] == vk::DescriptorType::eStorageBuffer);
+
+	auto descriptor_sets = allocate_descriptor_sets(m_renderer->get_pipeline_cache());
+	static_assert(descriptor_sets.size() == 3);
+
+	auto const vpi_bindings = make_vpi_bindings(m_renderer->get_render_device(), instances);
+	auto const vpi_write = make_buffer_write(vpi_bindings, descriptor_sets[0]);
+
+	auto const texture_bindings = make_texture_bindings(m_sets.cis, m_renderer->get_white_texture().combined_image_sampler());
+	auto const texture_write = make_image_write(texture_bindings, descriptor_sets[1]);
+
+	auto const buffer_bindings = make_buffer_bindings(m_renderer->get_render_device().get_scratch_buffer_cache(), m_sets.ubo, m_sets.ssbo);
+	auto const buffer_write = make_buffer_write(buffer_bindings, descriptor_sets[2]);
+
+	constexpr auto total_writes = vpi_write.writes.size() + texture_write.writes.size() + buffer_write.writes.size();
+	auto descriptor_writes = std::array<vk::WriteDescriptorSet, total_writes>{};
+	std::size_t index{};
+	for (auto const& write : vpi_write.writes) { descriptor_writes[index++] = write; }	   // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+	for (auto const& write : texture_write.writes) { descriptor_writes[index++] = write; } // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+	for (auto const& write : buffer_write.writes) { descriptor_writes[index++] = write; }  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+
+	m_renderer->get_render_device().get_device().updateDescriptorSets(descriptor_writes, {});
+
+	auto const pipeline_layout = m_renderer->get_pipeline_cache().get_pipeline_layout();
+	command_buffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline_layout, 0, descriptor_sets, {});
 }
 } // namespace bave

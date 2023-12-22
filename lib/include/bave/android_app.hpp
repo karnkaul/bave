@@ -10,6 +10,7 @@ static_assert(bave::platform_v == bave::Platform::eAndroid);
 extern "C" {
 struct android_app;
 class ANativeWindow;
+class AInputEvent;
 }
 
 namespace bave {
@@ -21,7 +22,7 @@ class AndroidApp : public App, public detail::IWsi {
 	static auto self(Ptr<android_app> app) -> AndroidApp&;
 	static void push(Ptr<android_app> window, Event event);
 
-	void do_run() final;
+	auto do_run() -> ErrCode final;
 	void do_shutdown() final;
 
 	[[nodiscard]] auto do_get_framebuffer_size() const -> glm::ivec2 final;
@@ -45,6 +46,9 @@ class AndroidApp : public App, public detail::IWsi {
 
 	void pause_render();
 	void resume_render();
+
+	auto handle_motion(Ptr<AInputEvent const> event) -> int;
+	auto get_pointer(Ptr<AInputEvent const> event, std::uint32_t index) const -> Pointer;
 
 	android_app& m_app;
 	std::unique_ptr<RenderDevice> m_render_device{};

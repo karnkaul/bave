@@ -1,6 +1,7 @@
 #pragma once
 #include <bave/game.hpp>
 #include <bave/graphics/shape.hpp>
+#include <bave/input/pinch_detector.hpp>
 
 class Flappy : public bave::Game {
 	void tick() final;
@@ -13,6 +14,7 @@ class Flappy : public bave::Game {
 
 	float m_clear_red{};
 	bool m_drag{};
+	bave::PinchDetector m_pinch{};
 	glm::vec2 m_pointer{};
 
   public:

@@ -12,9 +12,9 @@ jobs:
       - name: configure clang
         run: cmake -S . --preset=default -B clang -DBAVE_BUILD_SHADERS=OFF -DBAVE_USE_FREETYPE=OFF -DCAPO_USE_OPENAL=OFF -DCMAKE_CXX_COMPILER=clang++-15
       - name: build gcc
-        run: cmake --build build --config=Release -- -d explain
+        run: cmake --build build --config=Release
       - name: build clang
-        run: cmake --build clang --config=Release -- -d explain
+        run: cmake --build clang --config=Release
       - name: test
         run: cd build && ctest -C Release
   build-windows:

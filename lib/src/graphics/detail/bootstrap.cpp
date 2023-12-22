@@ -1,7 +1,7 @@
 #include <bave/build_version.hpp>
 #include <bave/core/error.hpp>
 #include <bave/logger.hpp>
-#include <graphics/detail/bootstrap.hpp>
+#include <src/graphics/detail/bootstrap.hpp>
 #include <algorithm>
 
 namespace bave::detail {

@@ -5,7 +5,6 @@
 #include <bave/graphics/detail/pipeline_cache.hpp>
 #include <bave/graphics/detail/render_resource.hpp>
 #include <bave/graphics/render_device.hpp>
-#include <bave/graphics/render_view.hpp>
 #include <bave/graphics/rgba.hpp>
 #include <bave/graphics/texture.hpp>
 #include <bave/graphics/transform.hpp>
@@ -14,7 +13,7 @@
 namespace bave {
 class Renderer : public Pinned {
   public:
-	explicit Renderer(NotNull<RenderDevice*> render_device, NotNull<DataStore const*> data_store, NotNull<RenderView const*> render_view);
+	explicit Renderer(NotNull<RenderDevice*> render_device, NotNull<DataStore const*> data_store);
 
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return *m_render_device; }
 
@@ -30,8 +29,6 @@ class Renderer : public Pinned {
 	[[nodiscard]] auto get_render_pass() const -> vk::RenderPass { return *m_frame.render_pass; }
 	[[nodiscard]] auto get_frame_index() const -> detail::FrameIndex { return m_render_device->get_frame_index(); }
 	[[nodiscard]] auto get_pipeline_cache() const -> detail::PipelineCache& { return *m_pipeline_cache; }
-
-	NotNull<RenderView const*> render_view;
 
   private:
 	struct Frame {

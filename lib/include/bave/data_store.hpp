@@ -30,8 +30,8 @@ class DataStore : public Polymorphic {
 	Logger m_log;
 
   private:
-	[[nodiscard]] virtual auto do_exists(CString path) const -> bool = 0;
-	[[nodiscard]] virtual auto do_read_bytes(std::vector<std::byte>& out, CString path) const -> bool = 0;
+	[[nodiscard]] virtual auto do_exists(CString /*path*/) const -> bool { return false; }
+	[[nodiscard]] virtual auto do_read_bytes(std::vector<std::byte>& /*out*/, CString /*path*/) const -> bool { return false; }
 	[[nodiscard]] virtual auto do_read_string(std::string& out, CString path) const -> bool;
 };
 } // namespace bave

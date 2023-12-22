@@ -12,6 +12,8 @@
 #include <bave/graphics/detail/scratch_buffer_cache.hpp>
 #include <bave/graphics/detail/swapchain.hpp>
 #include <bave/graphics/detail/wsi.hpp>
+#include <bave/graphics/extent_scaler.hpp>
+#include <bave/graphics/render_view.hpp>
 #include <bave/logger.hpp>
 #include <bave/platform.hpp>
 #include <limits>
@@ -42,9 +44,14 @@ class RenderDevice {
 	[[nodiscard]] auto get_queue() const -> vk::Queue { return m_queue; }
 	[[nodiscard]] auto get_allocator() const -> VmaAllocator { return m_allocator.get(); }
 	[[nodiscard]] auto get_swapchain_format() const -> vk::Format { return m_swapchain.create_info.imageFormat; }
+	[[nodiscard]] auto get_swapchain_extent() const -> vk::Extent2D { return m_swapchain.create_info.imageExtent; }
 
 	[[nodiscard]] auto get_line_width_limits() const -> InclusiveRange<float> { return m_line_width_limits; }
 	[[nodiscard]] auto get_frame_index() const -> detail::FrameIndex { return m_frame_index; }
+	[[nodiscard]] auto get_default_view() const -> RenderView;
+
+	[[nodiscard]] auto get_viewport_scaler() const -> ExtentScaler;
+	[[nodiscard]] auto project_to(glm::vec2 target_space, glm::vec2 point) const -> glm::vec2;
 
 	auto wait_for(vk::Fence fence, std::uint64_t timeout = max_timeout_v) const -> bool;
 	auto reset_fence(vk::Fence fence, bool wait_first = true) const -> bool;
@@ -62,6 +69,8 @@ class RenderDevice {
 	[[nodiscard]] auto get_scratch_buffer_cache() const -> detail::ScratchBufferCache& { return *m_sbo_cache; }
 	[[nodiscard]] auto get_sampler_cache() const -> detail::SamplerCache& { return *m_sampler_cache; }
 	[[nodiscard]] auto get_font_library() const -> detail::FontLibrary& { return *m_font_library; }
+
+	RenderView render_view{};
 
   private:
 	struct Deleter {

@@ -2,6 +2,8 @@
 
 **BAsic Vulkan Engine**
 
+[![Build Status](https://github.com/karnkaul/bave/actions/workflows/ci.yml/badge.svg)](https://github.com/karnkaul/bave/actions/workflows/ci.yml)
+
 `bave` is a simple 2D engine written in C++20 and Vulkan.
 
 ## Features
@@ -13,7 +15,8 @@
 - [x] Shaders, optional custom descriptor sets (but fixed layout).
 - [x] `Drawable` API.
 - [x] Fonts and text.
-- [ ] Audio playback.
+- [x] Multi touch support.
+- [x] Audio playback.
 
 ## Requirements
 

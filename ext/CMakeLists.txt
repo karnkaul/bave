@@ -28,9 +28,6 @@ if(BAVE_USE_FREETYPE)
 endif()
 
 set(CAPO_BUILD_EXAMPLES OFF)
-
-# TODO set ON
-set(CAPO_USE_OPENAL OFF)
 add_subdirectory(src/capo-lite)
 
 add_subdirectory(src/djson)
@@ -42,9 +39,11 @@ target_compile_definitions(glm INTERFACE
   GLM_ENABLE_EXPERIMENTAL
 )
 
+string(FIND "${CMAKE_CXX_COMPILER_ID}" "Clang" is_clang)
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
   target_compile_options(glm INTERFACE -Wno-volatile)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+elseif(NOT is_clang EQUAL -1)
   target_compile_options(glm INTERFACE -Wno-deprecated-volatile)
 endif()
 
@@ -77,4 +76,27 @@ if(NOT ANDROID)
     dear_imgui::dear_imgui
     glfw::glfw
   )
+endif()
+
+if(ANDROID)
+  set(app_glue_src "${ANDROID_NDK}/sources/android/native_app_glue")
+
+  add_library(android-app-glue STATIC
+    ${app_glue_src}/android_native_app_glue.c
+  )
+
+  target_include_directories(android-app-glue PUBLIC
+    ${app_glue_src}
+  )
+
+  target_link_libraries(android-app-glue PUBLIC
+    android
+  )
+
+  target_link_libraries(${PROJECT_NAME} INTERFACE
+    android-app-glue
+    log
+  )
+
+  target_compile_definitions(dyvk PUBLIC -DVK_USE_PLATFORM_ANDROID_KHR=1)
 endif()

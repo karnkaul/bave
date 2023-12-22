@@ -9,7 +9,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-  src
+  .
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
@@ -23,7 +23,15 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 set(generated_version_header "${CMAKE_CURRENT_BINARY_DIR}/include/${PROJECT_NAME}/build_version.hpp")
 configure_file(src/build_version.hpp.in "${generated_version_header}" @ONLY)
 
-file(GLOB_RECURSE sources CONFIGURE_DEPENDS "include/*.?pp" "src/*.?pp")
+set(glob_expr "include/*.?pp" "src/*.cpp")
+
+if(ANDROID)
+  set(glob_expr ${glob_expr} "platform/android/*.cpp")
+else()
+  set(glob_expr ${glob_expr} "platform/desktop/*.cpp")
+endif()
+
+file(GLOB_RECURSE sources CONFIGURE_DEPENDS LIST_DIRECTORIES false ${glob_expr})
 set(sources "${sources};${generated_version_header}")
 
 target_sources(${PROJECT_NAME} PRIVATE ${sources})
@@ -52,11 +60,4 @@ if(BAVE_USE_PCH)
     <variant>
     <vector>
   )
-endif()
-
-if(ANDROID)
-  add_subdirectory(android)
-  add_definitions(-DVK_USE_PLATFORM_ANDROID_KHR=1)
-else()
-  add_subdirectory(desktop)
 endif()

@@ -13,7 +13,7 @@ Texture::Texture(NotNull<RenderDevice*> render_device, BitmapView bitmap, bool m
 	m_image.overwrite(bitmap, {});
 }
 
-auto Texture::load_image(std::span<std::byte const> compressed, bool mip_map) -> bool {
+auto Texture::load_from_bytes(std::span<std::byte const> compressed, bool mip_map) -> bool {
 	auto image_file = ImageFile{};
 	if (!image_file.decompress(compressed)) { return false; }
 

@@ -1,9 +1,6 @@
-#include <bave/extent_scaler.hpp>
-#include <bave/projector.hpp>
-#include <flappy.hpp>
-#include <cmath>
-
 #include <bave/graphics/pixmap.hpp>
+#include <bave/graphics/projector.hpp>
+#include <flappy.hpp>
 
 namespace {
 constexpr auto world_space_v = glm::vec2{1440.0f, 2560.0f};
@@ -16,22 +13,22 @@ Flappy::Flappy(bave::App& app) : Game(app), m_quad(&app.get_render_device()) {
 		bave::RenderInstance{.transform = bave::Transform{.position = glm::vec2{400.0f}, .rotation = bave::Degrees{15.0f}}, .tint = bave::yellow_v},
 	};
 
-	auto pixels = std::array<std::uint32_t, 4>{
-		0xff0000ff,
-		0xff00ff00,
-		0xffff0000,
-		0xffff00ff,
-	};
-	auto const bitmap = bave::BitmapView{
-		.bytes = {reinterpret_cast<std::byte const*>(pixels.data()), pixels.size() * sizeof(pixels[0])},
-		.extent = {2, 2},
-	};
-	auto texture = std::make_shared<bave::Texture>(&app.get_render_device());
-	texture->write(bitmap);
-	texture->sampler.min = texture->sampler.mag = bave::Texture::Filter::eNearest;
-	m_quad.set_texture(std::move(texture));
+	auto pixels = bave::Pixmap{{2, 2}};
+	pixels.at({0, 0}) = bave::red_v;
+	pixels.at({0, 1}) = bave::green_v;
+	pixels.at({1, 0}) = bave::blue_v;
+	pixels.at({1, 1}) = bave::magenta_v;
+	auto const bitmap = pixels.make_bitmap();
 
-	get_app().render_view.viewport = bave::ExtentScaler{.source = get_app().get_framebuffer_size()}.match_width(world_space_v);
+
+	if (!m_quad.get_texture()) {
+		auto texture = std::make_shared<bave::Texture>(&app.get_render_device());
+		texture->write(bitmap.view());
+		texture->sampler.min = texture->sampler.mag = bave::Texture::Filter::eNearest;
+		m_quad.set_texture(std::move(texture));
+	}
+
+	get_app().get_render_device().render_view.viewport = get_app().get_render_device().get_viewport_scaler().match_width(world_space_v);
 }
 
 void Flappy::tick() {
@@ -55,15 +52,20 @@ void Flappy::tick() {
 			}
 		}
 
-		if (auto const* tap = std::get_if<bave::MouseClick>(&event)) {
-			m_log.info("tap {} at {}x{}", (tap->action == bave::Action::eRelease ? "up" : "down"), tap->position.x, tap->position.y);
-			if (tap->id == 0) {
+		if (auto const* tap = std::get_if<bave::PointerTap>(&event)) {
+			auto const& pointer = tap->pointer;
+			m_log.info("tap [{}] {} at {}x{}", int(pointer.id), (tap->action == bave::Action::eRelease ? "up" : "down"), pointer.position.x,
+					   pointer.position.y);
+			if (pointer.id == bave::Pointer::Id::ePrimary) {
 				m_drag = tap->action == bave::Action::ePress;
-				prev_pointer = m_pointer = tap->position;
+				prev_pointer = m_pointer = tap->pointer.position;
 			}
 		}
 
-		if (auto const* cursor_move = std::get_if<bave::CursorMove>(&event)) { m_pointer = cursor_move->position; }
+		if (auto const* cursor_move = std::get_if<bave::PointerMove>(&event)) {
+			auto const& pointer = cursor_move->pointer;
+			if (pointer.id == bave::Pointer::Id::ePrimary) { m_pointer = pointer.position; }
+		}
 	}
 
 	m_elapsed += get_app().get_dt();
@@ -72,9 +74,14 @@ void Flappy::tick() {
 
 	m_quad.instances.front().transform.rotation.value += bave::Degrees{get_app().get_dt().count() * 10.0f}.to_radians().value;
 
+	if (auto const pinch = m_pinch.update(get_app().get_active_pointers())) {
+		get_app().get_render_device().render_view.transform.scale += 0.1f * *pinch * get_app().get_dt().count();
+		m_drag = false;
+	}
+
 	if (m_drag) {
-		auto const delta = bave::Projector{.source = get_app().get_framebuffer_size(), .target = world_space_v}(m_pointer - prev_pointer);
-		get_app().render_view.transform.position -= delta;
+		auto const delta = get_app().get_render_device().project_to(world_space_v, m_pointer - prev_pointer);
+		get_app().get_render_device().render_view.transform.position -= delta;
 	}
 
 	IFBAVEIMGUI({

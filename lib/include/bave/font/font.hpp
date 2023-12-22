@@ -15,7 +15,7 @@ class Font {
 
 	explicit Font(NotNull<RenderDevice*> render_device);
 
-	auto load_font(std::vector<std::byte> file_bytes, float scale = scale_v) -> bool;
+	auto load_from_bytes(std::vector<std::byte> file_bytes, float scale = scale_v) -> bool;
 
 	[[nodiscard]] auto glyph_for(TextHeight height, Codepoint codepoint) -> Glyph;
 	[[nodiscard]] auto get_texture(TextHeight height) -> std::shared_ptr<Texture const>;
