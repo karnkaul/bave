@@ -54,7 +54,7 @@ class Pixmap::Builder {
 
 	struct Entry {
 		Pixmap pixmap{};
-		Rect2D<int> rect{};
+		Rect<int> rect{};
 		Id id{};
 	};
 
