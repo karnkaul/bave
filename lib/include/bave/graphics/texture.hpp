@@ -29,6 +29,7 @@ class Texture {
 	auto load_from_bytes(std::span<std::byte const> compressed, bool mip_map = false) -> bool;
 	void write(BitmapView bitmap, bool mip_map = false);
 
+	[[nodiscard]] auto get_size() const -> glm::ivec2;
 	[[nodiscard]] auto combined_image_sampler() const -> CombinedImageSampler;
 
 	[[nodiscard]] auto get_image() const -> detail::RenderImage const& { return m_image; }

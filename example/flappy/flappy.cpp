@@ -1,88 +1,58 @@
 #include <bave/graphics/pixmap.hpp>
 #include <bave/graphics/projector.hpp>
+#include <bave/loader.hpp>
 #include <flappy.hpp>
 
 namespace {
 constexpr auto world_space_v = glm::vec2{1440.0f, 2560.0f};
 }
 
-Flappy::Flappy(bave::App& app) : Game(app), m_quad(&app.get_render_device()) {
-	// m_quad.set_shape(bave::Quad{.size = glm::vec2{300.0f}});
+Flappy::Flappy(bave::App& app) : Game(app), m_text(&app.get_render_device()) {
 
-	m_quad.instances = {
-		bave::RenderInstance{.transform = bave::Transform{.position = glm::vec2{400.0f}, .rotation = bave::Degrees{15.0f}}, .tint = bave::yellow_v},
-	};
+	auto loader = bave::Loader{&app.get_data_store(), &app.get_render_device()};
 
-	auto pixels = bave::Pixmap{{2, 2}};
-	pixels.at({0, 0}) = bave::red_v;
-	pixels.at({0, 1}) = bave::green_v;
-	pixels.at({1, 0}) = bave::blue_v;
-	pixels.at({1, 1}) = bave::magenta_v;
-	auto const bitmap = pixels.make_bitmap();
+	if (auto font = loader.load_font("fonts/Vera.ttf")) { m_text.set_font(std::move(font)); }
 
+	m_sheet = loader.load_sprite_sheet("images/player_sheet.json");
+	m_animation = loader.load_sprite_animation("animations/player_anim.json");
+	m_sprite = bave::AnimatedSprite{&app.get_render_device(), m_sheet, 0.5s};
+	m_sprite->set_size(glm::vec2{300.0f});
+	m_sprite->animation = *m_animation;
+	// m_sprite->repeat = false;
 
-	if (!m_quad.get_texture()) {
-		auto texture = std::make_shared<bave::Texture>(&app.get_render_device());
-		texture->write(bitmap.view());
-		texture->sampler.min = texture->sampler.mag = bave::Texture::Filter::eNearest;
-		m_quad.set_texture(std::move(texture));
-	}
+	m_text.set_string("hello");
+	// m_text.set_align(bave::Text::Align::eLeft);
+	m_text.transform.position.y = 500.0f;
 
-	get_app().get_render_device().render_view.viewport = get_app().get_render_device().get_viewport_scaler().match_width(world_space_v);
+	m_game_view = get_app().get_render_device().render_view;
+	m_game_view.viewport = get_app().get_render_device().get_viewport_scaler().match_width(world_space_v);
 }
 
 void Flappy::tick() {
-	auto prev_pointer = m_pointer;
-
-	for (auto const& event : get_app().get_events()) {
-		if (auto const* focus_change = std::get_if<bave::FocusChange>(&event)) {
-			m_log.info("focus {}", focus_change->in_focus ? "gained" : "lost");
-			//
-		}
-
-		if (auto const* key_input = std::get_if<bave::KeyInput>(&event)) {
-			if (key_input->key == bave::Key::eW && key_input->mods.test(bave::mod::ctrl)) {
-				m_log.info("shutting down");
-				get_app().shutdown();
-			}
-
-			if (key_input->key == bave::Key::eEscape && key_input->action == bave::Action::eRelease) {
-				m_log.info("shutting down");
-				get_app().shutdown();
-			}
-		}
-
-		if (auto const* tap = std::get_if<bave::PointerTap>(&event)) {
-			auto const& pointer = tap->pointer;
-			m_log.info("tap [{}] {} at {}x{}", int(pointer.id), (tap->action == bave::Action::eRelease ? "up" : "down"), pointer.position.x,
-					   pointer.position.y);
-			if (pointer.id == bave::Pointer::Id::ePrimary) {
-				m_drag = tap->action == bave::Action::ePress;
-				prev_pointer = m_pointer = tap->pointer.position;
-			}
-		}
-
-		if (auto const* cursor_move = std::get_if<bave::PointerMove>(&event)) {
-			auto const& pointer = cursor_move->pointer;
-			if (pointer.id == bave::Pointer::Id::ePrimary) { m_pointer = pointer.position; }
-		}
-	}
-
 	m_elapsed += get_app().get_dt();
 	m_clear_red = 0.5f * std::sin(m_elapsed.count()) + 0.5f;
 	clear_colour = bave::Rgba::from({m_clear_red, 0.0f, 0.0f, 1.0f});
 
-	m_quad.instances.front().transform.rotation.value += bave::Degrees{get_app().get_dt().count() * 10.0f}.to_radians().value;
+	auto const& gesture_recognizer = get_app().get_gesture_recognizer();
 
-	if (auto const pinch = m_pinch.update(get_app().get_active_pointers())) {
-		get_app().get_render_device().render_view.transform.scale += 0.1f * *pinch * get_app().get_dt().count();
-		m_drag = false;
+	if (auto const pinch = gesture_recognizer.pinch_delta()) { m_game_view.transform.scale += 0.1f * *pinch * get_app().get_dt().count(); }
+
+	if (auto const drag = gesture_recognizer.drag_position()) {
+		auto const delta = get_app().get_render_device().project_to(world_space_v, *drag - m_prev_pointer);
+		m_game_view.transform.position -= delta;
 	}
 
-	if (m_drag) {
-		auto const delta = get_app().get_render_device().project_to(world_space_v, m_pointer - prev_pointer);
-		get_app().get_render_device().render_view.transform.position -= delta;
+	if (auto const tap_up = gesture_recognizer.tap_up()) { m_target = m_game_view.unproject(*tap_up / glm::vec2{get_app().get_framebuffer_size()}); }
+
+	auto const move_delta = m_target - m_sprite->transform.position;
+	if (glm::length2(move_delta) > 100.0f) {
+		m_sprite->transform.position += 1000.0f * glm::normalize(move_delta) * get_app().get_dt().count();
+		m_sprite->transform.scale.x = move_delta.x < 0.0f ? -1.0f : 1.0f;
 	}
+
+	m_sprite->tick(get_app().get_dt());
+
+	m_prev_pointer = m_pointer;
 
 	IFBAVEIMGUI({
 		ImGui::ShowDemoWindow();
@@ -91,8 +61,28 @@ void Flappy::tick() {
 }
 
 void Flappy::render(vk::CommandBuffer command_buffer) const {
+	get_app().get_render_device().render_view = m_game_view;
 	if (auto shader = get_app().load_shader("shaders/default.vert", "shaders/default.frag")) {
-		m_quad.draw(*shader, command_buffer);
-		//
+		m_sprite->draw(*shader, command_buffer);
+		m_text.draw(*shader, command_buffer);
 	}
 }
+
+void Flappy::on_key(bave::KeyInput const key_input) {
+	if (key_input.key == bave::Key::eW && key_input.mods.test(bave::mod::ctrl)) {
+		m_log.info("shutting down");
+		get_app().shutdown();
+	}
+
+	if (key_input.key == bave::Key::eEscape && key_input.action == bave::Action::eRelease) {
+		m_log.info("shutting down");
+		get_app().shutdown();
+	}
+}
+
+void Flappy::on_move(bave::PointerMove const pointer_move) {
+	auto const& pointer = pointer_move.pointer;
+	if (pointer.id == bave::Pointer::Id::ePrimary) { m_pointer = pointer.position; }
+}
+
+void Flappy::on_scroll(bave::MouseScroll const mouse_scroll) { m_game_view.transform.scale += 0.1f * mouse_scroll.delta.y; }

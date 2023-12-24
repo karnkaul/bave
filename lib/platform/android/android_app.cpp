@@ -199,7 +199,11 @@ void AndroidApp::setup_event_callbacks() {
 		case APP_CMD_TERM_WINDOW: self(app).pause_render(); break;
 		case APP_CMD_DESTROY: self(app).destroy(); break;
 		case APP_CMD_GAINED_FOCUS: push(app, FocusChange{.in_focus = true}); break;
-		case APP_CMD_LOST_FOCUS: push(app, FocusChange{.in_focus = false}); break;
+		case APP_CMD_LOST_FOCUS: {
+			self(app).m_active_pointers.clear();
+			push(app, FocusChange{.in_focus = false});
+			break;
+		}
 		}
 	};
 
@@ -222,6 +226,8 @@ void AndroidApp::poll_events() {
 	if (ALooper_pollAll(0, nullptr, &events, reinterpret_cast<void**>(&source)) >= 0) { // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 		if (source) { source->process(&m_app, source); }
 	}
+	m_gesture_recognizer.update(get_active_pointers());
+	m_game->handle_events(get_events());
 }
 
 void AndroidApp::tick() {

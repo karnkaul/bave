@@ -36,13 +36,13 @@ auto Pixmap::at(Index2D index) -> Rgba& {
 }
 
 auto Pixmap::make_bitmap() const -> Bitmap {
-	auto ret = Bitmap{.extent = m_size};
-	ret.bytes.reserve(m_pixels.size() * 4);
+	auto bytes = std::vector<std::byte>{};
+	bytes.reserve(m_pixels.size() * 4);
 	for (auto const& pixel : m_pixels) {
-		auto const bytes = pixel.to_bytes();
-		ret.bytes.insert(ret.bytes.end(), bytes.begin(), bytes.end());
+		auto const pix_bytes = pixel.to_bytes();
+		bytes.insert(bytes.end(), pix_bytes.begin(), pix_bytes.end());
 	}
-	return ret;
+	return Bitmap{std::move(bytes), m_size};
 }
 
 Pixmap::Builder::Builder(int max_width, glm::ivec2 pad) : m_max_width(max_width > min_width_v ? ceil_pot(max_width) : min_width_v), m_pad(pad) {

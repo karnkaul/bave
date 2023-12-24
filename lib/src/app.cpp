@@ -63,6 +63,11 @@ void App::start_next_frame() {
 	m_dt.update();
 }
 
+void App::push_event(Event event) {
+	if (auto const* pointer_tap = std::get_if<PointerTap>(&event)) { m_gesture_recognizer.on_tap(*pointer_tap); }
+	m_events.push_back(event);
+}
+
 auto App::make_game() -> std::unique_ptr<Game> {
 	assert(m_game_factory);
 	return m_game_factory(*this);

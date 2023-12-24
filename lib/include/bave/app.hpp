@@ -7,6 +7,7 @@
 #include <bave/graphics/renderer.hpp>
 #include <bave/graphics/shader.hpp>
 #include <bave/input/event.hpp>
+#include <bave/input/gesture_recognizer.hpp>
 #include <bave/logger.hpp>
 #include <capo/capo.hpp>
 #include <functional>
@@ -43,6 +44,7 @@ class App : public PolyPinned {
 
 	[[nodiscard]] auto get_events() const -> std::span<Event const> { return m_events; }
 	[[nodiscard]] auto get_active_pointers() const -> std::span<Pointer const> { return m_active_pointers; }
+	[[nodiscard]] auto get_gesture_recognizer() const -> GestureRecognizer const& { return m_gesture_recognizer; }
 	[[nodiscard]] auto get_dt() const -> Seconds { return m_dt.dt; }
 	[[nodiscard]] auto get_window_size() const -> glm::ivec2 { return do_get_window_size(); }
 	[[nodiscard]] auto get_framebuffer_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
@@ -52,13 +54,14 @@ class App : public PolyPinned {
 
   protected:
 	void start_next_frame();
-	void push_event(Event event) { m_events.push_back(event); }
+	void push_event(Event event);
 	[[nodiscard]] auto make_game() -> std::unique_ptr<Game>;
 
 	[[nodiscard]] auto screen_to_framebuffer(glm::vec2 position) const -> glm::vec2;
 
 	Logger m_log{};
 	std::vector<Pointer> m_active_pointers{};
+	GestureRecognizer m_gesture_recognizer{};
 
   private:
 	virtual auto do_run() -> ErrCode = 0;

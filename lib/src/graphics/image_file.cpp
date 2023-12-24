@@ -14,7 +14,7 @@ void ImageFile::Deleter::operator()(Impl* ptr) const {
 	std::default_delete<Impl>{}(ptr);
 }
 
-auto ImageFile::decompress(std::span<std::byte const> compressed) -> bool {
+auto ImageFile::load_from_bytes(std::span<std::byte const> compressed) -> bool {
 	if (compressed.empty()) { return false; }
 	auto extent = glm::ivec3{};
 	auto const* stbi_data = reinterpret_cast<stbi_uc const*>(compressed.data()); // NOLINT
@@ -25,7 +25,7 @@ auto ImageFile::decompress(std::span<std::byte const> compressed) -> bool {
 	return true;
 }
 
-auto ImageFile::bitmap() const -> BitmapView {
+auto ImageFile::get_bitmap_view() const -> BitmapView {
 	if (!m_impl) { return {}; }
 
 	return BitmapView{

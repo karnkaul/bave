@@ -3,11 +3,11 @@
 #include <memory>
 
 namespace bave {
-class ImageFile {
+class ImageFile : public IBitmapViewSource {
   public:
-	auto decompress(std::span<std::byte const> compressed) -> bool;
+	auto load_from_bytes(std::span<std::byte const> compressed) -> bool;
 
-	[[nodiscard]] auto bitmap() const -> BitmapView;
+	[[nodiscard]] auto get_bitmap_view() const -> BitmapView final;
 
 	[[nodiscard]] auto is_empty() const -> bool { return m_impl == nullptr; }
 

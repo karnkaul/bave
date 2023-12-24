@@ -38,7 +38,7 @@ FontAtlas::FontAtlas(NotNull<RenderDevice*> render_device, NotNull<GlyphSlot::Fa
 
 	auto atlas = builder.build(blank_v);
 	auto bitmap = atlas.pixmap.make_bitmap();
-	auto texture = std::make_shared<Texture>(render_device, bitmap.view(), true);
+	auto texture = std::make_shared<Texture>(render_device, bitmap.get_bitmap_view(), true);
 	texture->sampler.mag = Texture::Filter::eLinear;
 	m_texture = std::move(texture);
 

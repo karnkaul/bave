@@ -2,10 +2,13 @@
 #include <bave/core/c_string.hpp>
 #include <bave/core/polymorphic.hpp>
 #include <bave/logger.hpp>
-#include <djson/json.hpp>
 #include <cstddef>
 #include <span>
 #include <vector>
+
+namespace dj {
+class Json;
+}
 
 namespace bave {
 class DataStore : public Polymorphic {

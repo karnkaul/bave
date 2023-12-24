@@ -59,7 +59,7 @@ class DesktopApp : public App, public detail::IWsi {
 	void make_window();
 	void init_graphics();
 
-	static void poll_events();
+	void poll_events();
 	void tick();
 	void render();
 

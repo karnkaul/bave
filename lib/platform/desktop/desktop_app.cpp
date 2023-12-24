@@ -183,7 +183,11 @@ void DesktopApp::init_graphics() {
 	m_dear_imgui = std::make_unique<detail::DearImGui>(m_window.get(), *m_render_device, m_renderer->get_render_pass());
 }
 
-void DesktopApp::poll_events() { glfwPollEvents(); }
+void DesktopApp::poll_events() {
+	glfwPollEvents();
+	m_gesture_recognizer.update(get_active_pointers());
+	m_game->handle_events(get_events());
+}
 
 void DesktopApp::tick() {
 	m_dear_imgui->new_frame();

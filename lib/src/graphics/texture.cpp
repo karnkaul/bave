@@ -15,9 +15,9 @@ Texture::Texture(NotNull<RenderDevice*> render_device, BitmapView bitmap, bool m
 
 auto Texture::load_from_bytes(std::span<std::byte const> compressed, bool mip_map) -> bool {
 	auto image_file = ImageFile{};
-	if (!image_file.decompress(compressed)) { return false; }
+	if (!image_file.load_from_bytes(compressed)) { return false; }
 
-	write(image_file.bitmap(), mip_map);
+	write(image_file.get_bitmap_view(), mip_map);
 	return true;
 }
 
@@ -28,6 +28,11 @@ void Texture::write(BitmapView bitmap, bool mip_map) {
 	render_device.get_defer_queue().push(std::move(m_image));
 	m_image = detail::RenderImage{&render_device, detail::RenderImage::CreateInfo{.mip_map = mip_map}, detail::RenderImage::to_vk_extent(bitmap.extent)};
 	m_image.overwrite(bitmap, {});
+}
+
+auto Texture::get_size() const -> glm::ivec2 {
+	auto const extent = get_image().get_extent();
+	return glm::ivec2{extent.width, extent.height};
 }
 
 auto Texture::combined_image_sampler() const -> CombinedImageSampler {

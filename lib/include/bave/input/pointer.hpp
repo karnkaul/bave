@@ -3,9 +3,10 @@
 #include <glm/vec2.hpp>
 
 namespace bave {
+enum class PointerId : int { ePrimary = 0 };
 
 struct Pointer {
-	enum Id : int { ePrimary = 0 };
+	using Id = PointerId;
 
 	Id id{};
 	glm::vec2 position{};

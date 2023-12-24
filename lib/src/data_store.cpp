@@ -1,4 +1,5 @@
 #include <bave/data_store.hpp>
+#include <djson/json.hpp>
 #include <filesystem>
 
 namespace bave {
