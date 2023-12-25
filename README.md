@@ -17,6 +17,7 @@
 - [x] Fonts and text.
 - [x] Multi touch support.
 - [x] Audio playback.
+- [ ] Streaming audio (music).
 
 ## Requirements
 
@@ -45,4 +46,3 @@ WIP.
 
 See [example](example) for an app that's designed to target Android while being developed on the desktop. The common code is in [example/flappy](example/flappy), while platform specific executables and code are in [example/desktop](example/desktop) and [example/android](example/android). Open the latter in Android Studio to build for Android.
 
-> _`example` requires `glslc` to compile GLSL to SPIR-V (through a CMake custom target)._
