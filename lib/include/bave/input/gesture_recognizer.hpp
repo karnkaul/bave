@@ -21,6 +21,7 @@ class GestureRecognizer {
 	[[nodiscard]] auto tap_up() const -> std::optional<glm::vec2>;
 
 	void on_tap(PointerTap tap);
+	void on_focus();
 	void update(std::span<Pointer const> active);
 
 	float drag_sensitivity{drag_sensitivity_v};

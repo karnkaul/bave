@@ -28,6 +28,15 @@ class DesktopApp : public App, public detail::IWsi {
 	explicit DesktopApp(CreateInfo create_info);
 
   private:
+	struct LogFile {
+		bool init{};
+		auto operator==(LogFile const&) const -> bool = default;
+
+		struct Deleter {
+			void operator()(LogFile const& lf) const noexcept;
+		};
+	};
+
 	struct Glfw {
 		bool init{};
 		auto operator==(Glfw const&) const -> bool = default;
@@ -64,6 +73,7 @@ class DesktopApp : public App, public detail::IWsi {
 	void render();
 
 	CreateInfo m_create_info{};
+	ScopedResource<LogFile, LogFile::Deleter> m_log_file{};
 	ScopedResource<Glfw, Glfw::Deleter> m_glfw{};
 	std::unique_ptr<GLFWwindow, Glfw::Deleter> m_window{};
 	std::unique_ptr<RenderDevice> m_render_device{};

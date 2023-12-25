@@ -6,6 +6,8 @@
 
 namespace bave {
 namespace {
+using namespace std::chrono_literals;
+
 constexpr std::size_t timestamp_size_v{16};
 
 auto get_timestamp() -> std::array<char, timestamp_size_v> {
@@ -17,8 +19,22 @@ auto get_timestamp() -> std::array<char, timestamp_size_v> {
 	std::strftime(ret.data(), ret.size() - 1, "%T", tm);
 	return ret;
 }
+} // namespace
 
-auto get_thread_id() -> int {
+auto log::format_full(char const level, std::string_view const tag, std::string_view const message) -> std::string {
+	auto const tid = get_thread_id();
+	auto const timestamp = get_timestamp();
+	return fmt::format("[{}][{: >2}{}] [{}] {} [{}]\n", level, 'T', tid, tag, message, timestamp.data());
+}
+
+auto log::format_thread(std::string_view message) -> std::string {
+	auto const tid = get_thread_id();
+	return fmt::format("[{: >2}{}] {}\n", 'T', tid, message);
+}
+
+void log::log_message(char const level, CString const tag, CString const message) { internal::log_message(level, tag, message); }
+
+auto log::get_thread_id() -> int {
 	struct Map {
 		std::thread::id sys_id{};
 		int log_id{};
@@ -35,17 +51,6 @@ auto get_thread_id() -> int {
 	map.push_back(Map{.sys_id = std::this_thread::get_id(), .log_id = id});
 	return id;
 }
-} // namespace
-
-auto log::format_message(char const level, std::string_view const tag, std::string_view const message, bool thread_only) -> std::string {
-	auto const tid = get_thread_id();
-	if (thread_only) { return fmt::format("[{: >2}{}] {} {}\n", 'T', tid, tag, message); }
-
-	auto const timestamp = get_timestamp();
-	return fmt::format("[{}][{: >2}{}] [{}] {} [{}]\n", level, 'T', tid, tag, message, timestamp.data());
-}
-
-void log::log_message(char const level, CString const tag, CString const message) { internal::log_message(level, tag, message); }
 
 void Logger::log(char const level, CString const message) const { log::log_message(level, tag.c_str(), message); }
 } // namespace bave

@@ -5,9 +5,74 @@
 #include <bave/desktop_app.hpp>
 #include <platform/desktop/clap/clap.hpp>
 #include <platform/desktop/desktop_data_store.hpp>
-#include <cassert>
+#include <fstream>
+#include <iostream>
+
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#endif
 
 namespace bave {
+class FileLogger {
+  public:
+	FileLogger(FileLogger const&) = delete;
+	FileLogger(FileLogger&&) = delete;
+	auto operator=(FileLogger const&) -> FileLogger& = delete;
+	auto operator=(FileLogger&&) -> FileLogger& = delete;
+
+	explicit FileLogger(std::string path) : m_path(std::move(path)) { m_thread = std::thread{&FileLogger::update, this}; }
+
+	~FileLogger() {
+		m_stop = true;
+		m_thread.join();
+		drain();
+	}
+
+	void push(std::string_view line) {
+		auto lock = std::scoped_lock{m_mutex};
+		m_buffer += line;
+	}
+
+  private:
+	void update() {
+		while (!m_stop) {
+			std::this_thread::sleep_for(5ms);
+			auto lock = std::scoped_lock{m_mutex};
+			if (m_buffer.empty()) { continue; }
+			drain();
+		}
+	}
+
+	void drain() {
+		if (auto file = std::ofstream{m_path, std::ios::app}) {
+			file << m_buffer;
+			m_buffer.clear();
+		}
+	}
+
+	std::string m_path{};
+	std::mutex m_mutex{};
+	std::string m_buffer{};
+	std::thread m_thread{};
+	std::atomic<bool> m_stop{};
+};
+
+auto g_file_logger = std::unique_ptr<FileLogger>{}; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+
+void log::internal::log_message(char level, CString tag, CString message) {
+	auto const formatted = format_full(level, tag, message);
+
+	auto& out = level == error_v ? std::cerr : std::cout;
+	out << formatted.c_str();
+
+	if (g_file_logger) { g_file_logger->push(formatted); }
+
+#if defined(_WIN32)
+	OutputDebugStringA(formatted.c_str());
+#endif
+}
+
 namespace {
 constexpr auto to_action(int const glfw_action) {
 	switch (glfw_action) {
@@ -33,11 +98,15 @@ constexpr auto to_mods(int const glfw_mods) {
 }
 } // namespace
 
+void DesktopApp::LogFile::Deleter::operator()(LogFile const& /*log_file*/) const noexcept { g_file_logger.reset(); }
+
 void DesktopApp::Glfw::Deleter::operator()(Glfw /*glfw*/) const noexcept { glfwTerminate(); }
 
 void DesktopApp::Glfw::Deleter::operator()(Ptr<GLFWwindow> window) const noexcept { glfwDestroyWindow(window); }
 
 DesktopApp::DesktopApp(CreateInfo create_info) : App("DesktopApp"), m_create_info(std::move(create_info)) {
+	g_file_logger = std::make_unique<FileLogger>("bave.log");
+	m_log_file.get().init = true;
 	if (!m_create_info.select_gpu) {
 		m_create_info.select_gpu = [](std::span<Gpu const> gpus) { return gpus.front(); };
 	}
