@@ -70,6 +70,7 @@ auto DesktopApp::do_run() -> ErrCode {
 	m_log.debug("init_graphics");
 	init_graphics();
 	m_game = make_game();
+	start_next_frame(); // clear dt
 
 	while (!is_shutting_down()) {
 		start_next_frame();

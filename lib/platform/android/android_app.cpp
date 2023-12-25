@@ -270,6 +270,7 @@ void AndroidApp::start() {
 	init_graphics();
 	m_game = make_game();
 	m_can_render = true;
+	start_next_frame(); // clear dt
 	m_log.debug("start");
 }
 

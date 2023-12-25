@@ -17,7 +17,7 @@
 - [x] Fonts and text.
 - [x] Multi touch support.
 - [x] Audio playback.
-- [ ] Streaming audio (music).
+- [x] Streaming audio (music).
 
 ## Requirements
 
