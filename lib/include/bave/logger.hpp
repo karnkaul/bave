@@ -9,12 +9,12 @@ constexpr auto warn_v{'W'};
 constexpr auto info_v{'I'};
 constexpr auto debug_v{'D'};
 
-[[nodiscard]] auto format_message(char level, std::string_view tag, std::string_view message) -> std::string;
+[[nodiscard]] auto format_message(char level, std::string_view tag, std::string_view message, bool thread_only = false) -> std::string;
 
 void log_message(char level, CString tag, CString message);
 
 namespace internal {
-void log_message(char level, CString tag, CString message, std::string formatted);
+void log_message(char level, CString tag, CString message);
 }
 } // namespace log
 

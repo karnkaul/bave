@@ -8,8 +8,8 @@
 #endif
 
 namespace bave::log {
-void internal::log_message(char level, CString /*tag*/, CString /*message*/, std::string formatted) {
-	formatted += '\n';
+void internal::log_message(char level, CString tag, CString message) {
+	auto formatted = format_message(level, tag, message, false);
 
 	auto& out = level == error_v ? std::cerr : std::cout;
 	out << formatted.c_str();

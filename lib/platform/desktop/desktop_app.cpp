@@ -192,8 +192,8 @@ void DesktopApp::poll_events() {
 
 void DesktopApp::tick() {
 	m_dear_imgui->new_frame();
+	get_audio_streamer().tick(get_dt());
 	if (is_shutting_down()) { return; }
-	assert(m_game != nullptr);
 	m_game->tick();
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <bave/audio/audio_device.hpp>
+#include <bave/audio/audio_streamer.hpp>
 #include <bave/build_version.hpp>
 #include <bave/core/polymorphic.hpp>
 #include <bave/core/time.hpp>
@@ -41,6 +42,7 @@ class App : public PolyPinned {
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return do_get_render_device(); }
 	[[nodiscard]] auto get_renderer() const -> Renderer const& { return do_get_renderer(); }
 	[[nodiscard]] auto get_audio_device() const -> AudioDevice& { return *m_audio_device; }
+	[[nodiscard]] auto get_audio_streamer() const -> AudioStreamer& { return *m_audio_streamer; }
 
 	[[nodiscard]] auto get_events() const -> std::span<Event const> { return m_events; }
 	[[nodiscard]] auto get_active_pointers() const -> std::span<Pointer const> { return m_active_pointers; }
@@ -76,6 +78,7 @@ class App : public PolyPinned {
 	std::function<std::unique_ptr<Game>(App&)> m_game_factory{};
 	std::unique_ptr<DataStore> m_data_store{std::make_unique<DataStore>()};
 	std::unique_ptr<AudioDevice> m_audio_device{};
+	std::unique_ptr<AudioStreamer> m_audio_streamer{};
 
 	std::vector<Event> m_events{};
 	DeltaTime m_dt{};

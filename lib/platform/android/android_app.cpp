@@ -232,6 +232,7 @@ void AndroidApp::poll_events() {
 
 void AndroidApp::tick() {
 	if (is_shutting_down() || !m_game) { return; }
+	get_audio_streamer().tick(get_dt());
 	m_game->tick();
 }
 

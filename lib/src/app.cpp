@@ -5,7 +5,8 @@
 
 namespace bave {
 App::App(std::string tag)
-	: m_log{std::move(tag)}, m_game_factory([](App& app) { return std::make_unique<Game>(app); }), m_audio_device(std::make_unique<AudioDevice>()) {}
+	: m_log{std::move(tag)}, m_game_factory([](App& app) { return std::make_unique<Game>(app); }), m_audio_device(std::make_unique<AudioDevice>()),
+	  m_audio_streamer(std::make_unique<AudioStreamer>(*m_audio_device)) {}
 
 void App::set_game_factory(std::function<std::unique_ptr<class Game>(App&)> game_factory) {
 	if (!game_factory) {

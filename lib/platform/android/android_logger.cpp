@@ -2,7 +2,7 @@
 #include <bave/logger.hpp>
 
 namespace bave::log {
-void internal::log_message(char level, CString tag, CString message, std::string /*formatted*/) {
+void internal::log_message(char level, CString tag, CString message) {
 	auto lvl = ANDROID_LOG_INFO;
 	switch (level) {
 	case error_v: lvl = ANDROID_LOG_ERROR; break;
@@ -11,6 +11,9 @@ void internal::log_message(char level, CString tag, CString message, std::string
 	default: break;
 	}
 
-	__android_log_print(lvl, tag.c_str(), "%s", message.c_str());
+	auto logcat_out = format_message(level, tag, message, true);
+	logcat_out.pop_back(); // remove newline
+
+	__android_log_print(lvl, tag.c_str(), "%s", logcat_out.c_str());
 }
 } // namespace bave::log
