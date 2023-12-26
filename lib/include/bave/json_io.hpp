@@ -1,12 +1,8 @@
 #pragma once
-#include <bave/graphics/sprite_sheet.hpp>
+#include <bave/graphics/rect.hpp>
 #include <djson/json.hpp>
 
 namespace bave {
-struct SpriteMap {
-	std::vector<SpriteSheet::Block> blocks{};
-};
-
 template <dj::Numeric Type>
 void to_json(dj::Json& json, glm::tvec2<Type> const& in) {
 	json.push_back(in.x);
@@ -29,7 +25,4 @@ void from_json(dj::Json const& json, Rect<Type>& out) {
 	from_json(json["lt"], out.lt);
 	from_json(json["rb"], out.rb);
 }
-
-void to_json(dj::Json& json, SpriteMap const& in);
-void from_json(dj::Json const& json, SpriteMap& out);
 } // namespace bave

@@ -27,7 +27,7 @@ out gl_PerVertex {
 
 void main() {
 	const Instance instance = instances[gl_InstanceIndex];
-	out_rgba = instance.rgba;
+	out_rgba = instance.rgba * vrgba;
 	out_uv = vuv;
 	const vec4 frag_pos = instance.transform * vec4(vpos, 0.0, 1.0);
 	gl_Position = projection * view * frag_pos;

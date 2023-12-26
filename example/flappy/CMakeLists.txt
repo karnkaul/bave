@@ -25,20 +25,20 @@ if(BAVE_BUILD_SHADERS)
   find_program(glslc glslc)
 
   if("${glslc}" STREQUAL "glslc-NOTFOUND")
-    message(FATAL_ERROR "Cannot build shaders: glslc not found")
+    message(WARNING "Cannot build shaders: glslc not found")
+  else()
+    add_custom_target(glsl2spirv ALL
+      COMMENT "Building shaders"
+      WORKING_DIRECTORY .
+
+      COMMAND ${glslc} glsl/default.vert -o ../assets/shaders/default.vert.spv
+      COMMAND ${glslc} glsl/default.frag -o ../assets/shaders/default.frag.spv
+
+      WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+
+      VERBATIM USES_TERMINAL
+    )
+
+    add_dependencies(${PROJECT_NAME} glsl2spirv)
   endif()
-
-  add_custom_target(glsl2spirv ALL
-    COMMENT "Building shaders"
-    WORKING_DIRECTORY .
-
-    COMMAND ${glslc} glsl/default.vert -o ../assets/shaders/default.vert.spv
-    COMMAND ${glslc} glsl/default.frag -o ../assets/shaders/default.frag.spv
-
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-
-    VERBATIM USES_TERMINAL
-  )
-
-  add_dependencies(${PROJECT_NAME} glsl2spirv)
 endif()

@@ -43,6 +43,11 @@ void GestureRecognizer::on_tap(PointerTap const tap) {
 	}
 }
 
+void GestureRecognizer::on_focus() {
+	m_state = {};
+	m_primary = {};
+}
+
 void GestureRecognizer::update(std::span<Pointer const> active) {
 	auto const primary_action = m_primary.action;
 	m_primary.action = {};

@@ -1,3 +1,4 @@
+#include <android/log.h>
 #include <android/window.h>
 #include <android_native_app_glue.h>
 #include <jni.h>
@@ -10,6 +11,21 @@
 #include <unordered_map>
 
 namespace bave {
+void log::internal::log_message(char level, CString tag, CString message) {
+	auto lvl = ANDROID_LOG_INFO;
+	switch (level) {
+	case error_v: lvl = ANDROID_LOG_ERROR; break;
+	case warn_v: lvl = ANDROID_LOG_WARN; break;
+	case debug_v: lvl = ANDROID_LOG_DEBUG; break;
+	default: break;
+	}
+
+	auto logcat_out = format_thread(message);
+	logcat_out.pop_back(); // remove newline
+
+	__android_log_print(lvl, tag.c_str(), "%s", logcat_out.c_str());
+}
+
 namespace {
 auto to_key(int const key) -> Key {
 	static auto const key_map = std::unordered_map<int, Key>{
@@ -201,6 +217,7 @@ void AndroidApp::setup_event_callbacks() {
 		case APP_CMD_GAINED_FOCUS: push(app, FocusChange{.in_focus = true}); break;
 		case APP_CMD_LOST_FOCUS: {
 			self(app).m_active_pointers.clear();
+			self(app).m_gesture_recognizer.on_focus();
 			push(app, FocusChange{.in_focus = false});
 			break;
 		}
@@ -232,6 +249,7 @@ void AndroidApp::poll_events() {
 
 void AndroidApp::tick() {
 	if (is_shutting_down() || !m_game) { return; }
+	get_audio_streamer().tick(get_dt());
 	m_game->tick();
 }
 
@@ -270,6 +288,7 @@ void AndroidApp::start() {
 	init_graphics();
 	m_game = make_game();
 	m_can_render = true;
+	start_next_frame(); // clear dt
 	m_log.debug("start");
 }
 
