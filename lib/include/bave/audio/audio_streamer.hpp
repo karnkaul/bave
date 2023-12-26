@@ -19,6 +19,7 @@ class AudioStreamer {
 
 	void tick(Seconds dt);
 
+	//! Master gain for streaming audio.
 	float gain{1.0f};
 
   private:

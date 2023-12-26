@@ -7,6 +7,7 @@
 #include <platform/desktop/desktop_data_store.hpp>
 #include <fstream>
 #include <iostream>
+#include <thread>
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
