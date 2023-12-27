@@ -10,10 +10,10 @@ class BasicRandom {
 	using seed_type = decltype(std::random_device{}());
 
 	template <std::integral Type>
-	using int_type = Policy::template Integral<Type>;
+	using int_type = typename Policy::template Integral<Type>;
 
 	template <std::floating_point Type>
-	using real_type = Policy::template Real<Type>;
+	using real_type = typename Policy::template Real<Type>;
 
 	/// Construct using a custom or default (randomized) seed.
 	explicit BasicRandom(seed_type seed = std::random_device{}()) : m_engine(seed) {}
