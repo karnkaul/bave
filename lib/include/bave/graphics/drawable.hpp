@@ -10,7 +10,7 @@ class Drawable : public Polymorphic {
   public:
 	explicit Drawable(NotNull<RenderDevice*> render_device);
 
-	void draw(Shader& shader, vk::CommandBuffer command_buffer) const;
+	void draw(Shader& shader) const;
 
 	Transform transform{};
 	Rgba tint{};

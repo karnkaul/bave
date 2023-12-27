@@ -17,7 +17,7 @@ class Shader {
 	auto write_ubo(void const* data, vk::DeviceSize size) -> bool;
 	auto write_ssbo(void const* data, vk::DeviceSize size) -> bool;
 
-	void draw(vk::CommandBuffer command_buffer, Mesh const& mesh, std::span<RenderInstance::Baked const> instances);
+	void draw(Mesh const& mesh, std::span<RenderInstance::Baked const> instances);
 
 	float line_width{1.0f};
 	vk::PrimitiveTopology topology{vk::PrimitiveTopology::eTriangleList};
@@ -33,7 +33,7 @@ class Shader {
 	[[nodiscard]] auto allocate_scratch(vk::BufferUsageFlagBits usage) const -> detail::RenderBuffer&;
 
 	void set_viewport_scissor();
-	void update_and_bind_sets(vk::CommandBuffer command_buffer, std::span<RenderInstance::Baked const> instances);
+	void update_and_bind_sets(vk::CommandBuffer command_buffer, std::span<RenderInstance::Baked const> instances) const;
 
 	NotNull<Renderer const*> m_renderer;
 	vk::ShaderModule m_vert{};

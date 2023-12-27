@@ -82,7 +82,7 @@ Renderer::Renderer(NotNull<RenderDevice*> render_device, NotNull<DataStore const
 	  m_pipeline_cache(std::make_unique<detail::PipelineCache>(*m_frame.render_pass, render_device, data_store)), m_white(render_device, white_bitmap()),
 	  m_blocker(render_device->get_device()) {}
 
-auto Renderer::start_render(Rgba clear_colour) -> vk::CommandBuffer {
+auto Renderer::start_render(Rgba clear_colour) -> bool {
 	auto& sync = m_frame.syncs.at(get_frame_index());
 	m_frame.render_target = m_render_device->acquire_next_image(*sync.drawn, *sync.draw);
 	if (!m_frame.render_target) { return {}; }
@@ -104,7 +104,7 @@ auto Renderer::start_render(Rgba clear_colour) -> vk::CommandBuffer {
 	auto const rpbi = vk::RenderPassBeginInfo{*m_frame.render_pass, *fb, ra, 2, clear_values.data()};
 	sync.command_buffer.beginRenderPass(rpbi, vk::SubpassContents::eInline);
 
-	return sync.command_buffer;
+	return true;
 }
 
 auto Renderer::finish_render() -> bool {
@@ -131,5 +131,10 @@ auto Renderer::finish_render() -> bool {
 auto Renderer::get_backbuffer_extent() const -> vk::Extent2D {
 	if (!m_frame.render_target) { return {}; }
 	return m_frame.render_target->extent;
+}
+
+auto Renderer::get_command_buffer() const -> vk::CommandBuffer {
+	if (!m_frame.render_target) { return {}; }
+	return m_frame.syncs.at(get_frame_index()).command_buffer;
 }
 } // namespace bave

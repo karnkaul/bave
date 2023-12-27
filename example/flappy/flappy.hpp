@@ -5,7 +5,7 @@
 
 class Flappy : public bave::Game {
 	void tick() final;
-	void render(vk::CommandBuffer command_buffer) const final;
+	void render() const final;
 
 	void on_key(bave::KeyInput key_input) final;
 	void on_move(bave::PointerMove pointer_move) final;

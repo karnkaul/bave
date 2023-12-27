@@ -4,12 +4,10 @@
 namespace bave {
 Drawable::Drawable(NotNull<RenderDevice*> render_device) : m_mesh(render_device) {}
 
-void Drawable::draw(Shader& shader, vk::CommandBuffer command_buffer) const {
-	if (!command_buffer) { return; }
-
+void Drawable::draw(Shader& shader) const {
 	bake_instances();
 	update_textures(shader);
-	shader.draw(command_buffer, m_mesh, m_baked_instances);
+	shader.draw(m_mesh, m_baked_instances);
 }
 
 void Drawable::bake_instances() const {

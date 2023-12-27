@@ -60,11 +60,11 @@ void Flappy::tick() {
 	});
 }
 
-void Flappy::render(vk::CommandBuffer command_buffer) const {
+void Flappy::render() const {
 	get_app().get_render_device().render_view = m_game_view;
 	if (auto shader = get_app().load_shader("shaders/default.vert", "shaders/default.frag")) {
-		m_sprite->draw(*shader, command_buffer);
-		m_text.draw(*shader, command_buffer);
+		m_sprite->draw(*shader);
+		m_text.draw(*shader);
 	}
 }
 

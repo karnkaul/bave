@@ -17,7 +17,7 @@ class Renderer : public Pinned {
 
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return *m_render_device; }
 
-	auto start_render(Rgba clear_colour) -> vk::CommandBuffer;
+	auto start_render(Rgba clear_colour) -> bool;
 	auto finish_render() -> bool;
 
 	[[nodiscard]] auto is_rendering() const -> bool { return m_frame.render_target.has_value(); }
@@ -29,6 +29,8 @@ class Renderer : public Pinned {
 	[[nodiscard]] auto get_render_pass() const -> vk::RenderPass { return *m_frame.render_pass; }
 	[[nodiscard]] auto get_frame_index() const -> detail::FrameIndex { return m_render_device->get_frame_index(); }
 	[[nodiscard]] auto get_pipeline_cache() const -> detail::PipelineCache& { return *m_pipeline_cache; }
+
+	[[nodiscard]] auto get_command_buffer() const -> vk::CommandBuffer;
 
   private:
 	struct Frame {

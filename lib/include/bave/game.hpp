@@ -13,7 +13,7 @@ class Game : public PolyPinned {
 	[[nodiscard]] auto get_app() const -> App& { return m_app; }
 
 	virtual void tick() {}
-	virtual void render([[maybe_unused]] vk::CommandBuffer command_buffer) const {}
+	virtual void render() const {}
 
 	virtual void shutdown() {}
 

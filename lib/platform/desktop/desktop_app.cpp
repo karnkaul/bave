@@ -269,10 +269,9 @@ void DesktopApp::tick() {
 
 void DesktopApp::render() {
 	m_dear_imgui->end_frame();
-	auto command_buffer = m_renderer->start_render(m_game->clear_colour);
-	if (command_buffer) {
-		m_game->render(command_buffer);
-		m_dear_imgui->render(command_buffer);
+	if (m_renderer->start_render(m_game->clear_colour)) {
+		m_game->render();
+		m_dear_imgui->render(m_renderer->get_command_buffer());
 	}
 	m_renderer->finish_render();
 }
