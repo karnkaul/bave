@@ -14,10 +14,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   .
 )
 
-target_sources(${PROJECT_NAME} PRIVATE
-  flappy.hpp
-  flappy.cpp
-)
+file(GLOB_RECURSE sources LIST_DIRECTORIES false CONFIGURE_DEPENDS "src/*.[hc]pp")
+
+target_sources(${PROJECT_NAME} PRIVATE ${sources})
 
 file(MAKE_DIRECTORY ../assets/shaders)
 

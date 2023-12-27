@@ -3,6 +3,7 @@
 #include <glm/vec4.hpp>
 #include <array>
 #include <cstddef>
+#include <string>
 
 namespace bave {
 ///
@@ -59,6 +60,13 @@ struct Rgba {
 	}
 
 	///
+	/// \brief Construct an Rgb instance using hex encoding.
+	/// \param hex Hex string ('#789abcff').
+	/// \returns Rgb instance.
+	///
+	static auto from(std::string_view hex) -> Rgba;
+
+	///
 	/// \brief Obtain only the normalzed tint (no HDR).
 	///
 	[[nodiscard]] constexpr auto to_tint() const -> glm::vec4 {
@@ -72,7 +80,8 @@ struct Rgba {
 	[[nodiscard]] constexpr auto to_vec4(float intensity = 1.0f) const -> glm::vec4 { return glm::vec4{intensity * glm::vec3{to_tint()}, to_f32(channels.w)}; }
 
 	///
-	/// \brief
+	/// \brief Convert instance to an array of bytes.
+	/// \returns Array of bytes.
 	///
 	[[nodiscard]] constexpr auto to_bytes() const -> std::array<std::byte, 4> {
 		return {
@@ -82,6 +91,12 @@ struct Rgba {
 			static_cast<std::byte>(channels.w),
 		};
 	}
+
+	///
+	/// \brief Convert instance to hex string.
+	/// \returns Hex string.
+	///
+	[[nodiscard]] auto to_hex_str() const -> std::string;
 
 	auto operator==(Rgba const&) const -> bool = default;
 };

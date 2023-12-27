@@ -1,5 +1,5 @@
 #include <bave/android_app.hpp>
-#include <flappy.hpp>
+#include <src/flappy.hpp>
 
 extern "C" {
 void android_main(android_app* andr_app) {

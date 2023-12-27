@@ -1,4 +1,5 @@
 #pragma once
+#include <glm/vec2.hpp>
 #include <random>
 
 namespace bave {
@@ -29,6 +30,12 @@ class BasicRandom {
 	[[nodiscard]] auto in_range(Type lo, Type hi) -> Type {
 		auto distribution = real_type<Type>{lo, hi};
 		return distribution(m_engine);
+	}
+
+	/// Obtain a random vec2 in the interval [lo, hi] (per dimension).
+	template <typename Type>
+	[[nodiscard]] auto in_range(glm::tvec2<Type> lo, glm::tvec2<Type> hi) -> glm::tvec2<Type> {
+		return glm::tvec2<Type>{in_range(lo.x, hi.x), in_range(lo.y, hi.y)};
 	}
 
   private:

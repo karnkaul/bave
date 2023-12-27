@@ -20,6 +20,13 @@ Flappy::Flappy(bave::App& app) : Game(app), m_text(&app.get_render_device()) {
 	m_sprite->animation = *m_animation;
 	// m_sprite->repeat = false;
 
+	m_clip_futures.push_back(std::async([loader] { return loader.load_audio_clip("audio_clips/jj2_castle.mp3"); }));
+	m_clip_futures.push_back(std::async([loader] { return loader.load_audio_clip("audio_clips/jj2_labrat.mp3"); }));
+
+	auto& streamer = get_app().get_audio_streamer();
+	streamer.gain = 0.5f;
+	// streamer.play(m_clips.at(m_clip_index));
+
 	m_text.set_string("hello");
 	// m_text.set_align(bave::Text::Align::eLeft);
 	m_text.transform.position.y = 500.0f;
@@ -50,6 +57,15 @@ void Flappy::tick() {
 		m_sprite->transform.scale.x = move_delta.x < 0.0f ? -1.0f : 1.0f;
 	}
 
+	auto tfr = [&](std::future<std::shared_ptr<bave::AudioClip>>& future) {
+		if (future.wait_for(0s) == std::future_status::ready) {
+			m_clips.push_back(future.get());
+			return true;
+		}
+		return false;
+	};
+	std::erase_if(m_clip_futures, tfr);
+
 	m_sprite->tick(get_app().get_dt());
 
 	m_prev_pointer = m_pointer;
@@ -60,11 +76,11 @@ void Flappy::tick() {
 	});
 }
 
-void Flappy::render() const {
+void Flappy::render(vk::CommandBuffer command_buffer) const {
 	get_app().get_render_device().render_view = m_game_view;
 	if (auto shader = get_app().load_shader("shaders/default.vert", "shaders/default.frag")) {
-		m_sprite->draw(*shader);
-		m_text.draw(*shader);
+		m_sprite->draw(*shader, command_buffer);
+		m_text.draw(*shader, command_buffer);
 	}
 }
 
@@ -77,6 +93,11 @@ void Flappy::on_key(bave::KeyInput const key_input) {
 	if (key_input.key == bave::Key::eEscape && key_input.action == bave::Action::eRelease) {
 		m_log.info("shutting down");
 		get_app().shutdown();
+	}
+
+	if (key_input.key == bave::Key::eP && key_input.action == bave::Action::eRelease && !m_clips.empty()) {
+		get_app().get_audio_streamer().play(m_clips.at(m_clip_index));
+		m_clip_index = (m_clip_index + 1) % m_clips.size();
 	}
 }
 
