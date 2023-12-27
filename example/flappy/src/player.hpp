@@ -1,11 +1,10 @@
 #pragma once
-#include <bave/app.hpp>
 #include <bave/graphics/sprite.hpp>
 #include <src/config.hpp>
 
 class Player {
   public:
-	Player(bave::App& app, bave::NotNull<Config const*> config);
+	Player(bave::NotNull<bave::RenderDevice*> render_device, bave::NotNull<Config const*> config);
 
 	void tick(bave::Seconds dt);
 	void draw(bave::Shader& shader) const;

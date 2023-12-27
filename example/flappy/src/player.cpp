@@ -1,15 +1,15 @@
 #include <src/player.hpp>
 
-using bave::App;
 using bave::NotNull;
+using bave::RenderDevice;
 using bave::Seconds;
 using bave::Shader;
 
-Player::Player(App& app, NotNull<Config const*> config) : config(config), sprite(&app.get_render_device()) {}
+Player::Player(NotNull<RenderDevice*> render_device, NotNull<Config const*> config) : config(config), sprite(render_device) {
+	sprite.set_size(config->player_size);
+}
 
 void Player::tick(Seconds dt) {
-	sprite.set_size(config->player_size);
-
 	auto y_speed = config->gravity;
 
 	if (m_jump_elapsed) {

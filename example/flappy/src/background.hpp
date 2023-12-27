@@ -19,7 +19,7 @@ class Background {
 		glm::vec2 position{};
 	};
 
-	void recreate_quad();
+	void create_quad();
 	auto make_cloud(bool beyond_edge) const -> CloudInstance;
 	void create_clouds();
 

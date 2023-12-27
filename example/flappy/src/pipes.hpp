@@ -10,6 +10,7 @@ class Pipes {
 	void tick(bave::Seconds dt);
 	void draw(bave::Shader& shader) const;
 
+	[[nodiscard]] auto pipe_exists() const -> bool { return !m_pipes.empty(); }
 	[[nodiscard]] auto is_colliding(bave::Rect<> const& rect) const -> bool;
 	void restart();
 
