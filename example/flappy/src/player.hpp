@@ -7,11 +7,12 @@ class Player {
   public:
 	Player(bave::App& app, bave::NotNull<Config const*> config);
 
-	void start_jump();
-	void stop_jump();
-
 	void tick(bave::Seconds dt);
 	void draw(bave::Shader& shader) const;
+
+	void start_jump();
+	void stop_jump();
+	void restart();
 
 	bave::NotNull<Config const*> config;
 

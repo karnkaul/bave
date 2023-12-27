@@ -61,7 +61,7 @@ void Text::refresh() {
 	}();
 
 	auto pen = Font::Pen{m_font.get(), m_height, m_scale};
-	pen.cursor += (n_offset - 0.5f) * pen.calc_line_extent(m_text).x;
+	pen.cursor.x += (n_offset - 0.5f) * pen.calc_line_extent(m_text).x;
 
 	set_geometry(pen.generate_quads(m_text));
 	set_texture(pen.get_texture());
