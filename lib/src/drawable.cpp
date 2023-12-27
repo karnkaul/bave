@@ -12,9 +12,12 @@ void Drawable::draw(Shader& shader) const {
 
 void Drawable::bake_instances() const {
 	m_baked_instances.clear();
-	m_baked_instances.reserve(instances.size() + 1);
-	m_baked_instances.push_back(RenderInstance{.transform = transform, .tint = tint}.bake());
-	for (auto const& instance : instances) { m_baked_instances.push_back(instance.bake()); }
+	if (instances.empty()) {
+		m_baked_instances.push_back(RenderInstance{.transform = transform, .tint = tint}.bake());
+	} else {
+		m_baked_instances.reserve(instances.size());
+		for (auto const& instance : instances) { m_baked_instances.push_back(instance.bake()); }
+	}
 }
 
 void Drawable::update_textures(Shader& out_shader) const {

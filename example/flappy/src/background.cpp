@@ -7,24 +7,20 @@ using bave::Shader;
 Background::Background(NotNull<bave::RenderDevice*> render_device, NotNull<Config const*> config)
 	: quad(render_device), cloud(render_device), m_config(config), m_top(config->background_rgba_top), m_bottom(config->background_rgba_bottom) {
 	recreate_quad();
-	auto cloud_shape = bave::Quad{.size = config->cloud_size};
-	cloud.set_shape(cloud_shape);
 	create_clouds();
 }
 
 void Background::tick(Seconds const dt) {
 	if (m_top != m_config->background_rgba_top || m_bottom != m_config->background_rgba_bottom) { recreate_quad(); }
+	cloud.set_size(m_config->cloud_size);
 
 	for (auto& cloud_instance : m_cloud_instances) {
 		cloud_instance.position.x += cloud_instance.speed * dt.count();
 		if (cloud_instance.position.x + 0.5f * m_config->cloud_size.x < -0.5f * m_config->world_space.x) { cloud_instance = make_cloud(true); }
 	}
 
-	if (!m_cloud_instances.empty()) {
-		cloud.instances.resize(m_cloud_instances.size() - 1);
-		cloud.transform.position = m_cloud_instances[0].position;
-		for (std::size_t i = 1; i < m_cloud_instances.size(); ++i) { cloud.instances.at(i - 1).transform.position = m_cloud_instances.at(i).position; }
-	}
+	cloud.instances.resize(m_cloud_instances.size());
+	for (std::size_t i = 0; i < m_cloud_instances.size(); ++i) { cloud.instances.at(i).transform.position = m_cloud_instances.at(i).position; }
 }
 
 void Background::draw(Shader& shader) const {

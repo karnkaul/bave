@@ -1,6 +1,6 @@
 #pragma once
 #include <bave/core/random.hpp>
-#include <bave/graphics/shape.hpp>
+#include <bave/graphics/sprite.hpp>
 #include <src/config.hpp>
 
 class Background {
@@ -11,7 +11,7 @@ class Background {
 	void draw(bave::Shader& shader) const;
 
 	bave::CustomShape quad;
-	bave::QuadShape cloud;
+	bave::Sprite cloud;
 
   private:
 	struct CloudInstance {
