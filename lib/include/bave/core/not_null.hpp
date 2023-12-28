@@ -1,6 +1,7 @@
 #pragma once
 #include <bave/core/ptr.hpp>
 #include <cassert>
+#include <concepts>
 #include <utility>
 
 namespace bave {

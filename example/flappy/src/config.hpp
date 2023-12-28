@@ -34,7 +34,7 @@ struct Config {
 	bave::Rgba game_over_text_rgba{bave::Rgba::from(0xcc4400ff)}; // NOLINT
 	float restart_text_y{-200.0f};								  // NOLINT
 	bave::Rgba restart_text_rgba{bave::black_v};				  // NOLINT
-	bave::TextHeight restart_text_height{20};					  // NOLINT
+	bave::TextHeight restart_text_height{bave::TextHeight{20}};	  // NOLINT
 
 	std::string explode_sheet{"images/explode_sheet.json"};
 	std::string explode_anim{"animations/explode_anim.json"};
