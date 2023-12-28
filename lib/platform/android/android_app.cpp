@@ -214,13 +214,8 @@ void AndroidApp::setup_event_callbacks() {
 		case APP_CMD_INIT_WINDOW: self(app).resume_render(); break;
 		case APP_CMD_TERM_WINDOW: self(app).pause_render(); break;
 		case APP_CMD_DESTROY: self(app).destroy(); break;
-		case APP_CMD_GAINED_FOCUS: push(app, FocusChange{.in_focus = true}); break;
-		case APP_CMD_LOST_FOCUS: {
-			self(app).m_active_pointers.clear();
-			self(app).m_gesture_recognizer.on_focus();
-			push(app, FocusChange{.in_focus = false});
-			break;
-		}
+		case APP_CMD_GAINED_FOCUS: self(app).handle_focus(true); break;
+		case APP_CMD_LOST_FOCUS: self(app).handle_focus(false); break;
 		}
 	};
 
@@ -348,5 +343,20 @@ auto AndroidApp::get_pointer(Ptr<AInputEvent const> event, std::uint32_t const i
 		.id = static_cast<Pointer::Id>(AMotionEvent_getPointerId(event, index)),
 		.position = screen_to_framebuffer({AMotionEvent_getX(event, index), AMotionEvent_getY(event, index)}),
 	};
+}
+
+void AndroidApp::handle_focus(bool gained) {
+	if (gained) {
+		if (m_stream_pause) {
+			get_audio_streamer().resume(*m_stream_pause);
+			m_stream_pause.reset();
+		}
+		push_event(FocusChange{.in_focus = true});
+	} else {
+		m_active_pointers.clear();
+		m_gesture_recognizer.on_focus();
+		m_stream_pause = get_audio_streamer().pause();
+		push_event(FocusChange{.in_focus = false});
+	}
 }
 } // namespace bave

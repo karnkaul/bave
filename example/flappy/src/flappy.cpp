@@ -13,9 +13,7 @@ using bave::KeyInput;
 using bave::Loader;
 using bave::PointerTap;
 using bave::Rect;
-using bave::Rgba;
 using bave::Seconds;
-using bave::Text;
 using bave::Texture;
 
 Flappy::Flappy(App& app)
@@ -28,6 +26,8 @@ Flappy::Flappy(App& app)
 }
 
 void Flappy::tick() {
+	poll_futures();
+
 	auto const dt = get_app().get_dt();
 
 	if (!m_paused) {
@@ -46,7 +46,6 @@ void Flappy::tick() {
 	if (m_exploding) {
 		m_explode->tick(dt);
 		m_exploding = m_explode->animate;
-		m_log.debug("exploding");
 	}
 
 	m_score_text.set_string(fmt::format("{:.0f}", m_score_elapsed.count()));
@@ -119,7 +118,7 @@ void Flappy::on_tap(PointerTap const& tap) {
 	}
 }
 
-void Flappy::on_focus(bave::FocusChange const& focus) {
+void Flappy::on_focus(FocusChange const& focus) {
 	if (m_game_over) { return; }
 	m_paused = !focus.in_focus;
 }
@@ -131,6 +130,8 @@ void Flappy::setup_viewport() {
 
 void Flappy::load_assets() {
 	auto const loader = Loader{&get_app().get_data_store(), &get_app().get_render_device()};
+	m_music_future = std::async([loader] { return loader.load_audio_clip("audio_clips/in_the_city.mp3"); });
+
 	m_config.player_texture = loader.load_texture("images/bird_256x256.png");
 	m_config.jump_sfx = loader.load_audio_clip("audio_clips/beep.wav");
 
@@ -174,6 +175,13 @@ void Flappy::setup_hud() {
 	m_restart_text.set_string("tap to restart");
 	m_restart_text.transform.position.y = m_config.restart_text_y;
 	m_restart_text.set_height(m_config.restart_text_height);
+}
+
+void Flappy::poll_futures() {
+	if (m_music_future.valid() && m_music_future.wait_for(0s) == std::future_status::ready) {
+		m_config.music = m_music_future.get();
+		if (m_config.music) { get_app().get_audio_streamer().play(m_config.music); }
+	}
 }
 
 void Flappy::game_over() {

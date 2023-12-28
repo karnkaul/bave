@@ -47,4 +47,6 @@ struct Config {
 	bave::TextHeight restart_text_height{bave::TextHeight{20}};	  // NOLINT
 
 	std::shared_ptr<bave::Font> hud_font{};
+	
+	std::shared_ptr<bave::AudioClip> music{};
 };

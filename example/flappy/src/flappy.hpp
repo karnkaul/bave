@@ -5,6 +5,7 @@
 #include <src/background.hpp>
 #include <src/pipes.hpp>
 #include <src/player.hpp>
+#include <future>
 
 class Flappy : public bave::Game {
 	void tick() final;
@@ -19,6 +20,7 @@ class Flappy : public bave::Game {
 	void create_entities();
 	void setup_hud();
 
+	void poll_futures();
 	void game_over();
 	void restart();
 
@@ -27,6 +29,7 @@ class Flappy : public bave::Game {
 	bave::RenderView m_game_view{};
 
 	Config m_config{};
+	std::future<std::shared_ptr<bave::AudioClip>> m_music_future{};
 
 	std::optional<Player> m_player{};
 	std::optional<Background> m_background{};

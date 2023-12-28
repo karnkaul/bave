@@ -8,11 +8,16 @@
 namespace bave {
 class AudioStreamer {
   public:
+	struct Pause {};
+
 	AudioStreamer(AudioDevice const& audio_device);
 
 	void play(NotNull<std::shared_ptr<AudioClip>> const& clip, Seconds cross_fade = 1s);
 	void stop() { m_primary.stream.stop(); }
 	void seek(Seconds time) { m_primary.stream.seek(time); }
+
+	[[nodiscard]] auto pause() -> std::optional<Pause>;
+	void resume(Pause);
 
 	[[nodiscard]] auto get_cursor() const -> Seconds { return m_primary.stream.cursor(); }
 	[[nodiscard]] auto get_state() const -> AudioState { return m_primary.stream.state(); }
