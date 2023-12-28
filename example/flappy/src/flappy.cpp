@@ -11,14 +11,16 @@ using bave::FocusChange;
 using bave::Key;
 using bave::KeyInput;
 using bave::Loader;
+using bave::PointerId;
 using bave::PointerTap;
 using bave::Rect;
+using bave::Rgba;
 using bave::Seconds;
 using bave::Texture;
 
 Flappy::Flappy(App& app)
-	: Game(app), m_game_view(app.get_render_device().render_view), m_score_text(&app.get_render_device()), m_game_over_text(&app.get_render_device()),
-	  m_restart_text(&app.get_render_device()) {
+	: Game(app), m_game_view(app.get_render_device().render_view), m_score_bg(&app.get_render_device()), m_score_text(&app.get_render_device()),
+	  m_game_over_text(&app.get_render_device()), m_restart_text(&app.get_render_device()) {
 	setup_viewport();
 	load_assets();
 	create_entities();
@@ -31,9 +33,8 @@ void Flappy::tick() {
 	auto const dt = get_app().get_dt();
 
 	if (!m_paused) {
-		if (m_pipes->pipe_exists()) { m_score_elapsed += dt; }
-		m_pipes->tick(dt);
-		m_player->tick(dt);
+		if (is_active()) { m_player->tick(dt); }
+		if (m_pipes->tick(dt)) { ++m_score; }
 
 		auto const hitbox = Rect<>::from_extent(m_config.player_hitbox, m_player->sprite.transform.position);
 		if (m_pipes->is_colliding(hitbox)) { game_over(); }
@@ -48,14 +49,9 @@ void Flappy::tick() {
 		m_exploding = m_explode->animate;
 	}
 
-	m_score_text.set_string(fmt::format("{:.0f}", m_score_elapsed.count()));
+	m_score_text.set_string(fmt::format("{}", m_score));
 
-	if (m_game_over) {
-		m_game_over_elapsed += dt;
-		if (m_game_over_elapsed >= 2s) {
-			if (get_app().get_gesture_recognizer().tap_up()) { restart(); }
-		}
-	}
+	if (m_game_over) { m_game_over_elapsed += dt; }
 
 	if (m_force_lag) { std::this_thread::sleep_for(30ms); }
 
@@ -81,11 +77,12 @@ void Flappy::render() const {
 
 		if (m_exploding) { m_explode->draw(*shader); }
 
+		m_score_bg.draw(*shader);
 		m_score_text.draw(*shader);
 
 		if (m_game_over) {
 			m_game_over_text.draw(*shader);
-			if (m_game_over_elapsed > 2s) { m_restart_text.draw(*shader); }
+			if (can_restart()) { m_restart_text.draw(*shader); }
 		}
 	}
 }
@@ -100,21 +97,21 @@ void Flappy::on_key(KeyInput const& key_input) {
 		m_log.info("shutting down");
 		get_app().shutdown();
 	}
-	if (!m_game_over && key_input.key == Key::eSpace) {
+	if (key_input.key == Key::eSpace) {
 		if (key_input.action == Action::ePress) {
-			m_player->start_jump();
+			interact_start();
 		} else {
-			m_player->stop_jump();
+			interact_stop();
 		}
 	}
 }
 
 void Flappy::on_tap(PointerTap const& tap) {
-	if (m_game_over) { return; }
+	if (tap.pointer.id != PointerId::ePrimary) { return; }
 	if (tap.action == Action::ePress) {
-		m_player->start_jump();
+		interact_start();
 	} else {
-		m_player->stop_jump();
+		interact_stop();
 	}
 }
 
@@ -169,6 +166,12 @@ void Flappy::setup_hud() {
 
 	m_score_text.set_string("0");
 	m_score_text.transform.position.y = m_config.score_text_y;
+	m_score_text.set_height(m_config.score_text_height);
+
+	auto const score_bounds = m_score_text.get_bounds();
+	m_score_bg.set_shape(bave::Quad{.size = {m_config.world_space.x, 1.5f * score_bounds.extent().y}}); // NOLINT
+	m_score_bg.tint = Rgba::from(0x000000cc);
+	m_score_bg.transform.position = score_bounds.centre();
 
 	m_game_over_text.set_string("GAME OVER");
 
@@ -193,8 +196,20 @@ void Flappy::game_over() {
 
 void Flappy::restart() {
 	m_game_over_elapsed = {};
-	m_score_elapsed = {};
+	m_score = {};
 	m_player->restart();
 	m_pipes->restart();
 	m_game_over = m_paused = false;
+}
+
+void Flappy::interact_start() {
+	if (m_game_over) {
+		if (can_restart()) { restart(); }
+	} else {
+		if (is_active()) { m_player->start_jump(); }
+	}
+}
+
+void Flappy::interact_stop() {
+	if (!m_game_over) { m_player->stop_jump(); }
 }

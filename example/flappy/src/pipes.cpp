@@ -19,14 +19,23 @@ void Pipes::Pipe::translate(float const distance) {
 Pipes::Pipes(NotNull<bave::RenderDevice*> render_device, NotNull<Config const*> config)
 	: m_render_device(render_device), m_config(config), m_next_spawn(m_config->pipe_period) {}
 
-void Pipes::tick(Seconds dt) {
+auto Pipes::tick(Seconds dt) -> bool {
 	m_next_spawn -= dt;
 	if (m_next_spawn <= 0s) {
 		spawn_pipe();
 		m_next_spawn = m_config->pipe_period;
 	}
 
-	for (auto& pipe : m_pipes) { pipe.translate(m_config->pipe_speed * dt.count()); }
+	auto ret = false;
+	auto const active_size = 0.5f * (m_config->pipe_size.x + m_config->player_size.x);
+	for (auto& pipe : m_pipes) {
+		pipe.translate(m_config->pipe_speed * dt.count());
+		auto const was_active = pipe.active;
+		pipe.active = pipe.top.transform.position.x + active_size > 0.0f; // NOLINT
+		if (was_active && !pipe.active) { ret = true; }
+	}
+
+	return ret;
 }
 
 void Pipes::draw(Shader& shader) const {

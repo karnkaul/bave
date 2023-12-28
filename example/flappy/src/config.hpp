@@ -40,13 +40,16 @@ struct Config {
 	std::shared_ptr<bave::Texture> pipe_texture{};
 
 	float score_text_y{500.0f};									  // NOLINT
-	bave::Rgba score_text_rgba{bave::Rgba::from(0xcccc22ff)};	  // NOLINT
+	bave::Rgba score_text_rgba{bave::Rgba::from(0xffffffff)};	  // NOLINT
+	bave::TextHeight score_text_height{bave::TextHeight{40}};	  // NOLINT
 	bave::Rgba game_over_text_rgba{bave::Rgba::from(0xcc4400ff)}; // NOLINT
 	float restart_text_y{-200.0f};								  // NOLINT
 	bave::Rgba restart_text_rgba{bave::black_v};				  // NOLINT
 	bave::TextHeight restart_text_height{bave::TextHeight{20}};	  // NOLINT
 
 	std::shared_ptr<bave::Font> hud_font{};
-	
+
 	std::shared_ptr<bave::AudioClip> music{};
+
+	bave::Seconds restart_delay{1s};
 };

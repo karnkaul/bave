@@ -24,6 +24,12 @@ class Flappy : public bave::Game {
 	void game_over();
 	void restart();
 
+	void interact_start();
+	void interact_stop();
+
+	[[nodiscard]] auto is_active() const -> bool { return m_pipes->pipe_exists(); }
+	[[nodiscard]] auto can_restart() const -> bool { return m_game_over_elapsed > m_config.restart_delay; }
+
 	bave::Logger m_log{"Flappy"};
 
 	bave::RenderView m_game_view{};
@@ -36,11 +42,12 @@ class Flappy : public bave::Game {
 	std::optional<Pipes> m_pipes{};
 	std::optional<bave::AnimatedSprite> m_explode{};
 
+	bave::QuadShape m_score_bg;
 	bave::Text m_score_text;
 	bave::Text m_game_over_text;
 	bave::Text m_restart_text;
 
-	bave::Seconds m_score_elapsed{};
+	int m_score{};
 	bool m_paused{};
 	bool m_game_over{};
 	bave::Seconds m_game_over_elapsed{};

@@ -7,7 +7,7 @@ class Pipes {
   public:
 	explicit Pipes(bave::NotNull<bave::RenderDevice*> render_device, bave::NotNull<Config const*> config);
 
-	void tick(bave::Seconds dt);
+	auto tick(bave::Seconds dt) -> bool;
 	void draw(bave::Shader& shader) const;
 
 	[[nodiscard]] auto pipe_exists() const -> bool { return !m_pipes.empty(); }
@@ -18,6 +18,7 @@ class Pipes {
 	struct Pipe {
 		bave::Sprite top;
 		bave::Sprite bottom;
+		bool active{};
 
 		void translate(float distance);
 	};
