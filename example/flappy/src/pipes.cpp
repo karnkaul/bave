@@ -56,8 +56,8 @@ auto Pipes::make_pipe() const -> Pipe {
 	ret.top.transform.scale.y = -1.0f;
 	ret.top.set_size(m_config->pipe_size);
 	ret.bottom.set_size(m_config->pipe_size);
-	ret.top.set_texture(pipe_texture);
-	ret.bottom.set_texture(pipe_texture);
+	ret.top.set_texture(m_config->pipe_texture);
+	ret.bottom.set_texture(m_config->pipe_texture);
 	return ret;
 }
 

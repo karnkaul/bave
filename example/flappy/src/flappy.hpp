@@ -14,7 +14,11 @@ class Flappy : public bave::Game {
 	void on_tap(bave::PointerTap const& tap) final;
 	void on_focus(bave::FocusChange const& focus) final;
 
+	void setup_viewport();
+	void load_assets();
 	void create_entities();
+	void setup_hud();
+
 	void game_over();
 	void restart();
 

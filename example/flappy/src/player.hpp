@@ -13,10 +13,9 @@ class Player {
 	void stop_jump();
 	void restart();
 
-	bave::NotNull<Config const*> config;
-
 	bave::Sprite sprite;
 
   private:
 	std::optional<bave::Seconds> m_jump_elapsed{};
+	bave::NotNull<Config const*> m_config;
 };

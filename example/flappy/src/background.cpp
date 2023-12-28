@@ -47,6 +47,7 @@ auto Background::make_cloud(bool beyond_edge) const -> CloudInstance {
 
 void Background::create_clouds() {
 	cloud.set_size(m_config->cloud_size);
+	cloud.set_texture(m_config->cloud_texture);
 	m_cloud_instances.reserve(static_cast<std::size_t>(m_config->cloud_instances));
 	for (int i = 0; i < m_config->cloud_instances; ++i) { m_cloud_instances.push_back(make_cloud(false)); }
 }

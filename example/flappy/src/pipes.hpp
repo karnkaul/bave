@@ -14,8 +14,6 @@ class Pipes {
 	[[nodiscard]] auto is_colliding(bave::Rect<> const& rect) const -> bool;
 	void restart();
 
-	std::shared_ptr<bave::Texture> pipe_texture{};
-
   private:
 	struct Pipe {
 		bave::Sprite top;
