@@ -1,11 +1,11 @@
 #include <src/player.hpp>
 
+using bave::App;
 using bave::NotNull;
-using bave::RenderDevice;
 using bave::Seconds;
 using bave::Shader;
 
-Player::Player(NotNull<RenderDevice*> render_device, NotNull<Config const*> config) : sprite(render_device), m_config(config) {
+Player::Player(NotNull<App const*> app, NotNull<Config const*> config) : sprite(&app->get_render_device()), m_app(app), m_config(config) {
 	sprite.set_texture(config->player_texture);
 	sprite.set_size(config->player_size);
 }
@@ -25,7 +25,10 @@ void Player::tick(Seconds dt) {
 
 void Player::draw(Shader& shader) const { sprite.draw(shader); }
 
-void Player::start_jump() { m_jump_elapsed = 0s; }
+void Player::start_jump() {
+	m_jump_elapsed = 0s;
+	if (m_config->jump_sfx) { m_app->get_audio_device().play_once(*m_config->jump_sfx); }
+}
 
 void Player::stop_jump() { m_jump_elapsed.reset(); }
 

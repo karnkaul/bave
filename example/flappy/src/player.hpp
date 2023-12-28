@@ -1,10 +1,11 @@
 #pragma once
+#include <bave/app.hpp>
 #include <bave/graphics/sprite.hpp>
 #include <src/config.hpp>
 
 class Player {
   public:
-	Player(bave::NotNull<bave::RenderDevice*> render_device, bave::NotNull<Config const*> config);
+	Player(bave::NotNull<bave::App const*> app, bave::NotNull<Config const*> config);
 
 	void tick(bave::Seconds dt);
 	void draw(bave::Shader& shader) const;
@@ -17,5 +18,6 @@ class Player {
 
   private:
 	std::optional<bave::Seconds> m_jump_elapsed{};
+	bave::NotNull<bave::App const*> m_app;
 	bave::NotNull<Config const*> m_config;
 };

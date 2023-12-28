@@ -19,9 +19,11 @@ struct Config {
 	float jump_speed{1000.0f};			   // NOLINT
 	bave::Seconds max_jump_duration{1s};   // NOLINT
 	std::shared_ptr<bave::Texture> player_texture{};
+	std::shared_ptr<bave::AudioClip> jump_sfx{};
 
 	std::shared_ptr<bave::SpriteSheet> explode_sheet{};
 	std::shared_ptr<bave::SpriteAnimation> explode_animation{};
+	std::shared_ptr<bave::AudioClip> explode_sfx{};
 
 	bave::Rgba background_rgba_top{bave::Rgba::from(0x1c96c5ff)};	 // NOLINT
 	bave::Rgba background_rgba_bottom{bave::Rgba::from(0xa0d9efff)}; // NOLINT

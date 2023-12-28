@@ -101,7 +101,7 @@ void Flappy::on_key(KeyInput const& key_input) {
 		m_log.info("shutting down");
 		get_app().shutdown();
 	}
-	if (key_input.key == Key::eSpace) {
+	if (!m_game_over && key_input.key == Key::eSpace) {
 		if (key_input.action == Action::ePress) {
 			m_player->start_jump();
 		} else {
@@ -111,6 +111,7 @@ void Flappy::on_key(KeyInput const& key_input) {
 }
 
 void Flappy::on_tap(PointerTap const& tap) {
+	if (m_game_over) { return; }
 	if (tap.action == Action::ePress) {
 		m_player->start_jump();
 	} else {
@@ -131,8 +132,12 @@ void Flappy::setup_viewport() {
 void Flappy::load_assets() {
 	auto const loader = Loader{&get_app().get_data_store(), &get_app().get_render_device()};
 	m_config.player_texture = loader.load_texture("images/bird_256x256.png");
+	m_config.jump_sfx = loader.load_audio_clip("audio_clips/beep.wav");
+
 	m_config.explode_sheet = loader.load_sprite_sheet("images/explode_sheet.json");
 	m_config.explode_animation = loader.load_sprite_animation("animations/explode_anim.json");
+	m_config.explode_sfx = loader.load_audio_clip("audio_clips/explode.wav");
+
 	m_config.cloud_texture = loader.load_texture("images/cloud_256x128.png");
 	m_config.pipe_texture = loader.load_texture("images/pipe_128x1024.png");
 	m_config.hud_font = loader.load_font("fonts/Vera.ttf");
@@ -147,7 +152,7 @@ void Flappy::create_entities() {
 	if (m_config.explode_animation) { m_explode->animation = *m_config.explode_animation; }
 	m_explode->repeat = false;
 
-	m_player = Player{&render_device, &m_config};
+	m_player = Player{&get_app(), &m_config};
 	m_background = Background{&render_device, &m_config};
 	m_pipes = Pipes{&render_device, &m_config};
 }
@@ -175,6 +180,7 @@ void Flappy::game_over() {
 	m_game_over = m_paused = true;
 	m_explode->transform.position = m_player->sprite.transform.position;
 	m_explode->animate = m_exploding = true;
+	if (m_config.explode_sfx) { get_app().get_audio_device().play_once(*m_config.explode_sfx); }
 }
 
 void Flappy::restart() {
