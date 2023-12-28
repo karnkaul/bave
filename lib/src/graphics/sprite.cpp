@@ -11,15 +11,19 @@ auto make_animation(SpriteSheet const& sheet, Seconds const duration) {
 } // namespace
 
 void Sprite::set_size(glm::vec2 const size) {
-	auto shape = get_shape();
-	shape.size = size;
-	set_shape(shape);
+	if (size != get_size()) {
+		auto shape = get_shape();
+		shape.size = size;
+		set_shape(shape);
+	}
 }
 
 void Sprite::set_uv(UvRect const uv) {
-	auto shape = get_shape();
-	shape.uv = uv;
-	set_shape(shape);
+	if (uv != get_uv()) {
+		auto shape = get_shape();
+		shape.uv = uv;
+		set_shape(shape);
+	}
 }
 
 void Sprite::set_tile(SpriteSheet::Tile const& tile, bool resize) {

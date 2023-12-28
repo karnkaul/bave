@@ -1,5 +1,6 @@
 #pragma once
 #include <bave/graphics/rect.hpp>
+#include <bave/graphics/rgba.hpp>
 #include <djson/json.hpp>
 
 namespace bave {
@@ -11,7 +12,11 @@ void to_json(dj::Json& json, glm::tvec2<Type> const& in) {
 
 template <dj::Numeric Type>
 void from_json(dj::Json const& in, glm::tvec2<Type>& out) {
-	out = {in[0].as<Type>(), in[1].as<Type>()};
+	if (in.is_number()) {
+		out = glm::tvec2<Type>{in.as<Type>()};
+	} else {
+		out = {in[0].as<Type>(), in[1].as<Type>()};
+	}
 }
 
 template <dj::Numeric Type>
@@ -25,4 +30,7 @@ void from_json(dj::Json const& json, Rect<Type>& out) {
 	from_json(json["lt"], out.lt);
 	from_json(json["rb"], out.rb);
 }
+
+void to_json(dj::Json& out, Rgba const& rgba);
+void from_json(dj::Json const& json, Rgba& out);
 } // namespace bave

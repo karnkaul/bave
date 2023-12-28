@@ -23,6 +23,8 @@ class Text : public Drawable {
 	[[nodiscard]] auto get_align() const -> Align { return m_align; }
 	[[nodiscard]] auto get_scale() const -> float { return m_scale; }
 
+	[[nodiscard]] auto get_bounds() const -> Rect<>;
+
   private:
 	void refresh();
 
@@ -31,5 +33,7 @@ class Text : public Drawable {
 	Height m_height{Height::eDefault};
 	float m_scale{1.0f};
 	Align m_align{Align::eMid};
+	glm::vec2 m_extent{};
+	float m_x_offset{};
 };
 } // namespace bave

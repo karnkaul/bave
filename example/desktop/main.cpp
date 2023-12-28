@@ -1,5 +1,5 @@
 #include <bave/desktop_app.hpp>
-#include <flappy.hpp>
+#include <src/flappy.hpp>
 
 auto main(int argc, char** argv) -> int {
 	auto const create_info = bave::DesktopApp::CreateInfo{

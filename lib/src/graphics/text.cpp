@@ -44,6 +44,20 @@ auto Text::set_scale(float scale) -> Text& {
 	return *this;
 }
 
+auto Text::get_bounds() const -> Rect<> {
+	auto origin = transform.position;
+	origin.x += [&] {
+		switch (m_align) {
+		default:
+		case Align::eMid: return 0.0f;
+		case Align::eLeft: return -0.5f * m_extent.x;
+		case Align::eRight: return 0.5f * m_extent.x;
+		}
+	}();
+	origin.y += 0.5f * m_extent.y;
+	return Rect<>::from_extent(m_extent, origin);
+}
+
 void Text::refresh() {
 	if (m_text.empty() || m_scale == 0.0f || !m_font) {
 		set_geometry({});
@@ -61,7 +75,9 @@ void Text::refresh() {
 	}();
 
 	auto pen = Font::Pen{m_font.get(), m_height, m_scale};
-	pen.cursor += (n_offset - 0.5f) * pen.calc_line_extent(m_text).x;
+	m_extent = pen.calc_line_extent(m_text);
+	m_x_offset = (n_offset - 0.5f) * m_extent.x;
+	pen.cursor.x += m_x_offset;
 
 	set_geometry(pen.generate_quads(m_text));
 	set_texture(pen.get_texture());

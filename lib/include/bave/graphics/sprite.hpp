@@ -12,6 +12,9 @@ class Sprite : public QuadShape {
 	void set_uv(UvRect uv);
 	void reset_uv() { set_uv(uv_rect_v); }
 
+	[[nodiscard]] auto get_size() const -> glm::vec2 { return get_shape().size; }
+	[[nodiscard]] auto get_uv() const -> UvRect const& { return get_shape().uv; }
+
 	void set_tile(SpriteSheet::Tile const& tile, bool resize = false);
 };
 

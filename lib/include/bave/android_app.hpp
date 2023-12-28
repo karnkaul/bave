@@ -50,11 +50,14 @@ class AndroidApp : public App, public detail::IWsi {
 	auto handle_motion(Ptr<AInputEvent const> event) -> int;
 	auto get_pointer(Ptr<AInputEvent const> event, std::uint32_t index) const -> Pointer;
 
+	void handle_focus(bool gained);
+
 	android_app& m_app;
 	std::unique_ptr<RenderDevice> m_render_device{};
 	vk::UniqueSurfaceKHR m_surface{};
 	std::unique_ptr<Renderer> m_renderer{};
 	std::unique_ptr<Game> m_game{};
+	std::optional<AudioStreamer::Pause> m_stream_pause{};
 	bool m_can_render{};
 };
 } // namespace bave

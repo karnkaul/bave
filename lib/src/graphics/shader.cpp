@@ -147,8 +147,9 @@ auto Shader::write_ssbo(void const* data, vk::DeviceSize const size) -> bool {
 	return true;
 }
 
-void Shader::draw(vk::CommandBuffer command_buffer, Mesh const& mesh, std::span<RenderInstance::Baked const> instances) {
-	if (mesh.get_vertex_count() == 0 || instances.empty()) { return; }
+void Shader::draw(Mesh const& mesh, std::span<RenderInstance::Baked const> instances) {
+	auto const command_buffer = m_renderer->get_command_buffer();
+	if (!command_buffer || mesh.get_vertex_count() == 0 || instances.empty()) { return; }
 
 	auto& pipeline_cache = m_renderer->get_pipeline_cache();
 	auto const pipeline_state = detail::PipelineCache::State{.line_width = line_width, .topology = topology, .polygon_mode = polygon_mode};
@@ -175,7 +176,7 @@ void Shader::set_viewport_scissor() {
 	m_viewport = vk::Viewport{0.0f, viewport.y, viewport.x, -viewport.y};
 }
 
-void Shader::update_and_bind_sets(vk::CommandBuffer command_buffer, std::span<RenderInstance::Baked const> instances) {
+void Shader::update_and_bind_sets(vk::CommandBuffer command_buffer, std::span<RenderInstance::Baked const> instances) const {
 	static_assert(set_layout_v.view_instances.set == 0);
 	static_assert(set_layout_v.textures.set == 1);
 	static_assert(set_layout_v.buffers.set == 2);

@@ -13,18 +13,18 @@ class Game : public PolyPinned {
 	[[nodiscard]] auto get_app() const -> App& { return m_app; }
 
 	virtual void tick() {}
-	virtual void render([[maybe_unused]] vk::CommandBuffer command_buffer) const {}
+	virtual void render() const {}
 
 	virtual void shutdown() {}
 
-	virtual void on_focus(FocusChange /*focus_change*/) {}
-	virtual void on_resize(WindowResize /*window_resize*/) {}
-	virtual void on_resize(FramebufferResize /*framebuffer_resize*/) {}
-	virtual void on_key(KeyInput /*key_input*/) {}
-	virtual void on_char(CharInput /*char_input*/) {}
-	virtual void on_tap(PointerTap /*pointer_tap*/) {}
-	virtual void on_move(PointerMove /*pointer_move*/) {}
-	virtual void on_scroll(MouseScroll /*mouse_scroll*/) {}
+	virtual void on_focus(FocusChange const& /*focus_change*/) {}
+	virtual void on_resize(WindowResize const& /*window_resize*/) {}
+	virtual void on_resize(FramebufferResize const& /*framebuffer_resize*/) {}
+	virtual void on_key(KeyInput const& /*key_input*/) {}
+	virtual void on_char(CharInput const& /*char_input*/) {}
+	virtual void on_tap(PointerTap const& /*pointer_tap*/) {}
+	virtual void on_move(PointerMove const& /*pointer_move*/) {}
+	virtual void on_scroll(MouseScroll const& /*mouse_scroll*/) {}
 
 	Rgba clear_colour{black_v};
 
