@@ -174,6 +174,7 @@ void Flappy::setup_hud() {
 	m_score_bg.transform.position = score_bounds.centre();
 
 	m_game_over_text.set_string("GAME OVER");
+	m_game_over_text.set_height(m_config.game_over_text_height);
 
 	m_restart_text.set_string("tap to restart");
 	m_restart_text.transform.position.y = m_config.restart_text_y;

@@ -12,6 +12,12 @@ struct Glyph {
 		return {.lt = baseline + scale * left_top, .rb = baseline + scale * (left_top + glm::vec2{extent.x, -extent.y})};
 	}
 
+	constexpr void scale(float const scale) {
+		advance *= scale;
+		extent *= scale;
+		left_top *= scale;
+	}
+
 	explicit constexpr operator bool() const { return advance.x > 0 || advance.y > 0; }
 };
 } // namespace bave

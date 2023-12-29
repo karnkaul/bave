@@ -1,6 +1,7 @@
 #include <bave/core/error.hpp>
 #include <bave/font/font.hpp>
 #include <bave/graphics/render_device.hpp>
+#include <algorithm>
 
 namespace bave {
 Font::Font(NotNull<RenderDevice*> render_device) : m_render_device(render_device) {}
@@ -9,12 +10,16 @@ auto Font::load_from_bytes(std::vector<std::byte> file_bytes, float scale) -> bo
 	auto slot_factory = m_render_device->get_font_library().load(std::move(file_bytes));
 	if (!slot_factory) { return false; }
 	m_slot_factory = std::move(slot_factory);
-	m_scale = scale;
+	m_scale = std::clamp(scale, scale_limit_v.lo, scale_limit_v.hi);
 	return true;
 }
 
 auto Font::glyph_for(TextHeight height, Codepoint codepoint) -> Glyph {
-	if (auto const* atlas = get_font_atlas(height)) { return atlas->glyph_for(codepoint); }
+	if (auto const* atlas = get_font_atlas(height)) {
+		auto ret = atlas->glyph_for(codepoint);
+		ret.scale(1.0f / m_scale);
+		return ret;
+	}
 	return {};
 }
 auto Font::get_texture(TextHeight height) -> std::shared_ptr<Texture const> {
