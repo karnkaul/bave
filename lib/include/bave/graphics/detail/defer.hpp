@@ -30,7 +30,7 @@ class DeferQueue : public Pinned {
 	}
 
   private:
-	struct Base { // NOLINT
+	struct Base { // NOLINT(cppcoreguidelines-special-member-functions)
 		virtual ~Base() = default;
 	};
 	template <typename T>

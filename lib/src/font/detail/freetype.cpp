@@ -2,8 +2,6 @@
 
 #if defined(BAVE_USE_FREETYPE)
 
-#include <iostream>
-
 namespace bave::detail {
 void FreetypeGlyphFactory::Deleter::operator()(FT_Face face) const noexcept { FT_Done_Face(face); }
 
@@ -28,7 +26,8 @@ auto FreetypeGlyphFactory::slot_for(Codepoint codepoint) const -> GlyphSlot {
 	for (int row = 0; row < static_cast<int>(glyph.bitmap.rows); ++row) {
 		for (int col = 0; col < static_cast<int>(glyph.bitmap.width); ++col) {
 			auto const index = Index2D{col, row};
-			ret.pixmap.at(index) = Rgba{.channels = {0xff, 0xff, 0xff, glyph.bitmap.buffer[index.flatten(cols)]}}; // NOLINT
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			ret.pixmap.at(index) = Rgba{.channels = {0xff, 0xff, 0xff, glyph.bitmap.buffer[index.flatten(cols)]}};
 		}
 	}
 	ret.left_top = {glyph.bitmap_left, glyph.bitmap_top};

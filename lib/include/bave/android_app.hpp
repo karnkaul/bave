@@ -52,7 +52,7 @@ class AndroidApp : public App, public detail::IWsi {
 
 	void handle_focus(bool gained);
 
-	android_app& m_app;
+	android_app& m_app; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 	std::unique_ptr<RenderDevice> m_render_device{};
 	vk::UniqueSurfaceKHR m_surface{};
 	std::unique_ptr<Renderer> m_renderer{};

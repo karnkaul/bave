@@ -56,7 +56,7 @@ struct Rgba {
 	/// \returns Rgb instance
 	///
 	static constexpr auto from(std::uint32_t const hex) -> Rgba {
-		return {.channels = {(hex >> 24) & max_v, (hex >> 16) & max_v, (hex >> 8) & max_v, hex & max_v}}; // NOLINT
+		return {.channels = {(hex >> 24) & max_v, (hex >> 16) & max_v, (hex >> 8) & max_v, hex & max_v}};
 	}
 
 	///

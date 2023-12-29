@@ -31,7 +31,7 @@ class Game : public PolyPinned {
   private:
 	void handle_events(std::span<Event const> events);
 
-	App& m_app;
+	App& m_app; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 
 	friend class DesktopApp;
 	friend class AndroidApp;

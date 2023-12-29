@@ -1,4 +1,5 @@
 #pragma once
+#include <imgui.h>
 #include <bave/audio/audio_device.hpp>
 #include <bave/audio/audio_streamer.hpp>
 #include <bave/build_version.hpp>
@@ -10,18 +11,12 @@
 #include <bave/input/event.hpp>
 #include <bave/input/gesture_recognizer.hpp>
 #include <bave/logger.hpp>
+#include <bave/platform.hpp>
 #include <capo/capo.hpp>
 #include <functional>
 #include <memory>
 #include <span>
 #include <vector>
-
-#if defined(BAVE_IMGUI)
-#include <imgui.h>
-#define IFBAVEIMGUI(expr) expr
-#else
-#define IFBAVEIMGUI(expr)
-#endif
 
 namespace bave {
 enum struct ErrCode : int { eSuccess = 0, eFailure = 1 };

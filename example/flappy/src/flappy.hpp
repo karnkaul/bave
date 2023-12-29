@@ -7,12 +7,22 @@
 #include <src/player.hpp>
 #include <future>
 
+// entry point Game subclass.
+// the entry point is setup in bave via a 'game factory' callback in bave::App.  (see main.cpp)
 class Flappy : public bave::Game {
+	// tick is called every frame, until the engine is shutting down.
 	void tick() final;
+	// render is called after tick, unless there is no render target to draw to (eg the Vulkan Swapchain got resized).
 	void render() const final;
 
+	// optional input callbacks.
+	// on_key is called on a KeyInput event.
 	void on_key(bave::KeyInput const& key_input) final;
+	// on_tap is called on a PointerTap (touch or mouse click) event.
+	// on desktop there is only one pointer (the mouse), but on Android there may be multiple active simultaneously,
+	// so checking tap.pointer.id is recommended.
 	void on_tap(bave::PointerTap const& tap) final;
+	// on_focus is called on the window changing focus.
 	void on_focus(bave::FocusChange const& focus) final;
 
 	void setup_viewport();
@@ -56,5 +66,6 @@ class Flappy : public bave::Game {
 	bool m_force_lag{};
 
   public:
+	// constructor needs to be public (or at least accessible by the game factory that's setup in the main target)
 	explicit Flappy(bave::App& app);
 };

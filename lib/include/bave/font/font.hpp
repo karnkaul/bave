@@ -1,4 +1,5 @@
 #pragma once
+#include <bave/core/inclusive_range.hpp>
 #include <bave/core/not_null.hpp>
 #include <bave/font/detail/font_atlas.hpp>
 #include <bave/graphics/geometry.hpp>
@@ -12,6 +13,7 @@ class Font {
 	class Pen;
 
 	static constexpr auto scale_v{2.0f};
+	static constexpr auto scale_limit_v = InclusiveRange<float>{1.0f, 16.0f};
 
 	explicit Font(NotNull<RenderDevice*> render_device);
 

@@ -6,6 +6,10 @@
 
 `bave` is a simple 2D engine written in C++20 and Vulkan.
 
+## Demo
+
+https://github.com/karnkaul/bave/assets/16272243/86539229-0640-42c5-baac-ca74eb382158
+
 ## Features
 
 - [x] Desktop / Android support.
@@ -42,7 +46,4 @@
 
 ## Example
 
-WIP.
-
-See [example](example) for an app that's designed to target Android while being developed on the desktop. The common code is in [example/flappy](example/flappy), while platform specific executables and code are in [example/desktop](example/desktop) and [example/android](example/android). Open the latter in Android Studio to build for Android.
-
+See [example](example) for an app that's designed to target Android while being developed on the desktop. 

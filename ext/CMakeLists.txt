@@ -15,13 +15,12 @@ if(NOT ANDROID)
   set(GLFW_BUILD_TESTS OFF)
   add_subdirectory(src/glfw)
   add_library(glfw::glfw ALIAS glfw)
-
-  add_subdirectory(src/dear_imgui)
 endif()
 
 add_subdirectory(src/dyvk)
 add_subdirectory(src/vma)
 add_subdirectory(src/stb)
+add_subdirectory(src/dear_imgui)
 
 if(BAVE_USE_FREETYPE)
   add_subdirectory(src/freetype)
@@ -55,6 +54,7 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
   dyvk::dyvk
   vma::vma
   stb-image::stb-image
+  dear_imgui::dear_imgui
   djson::djson
   capo::lite
 
@@ -73,7 +73,6 @@ if(NOT ANDROID)
   )
 
   target_link_libraries(${PROJECT_NAME} INTERFACE
-    dear_imgui::dear_imgui
     glfw::glfw
   )
 endif()

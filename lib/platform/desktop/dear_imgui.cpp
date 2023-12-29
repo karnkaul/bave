@@ -33,8 +33,8 @@ DearImGui::DearImGui(Ptr<GLFWwindow> window, RenderDevice& render_device, vk::Re
 	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
 
 	ImGui::StyleColorsDark();
-	for (int i = 0; i < ImGuiCol_COUNT; ++i) {		// NOLINT
-		auto& colour = ImGui::GetStyle().Colors[i]; // NOLINT
+	for (auto& colour : ImGui::GetStyle().Colors) {
+		// NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
 		auto const corrected = glm::convertSRGBToLinear(glm::vec4{colour.x, colour.y, colour.z, colour.w});
 		colour = {corrected.x, corrected.y, corrected.z, corrected.w};
 	}
@@ -44,7 +44,7 @@ DearImGui::DearImGui(Ptr<GLFWwindow> window, RenderDevice& render_device, vk::Re
 	auto lambda = +[](char const* name, void* ud) {
 		if (std::string_view{name} == "vkCmdBeginRenderingKHR") { name = "vkCmdBeginRendering"; }
 		if (std::string_view{name} == "vkCmdEndRenderingKHR") { name = "vkCmdEndRendering"; }
-		auto const* gf = reinterpret_cast<decltype(get_fn)*>(ud); // NOLINT
+		auto const* gf = reinterpret_cast<decltype(get_fn)*>(ud); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 		return (*gf)(name);
 	};
 	ImGui_ImplVulkan_LoadFunctions(lambda, &get_fn);
