@@ -19,7 +19,7 @@ if(NOT EXISTS "${validation_layers_zip}")
 endif()
 
 if(EXISTS "${validation_layers_zip}")
-  file(ARCHIVE_EXTRACT INPUT "${validation_layers_zip}" DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs")
+  file(ARCHIVE_EXTRACT INPUT "${validation_layers_zip}" DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/../../debug/jniLibs")
 endif()
 
 add_library(${PROJECT_NAME} SHARED)
@@ -33,7 +33,8 @@ target_sources(${PROJECT_NAME} PRIVATE
 )
 
 add_custom_target(copy-assets ALL
-  ${CMAKE_COMMAND} -E copy_directory "${bave_path}/example/assets" "${CMAKE_CURRENT_SOURCE_DIR}/../assets"
+  ${CMAKE_COMMAND} -E remove_directory "${CMAKE_CURRENT_SOURCE_DIR}/../assets"
+  COMMAND ${CMAKE_COMMAND} -E copy_directory "${bave_path}/example/assets" "${CMAKE_CURRENT_SOURCE_DIR}/../assets"
 )
 
 add_dependencies(${PROJECT_NAME} copy-assets)
