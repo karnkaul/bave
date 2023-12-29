@@ -6,6 +6,10 @@
 
 `bave` is a simple 2D engine written in C++20 and Vulkan.
 
+## Demo
+
+https://github.com/karnkaul/bave/assets/16272243/86539229-0640-42c5-baac-ca74eb382158
+
 ## Features
 
 - [x] Desktop / Android support.
