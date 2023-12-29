@@ -139,7 +139,7 @@ constexpr auto to_key_mods(int const mods) {
 
 auto find_index(Ptr<AInputEvent const> event, Pointer::Id id) -> std::optional<std::uint32_t> {
 	auto const count = AMotionEvent_getPointerCount(event);
-	for (uint32_t index = 0; index < count; ++index) {
+	for (std::uint32_t index = 0; index < count; ++index) {
 		if (static_cast<std::int32_t>(id) == AMotionEvent_getPointerId(event, index)) { return index; }
 	}
 	return {};
@@ -149,7 +149,7 @@ auto find_index(Ptr<AInputEvent const> event, Pointer::Id id) -> std::optional<s
 AndroidApp::AndroidApp(android_app& app) : m_app(app) { m_app.userData = this; }
 
 auto AndroidApp::do_run() -> ErrCode {
-	app_dummy(); // NOLINT
+	app_dummy();
 
 	setup_event_callbacks();
 

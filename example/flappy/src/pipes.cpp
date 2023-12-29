@@ -31,7 +31,7 @@ auto Pipes::tick(Seconds dt) -> bool {
 	for (auto& pipe : m_pipes) {
 		pipe.translate(m_config->pipe_speed * dt.count());
 		auto const was_active = pipe.active;
-		pipe.active = pipe.top.transform.position.x + active_size > 0.0f; // NOLINT
+		pipe.active = pipe.top.transform.position.x + active_size > 0.0f;
 		if (was_active && !pipe.active) { ret = true; }
 	}
 

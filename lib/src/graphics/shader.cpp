@@ -46,10 +46,14 @@ template <std::size_t Size>
 auto make_buffer_write(std::array<BufferBinding, Size> const& bindings, vk::DescriptorSet descriptor_set) -> BufferWrite<Size> {
 	auto ret = BufferWrite<Size>{};
 	for (std::size_t i = 0; i < Size; ++i) {
-		auto const& resource = bindings[i].resource;													  // NOLINT
-		ret.infos[i] = vk::DescriptorBufferInfo{resource.buffer, resource.offset, resource.size};		  // NOLINT
-		ret.writes[i] = vk::WriteDescriptorSet{descriptor_set, bindings[i].binding, 0, 1, resource.type}; // NOLINT
-		ret.writes[i].pBufferInfo = &ret.infos[i];														  // NOLINT
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+		auto const& resource = bindings[i].resource;
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+		ret.infos[i] = vk::DescriptorBufferInfo{resource.buffer, resource.offset, resource.size};
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+		ret.writes[i] = vk::WriteDescriptorSet{descriptor_set, bindings[i].binding, 0, 1, resource.type};
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+		ret.writes[i].pBufferInfo = &ret.infos[i];
 	}
 	return ret;
 }
@@ -58,10 +62,14 @@ template <std::size_t Size>
 auto make_image_write(std::array<ImageBinding, Size> const& bindings, vk::DescriptorSet descriptor_set) -> ImageWrite<Size> {
 	auto ret = ImageWrite<Size>{};
 	for (std::size_t i = 0; i < Size; ++i) {
-		auto const cis = bindings[i].resource;																						  // NOLINT
-		ret.infos[i] = vk::DescriptorImageInfo{cis.sampler, cis.image_view, vk::ImageLayout::eShaderReadOnlyOptimal};				  // NOLINT
-		ret.writes[i] = vk::WriteDescriptorSet{descriptor_set, bindings[i].binding, 0, 1, vk::DescriptorType::eCombinedImageSampler}; // NOLINT
-		ret.writes[i].pImageInfo = &ret.infos[i];																					  // NOLINT
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+		auto const cis = bindings[i].resource;
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+		ret.infos[i] = vk::DescriptorImageInfo{cis.sampler, cis.image_view, vk::ImageLayout::eShaderReadOnlyOptimal};
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+		ret.writes[i] = vk::WriteDescriptorSet{descriptor_set, bindings[i].binding, 0, 1, vk::DescriptorType::eCombinedImageSampler};
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+		ret.writes[i].pImageInfo = &ret.infos[i];
 	}
 	return ret;
 }
@@ -70,7 +78,8 @@ auto allocate_descriptor_sets(detail::PipelineCache& pipeline_cache) -> std::arr
 	auto const descriptor_set_layouts = pipeline_cache.get_descriptor_set_layouts();
 	auto ret = std::array<vk::DescriptorSet, 3>{};
 	for (std::size_t i = 0; i < ret.size(); ++i) {
-		ret[i] = pipeline_cache.get_descriptor_cache().allocate(descriptor_set_layouts[i]); // NOLINT
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+		ret[i] = pipeline_cache.get_descriptor_cache().allocate(descriptor_set_layouts[i]);
 	}
 	return ret;
 }

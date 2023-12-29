@@ -1,6 +1,7 @@
 #pragma once
 #include <bave/graphics/gpu.hpp>
 #include <bave/graphics/render_target.hpp>
+#include <cstdint>
 #include <optional>
 #include <vector>
 

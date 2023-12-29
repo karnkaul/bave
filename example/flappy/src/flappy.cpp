@@ -14,7 +14,6 @@ using bave::Loader;
 using bave::PointerId;
 using bave::PointerTap;
 using bave::Rect;
-using bave::Rgba;
 using bave::Seconds;
 using bave::Texture;
 
@@ -169,8 +168,8 @@ void Flappy::setup_hud() {
 	m_score_text.set_height(m_config.score_text_height);
 
 	auto const score_bounds = m_score_text.get_bounds();
-	m_score_bg.set_shape(bave::Quad{.size = {m_config.world_space.x, 1.5f * score_bounds.extent().y}}); // NOLINT
-	m_score_bg.tint = Rgba::from(0x000000cc);
+	m_score_bg.set_shape(bave::Quad{.size = {m_config.world_space.x, 1.5f * score_bounds.extent().y}});
+	m_score_bg.tint = m_config.score_bg_rgba;
 	m_score_bg.transform.position = score_bounds.centre();
 
 	m_game_over_text.set_string("GAME OVER");
