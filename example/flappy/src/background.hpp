@@ -1,5 +1,4 @@
 #pragma once
-#include <bave/core/random.hpp>
 #include <bave/graphics/sprite.hpp>
 #include <src/config.hpp>
 
@@ -28,6 +27,4 @@ class Background {
 	bave::Rgba m_bottom{};
 
 	std::vector<CloudInstance> m_cloud_instances{};
-
-	mutable bave::Random m_random{};
 };

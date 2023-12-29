@@ -54,7 +54,11 @@ void Flappy::tick() {
 
 	if (m_force_lag) { std::this_thread::sleep_for(30ms); }
 
-	IFBAVEIMGUI({
+	// ImGui is not available if bave::imgui_v is false.
+	// its headers (and thus declarations) are available regardless, enabling usage of such if constexpr blocks,
+	// instead of having to resort to using macros.
+	// in short, if this code is not stripped out at compile time, linking will fail on Android due to undefined symbols.
+	if constexpr (bave::imgui_v) {
 		ImGui::ShowDemoWindow();
 		if (ImGui::Begin("Debug")) {
 			auto const* pause_text = m_paused ? "Play" : "Pause";
@@ -63,7 +67,7 @@ void Flappy::tick() {
 			ImGui::Checkbox("force lag", &m_force_lag);
 		}
 		ImGui::End();
-	});
+	}
 }
 
 void Flappy::render() const {

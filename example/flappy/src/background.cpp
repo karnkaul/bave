@@ -1,6 +1,8 @@
+#include <bave/core/random.hpp>
 #include <src/background.hpp>
 
 using bave::NotNull;
+using bave::random_in_range;
 using bave::Seconds;
 using bave::Shader;
 
@@ -35,12 +37,12 @@ void Background::create_quad() {
 }
 
 auto Background::make_cloud(bool beyond_edge) const -> CloudInstance {
-	auto ret = CloudInstance{.speed = m_random.in_range(m_config->cloud_speed_min, m_config->cloud_speed_max)};
-	ret.position.y = 0.5f * (m_random.in_range(-m_config->world_space.y, m_config->world_space.y) - m_config->cloud_size.y);
+	auto ret = CloudInstance{.speed = random_in_range(m_config->cloud_speed_min, m_config->cloud_speed_max)};
+	ret.position.y = 0.5f * (random_in_range(-m_config->world_space.y, m_config->world_space.y) - m_config->cloud_size.y);
 	if (beyond_edge) {
 		ret.position.x = 0.5f * (m_config->world_space.x + m_config->cloud_size.x);
 	} else {
-		ret.position.x = 0.5f * m_random.in_range(-m_config->world_space.x, m_config->world_space.x);
+		ret.position.x = 0.5f * random_in_range(-m_config->world_space.x, m_config->world_space.x);
 	}
 	return ret;
 }
