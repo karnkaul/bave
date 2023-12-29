@@ -21,8 +21,8 @@ example/                      # root directory
 ```
 
 - [assets](assets): Contains all assets used by the game at runtime. This directory is copied over to `android/app/src/main/assets` during a build.
-- [flappy](flappy): Library containing all game code and logic.
-- [android](android): Android project root - open this in Android Studio to build it / use `gradlew`. Links to `flappy`.
+- [flappy](flappy): Library containing all game code and logic. Links to `bave`.
+- [android](android): Android project root - open this in Android Studio / use `gradlew` to build it. Links to `flappy`.
 - [desktop](desktop): Desktop project root - executable target. Links to `flappy`.
 
 The desktop target is quite straightforward: it simply creates an executable with one source file, and links it to `flappy`. The subdirectory is added to the build tree if `BAVE_BUILD_EXAMPLE` is set in CMake, so nothing else is required. Your own project would instead be the root project that imports / adds `bave` via `FetchContent` / `add_subdirectory` / etc.
