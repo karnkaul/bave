@@ -20,13 +20,13 @@ class Sprite : public QuadShape {
 
 class AnimatedSprite : public Sprite {
   public:
-	explicit AnimatedSprite(NotNull<RenderDevice*> render_device, NotNull<std::shared_ptr<SpriteSheet>> const& sheet, Seconds duration = 1s);
+	explicit AnimatedSprite(NotNull<RenderDevice*> render_device, std::shared_ptr<SpriteSheet> sheet, Seconds duration = 1s);
 
 	void tick(Seconds dt);
 
 	[[nodiscard]] auto get_current_tile_id() const -> std::string_view { return m_current_tile_id; }
 
-	NotNull<std::shared_ptr<SpriteSheet>> sheet;
+	std::shared_ptr<SpriteSheet> sheet;
 	SpriteAnimation animation;
 	Seconds elapsed{};
 	bool repeat{true};

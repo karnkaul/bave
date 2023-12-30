@@ -2,11 +2,14 @@
 
 namespace bave {
 namespace {
-auto make_animation(SpriteSheet const& sheet, Seconds const duration) {
-	auto const blocks = sheet.get_blocks();
-	auto tile_ids = std::vector<std::string>{};
-	for (auto const& block : blocks) { tile_ids.push_back(block.id); }
-	return SpriteAnimation{std::move(tile_ids), duration};
+auto make_animation(std::shared_ptr<SpriteSheet> const& sheet, Seconds const duration) {
+	if (sheet) {
+		auto const blocks = sheet->get_blocks();
+		auto tile_ids = std::vector<std::string>{};
+		for (auto const& block : blocks) { tile_ids.push_back(block.id); }
+		return SpriteAnimation{std::move(tile_ids), duration};
+	}
+	return SpriteAnimation{std::vector<std::string>{}, {}};
 }
 } // namespace
 
@@ -31,14 +34,17 @@ void Sprite::set_tile(SpriteSheet::Tile const& tile, bool resize) {
 	if (resize) { set_size(tile.size); }
 }
 
-AnimatedSprite::AnimatedSprite(NotNull<RenderDevice*> render_device, NotNull<std::shared_ptr<SpriteSheet>> const& sheet, Seconds const duration)
-	: Sprite(render_device), sheet(sheet), animation(make_animation(*sheet, duration)) {
-	set_texture(sheet->get_texture());
+AnimatedSprite::AnimatedSprite(NotNull<RenderDevice*> render_device, std::shared_ptr<SpriteSheet> sheet, Seconds const duration)
+	: Sprite(render_device), sheet(std::move(sheet)), animation(make_animation(this->sheet, duration)) {
 	m_current_tile_id = animation.get_tile_at({});
-	if (auto tile = sheet->find_tile(m_current_tile_id)) { set_tile(*tile); }
+	if (this->sheet) {
+		set_texture(this->sheet->get_texture());
+		if (auto tile = this->sheet->find_tile(m_current_tile_id)) { set_tile(*tile); }
+	}
 }
 
 void AnimatedSprite::tick(Seconds dt) {
+	if (!sheet) { animate = false; }
 	if (!animate) {
 		elapsed = {};
 		return;
