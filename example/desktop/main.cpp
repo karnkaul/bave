@@ -9,7 +9,7 @@ auto main(int argc, char** argv) -> int {
 		.args = bave::make_args(argc, argv),
 		.title = "BaveExample",
 		.extent = {720, 1280},
-		.assets_pattern = "example/assets",
+		.assets_patterns = "assets,example/assets",
 	};
 
 	// create the App instance.

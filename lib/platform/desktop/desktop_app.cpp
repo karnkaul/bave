@@ -212,7 +212,7 @@ auto DesktopApp::self(Ptr<GLFWwindow> window) -> DesktopApp& {
 void DesktopApp::push(Ptr<GLFWwindow> window, Event event) { self(window).push_event(event); }
 
 void DesktopApp::init_data_store() {
-	auto data_path = DesktopDataStore::find_super_dir(m_create_info.args.front(), m_create_info.assets_pattern);
+	auto data_path = DesktopDataStore::find_super_dir(m_create_info.args.front(), m_create_info.assets_patterns);
 	auto data_store = std::make_unique<DesktopDataStore>(std::move(data_path));
 	set_data_store(std::move(data_store));
 }

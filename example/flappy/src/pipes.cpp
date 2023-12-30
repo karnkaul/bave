@@ -29,7 +29,7 @@ auto Pipes::tick(Seconds dt) -> bool {
 	auto ret = false;
 	auto const active_size = 0.5f * (m_config->pipe_size.x + m_config->player_size.x);
 	for (auto& pipe : m_pipes) {
-		pipe.translate(m_config->pipe_speed * dt.count());
+		pipe.translate(-m_config->pipe_speed * dt.count());
 		auto const was_active = pipe.active;
 		pipe.active = pipe.top.transform.position.x + active_size > 0.0f;
 		if (was_active && !pipe.active) { ret = true; }

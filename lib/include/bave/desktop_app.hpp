@@ -22,7 +22,7 @@ class DesktopApp : public App, public detail::IWsi {
 		glm::ivec2 extent{1280, 720};
 		std::function<Gpu(std::span<Gpu const>)> select_gpu{};
 		bool lock_aspect_ratio{true};
-		std::string_view assets_pattern{"assets"};
+		std::string_view assets_patterns{"assets"};
 	};
 
 	explicit DesktopApp(CreateInfo create_info);

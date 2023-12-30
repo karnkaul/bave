@@ -14,7 +14,7 @@ Background::Background(NotNull<bave::RenderDevice*> render_device, NotNull<Confi
 
 void Background::tick(Seconds const dt) {
 	for (auto& cloud_instance : m_cloud_instances) {
-		cloud_instance.position.x += cloud_instance.speed * dt.count();
+		cloud_instance.position.x -= cloud_instance.speed * dt.count();
 		if (cloud_instance.position.x + 0.5f * m_config->cloud_size.x < -0.5f * m_config->world_space.x) { cloud_instance = make_cloud(true); }
 	}
 

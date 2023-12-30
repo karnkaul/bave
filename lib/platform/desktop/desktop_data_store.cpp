@@ -16,14 +16,37 @@ auto do_read_data(Type& out, CString path) -> bool {
 	file.read(reinterpret_cast<char*>(out.data()), size); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 	return true;
 }
+
+struct PatternParser {
+	std::string_view remain{};
+
+	constexpr auto next(std::string_view& out) -> bool {
+		if (remain.empty()) { return false; }
+
+		auto const i = remain.find_first_of(',');
+		if (i == std::string_view::npos) {
+			out = remain;
+			remain = {};
+			return true;
+		}
+
+		out = remain.substr(0, i);
+		remain = remain.substr(i + 1);
+		return true;
+	}
+};
 } // namespace
 
-auto DesktopDataStore::find_super_dir(std::string_view base, std::string_view pattern) -> std::string {
-	auto path = fs::absolute(base);
-	if (path.empty() || !fs::exists(path)) { path = fs::current_path(); }
+auto DesktopDataStore::find_super_dir(std::string_view base, std::string_view patterns) -> std::string {
+	auto abs_path = fs::absolute(base);
+	if (abs_path.empty() || !fs::exists(abs_path)) { abs_path = fs::current_path(); }
 
-	for (; !path.empty() && path.parent_path() != path; path = path.parent_path()) {
-		if (auto ret = path / pattern; fs::is_directory(ret)) { return ret.generic_string(); }
+	auto parser = PatternParser{patterns};
+	auto pattern = std::string_view{};
+	while (parser.next(pattern)) {
+		for (auto path = abs_path; !path.empty() && path.parent_path() != path; path = path.parent_path()) {
+			if (auto ret = path / pattern; fs::is_directory(ret)) { return ret.generic_string(); }
+		}
 	}
 
 	return {};
