@@ -9,3 +9,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 target_sources(${PROJECT_NAME} PRIVATE
   main.cpp
 )
+
+if(MSVC)
+  target_link_options(${PROJECT_NAME} PRIVATE
+    /ENTRY:mainCRTStartup
+    $<$<NOT:$<CONFIG:Debug>>:/SUBSYSTEM:WINDOWS>
+  )
+endif()
