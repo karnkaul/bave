@@ -1,4 +1,5 @@
 #include <platform/desktop/desktop_data_store.hpp>
+#include <array>
 #include <filesystem>
 #include <fstream>
 
@@ -37,21 +38,6 @@ struct PatternParser {
 };
 } // namespace
 
-auto DesktopDataStore::find_super_dir(std::string_view base, std::string_view patterns) -> std::string {
-	auto abs_path = fs::absolute(base);
-	if (abs_path.empty() || !fs::exists(abs_path)) { abs_path = fs::current_path(); }
-
-	auto parser = PatternParser{patterns};
-	auto pattern = std::string_view{};
-	while (parser.next(pattern)) {
-		for (auto path = abs_path; !path.empty() && path.parent_path() != path; path = path.parent_path()) {
-			if (auto ret = path / pattern; fs::is_directory(ret)) { return ret.generic_string(); }
-		}
-	}
-
-	return {};
-}
-
 DesktopDataStore::DesktopDataStore(std::string data_dir) : DataStore("DesktopDataStore") {
 	if (!fs::is_directory(data_dir)) {
 		m_log.warn("passed data_dir is not a directory: '{}'", data_dir);
@@ -68,3 +54,19 @@ auto DesktopDataStore::do_read_bytes(std::vector<std::byte>& out, CString path) 
 
 auto DesktopDataStore::do_read_string(std::string& out, CString path) const -> bool { return do_read_data(out, path); }
 } // namespace bave
+
+auto bave::find_super_dir(std::string_view base, std::string_view patterns) -> std::string {
+	auto const base_paths = std::array{fs::absolute(base), fs::current_path()};
+
+	for (auto const& base_path : base_paths) {
+		auto parser = PatternParser{patterns};
+		auto pattern = std::string_view{};
+		while (parser.next(pattern)) {
+			for (auto path = base_path; !path.empty() && path.parent_path() != path; path = path.parent_path()) {
+				if (auto ret = path / pattern; fs::is_directory(ret)) { return ret.generic_string(); }
+			}
+		}
+	}
+
+	return {};
+}
