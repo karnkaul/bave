@@ -11,7 +11,7 @@ Player::Player(NotNull<App const*> app, NotNull<Config const*> config) : sprite(
 }
 
 void Player::tick(Seconds dt) {
-	auto y_speed = m_config->gravity;
+	auto y_speed = -m_config->gravity;
 
 	if (m_jump_elapsed) {
 		*m_jump_elapsed += dt;

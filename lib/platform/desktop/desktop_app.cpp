@@ -5,6 +5,7 @@
 #include <bave/desktop_app.hpp>
 #include <platform/desktop/clap/clap.hpp>
 #include <platform/desktop/desktop_data_store.hpp>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <thread>
@@ -15,6 +16,8 @@
 #endif
 
 namespace bave {
+namespace fs = std::filesystem;
+
 class FileLogger {
   public:
 	FileLogger(FileLogger const&) = delete;
@@ -22,7 +25,7 @@ class FileLogger {
 	auto operator=(FileLogger const&) -> FileLogger& = delete;
 	auto operator=(FileLogger&&) -> FileLogger& = delete;
 
-	explicit FileLogger(std::string path) : m_path(std::move(path)) { m_thread = std::thread{&FileLogger::update, this}; }
+	explicit FileLogger(std::string path) : m_path(std::move(path)), m_thread(std::thread{&FileLogger::update, this}) {}
 
 	~FileLogger() {
 		m_stop = true;
@@ -37,11 +40,28 @@ class FileLogger {
 
   private:
 	void update() {
+		create_log_file();
+
 		while (!m_stop) {
 			std::this_thread::sleep_for(5ms);
 			auto lock = std::scoped_lock{m_mutex};
 			if (m_buffer.empty()) { continue; }
 			drain();
+		}
+	}
+
+	void create_log_file() const {
+		if (fs::exists(m_path)) {
+			auto const old_path = [&] {
+				auto prev_file = m_path.stem();
+				prev_file += ".previous";
+				prev_file += m_path.extension();
+				auto ret = m_path;
+				ret.replace_filename(prev_file);
+				return ret;
+			}();
+			if (fs::exists(old_path)) { fs::remove(old_path); }
+			fs::rename(m_path, old_path);
 		}
 	}
 
@@ -52,7 +72,7 @@ class FileLogger {
 		}
 	}
 
-	std::string m_path{};
+	fs::path m_path{};
 	std::mutex m_mutex{};
 	std::string m_buffer{};
 	std::thread m_thread{};
@@ -212,8 +232,12 @@ auto DesktopApp::self(Ptr<GLFWwindow> window) -> DesktopApp& {
 void DesktopApp::push(Ptr<GLFWwindow> window, Event event) { self(window).push_event(event); }
 
 void DesktopApp::init_data_store() {
-	auto data_path = DesktopDataStore::find_super_dir(m_create_info.args.front(), m_create_info.assets_pattern);
-	auto data_store = std::make_unique<DesktopDataStore>(std::move(data_path));
+	auto assets_path = find_super_dir(m_create_info.args.front(), m_create_info.assets_patterns);
+	if (assets_path.empty()) {
+		m_log.error("could not locate assets via patterns: '{}'", m_create_info.assets_patterns);
+		assets_path = fs::current_path().generic_string();
+	}
+	auto data_store = std::make_unique<DesktopDataStore>(std::move(assets_path));
 	set_data_store(std::move(data_store));
 }
 

@@ -43,35 +43,31 @@ template <std::size_t Size>
 using ImageWrite = DescriptorWrite<vk::DescriptorImageInfo, Size>;
 
 template <std::size_t Size>
-auto make_buffer_write(std::array<BufferBinding, Size> const& bindings, vk::DescriptorSet descriptor_set) -> BufferWrite<Size> {
-	auto ret = BufferWrite<Size>{};
+void make_buffer_write(BufferWrite<Size>& out, std::array<BufferBinding, Size> const& bindings, vk::DescriptorSet descriptor_set) {
 	for (std::size_t i = 0; i < Size; ++i) {
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 		auto const& resource = bindings[i].resource;
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-		ret.infos[i] = vk::DescriptorBufferInfo{resource.buffer, resource.offset, resource.size};
+		out.infos[i] = vk::DescriptorBufferInfo{resource.buffer, resource.offset, resource.size};
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-		ret.writes[i] = vk::WriteDescriptorSet{descriptor_set, bindings[i].binding, 0, 1, resource.type};
+		out.writes[i] = vk::WriteDescriptorSet{descriptor_set, bindings[i].binding, 0, 1, resource.type};
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-		ret.writes[i].pBufferInfo = &ret.infos[i];
+		out.writes[i].pBufferInfo = &out.infos[i];
 	}
-	return ret;
 }
 
 template <std::size_t Size>
-auto make_image_write(std::array<ImageBinding, Size> const& bindings, vk::DescriptorSet descriptor_set) -> ImageWrite<Size> {
-	auto ret = ImageWrite<Size>{};
+void make_image_write(ImageWrite<Size>& out, std::array<ImageBinding, Size> const& bindings, vk::DescriptorSet descriptor_set) {
 	for (std::size_t i = 0; i < Size; ++i) {
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 		auto const cis = bindings[i].resource;
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-		ret.infos[i] = vk::DescriptorImageInfo{cis.sampler, cis.image_view, vk::ImageLayout::eShaderReadOnlyOptimal};
+		out.infos[i] = vk::DescriptorImageInfo{cis.sampler, cis.image_view, vk::ImageLayout::eShaderReadOnlyOptimal};
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-		ret.writes[i] = vk::WriteDescriptorSet{descriptor_set, bindings[i].binding, 0, 1, vk::DescriptorType::eCombinedImageSampler};
+		out.writes[i] = vk::WriteDescriptorSet{descriptor_set, bindings[i].binding, 0, 1, vk::DescriptorType::eCombinedImageSampler};
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-		ret.writes[i].pImageInfo = &ret.infos[i];
+		out.writes[i].pImageInfo = &out.infos[i];
 	}
-	return ret;
 }
 
 auto allocate_descriptor_sets(detail::PipelineCache& pipeline_cache) -> std::array<vk::DescriptorSet, 3> {
@@ -198,13 +194,16 @@ void Shader::update_and_bind_sets(vk::CommandBuffer command_buffer, std::span<Re
 	static_assert(descriptor_sets.size() == 3);
 
 	auto const vpi_bindings = make_vpi_bindings(m_renderer->get_render_device(), instances);
-	auto const vpi_write = make_buffer_write(vpi_bindings, descriptor_sets[0]);
+	auto vpi_write = BufferWrite<vpi_bindings.size()>{};
+	make_buffer_write(vpi_write, vpi_bindings, descriptor_sets[0]);
 
 	auto const texture_bindings = make_texture_bindings(m_sets.cis, m_renderer->get_white_texture().combined_image_sampler());
-	auto const texture_write = make_image_write(texture_bindings, descriptor_sets[1]);
+	auto texture_write = ImageWrite<texture_bindings.size()>{};
+	make_image_write(texture_write, texture_bindings, descriptor_sets[1]);
 
 	auto const buffer_bindings = make_buffer_bindings(m_renderer->get_render_device().get_scratch_buffer_cache(), m_sets.ubo, m_sets.ssbo);
-	auto const buffer_write = make_buffer_write(buffer_bindings, descriptor_sets[2]);
+	auto buffer_write = BufferWrite<buffer_bindings.size()>{};
+	make_buffer_write(buffer_write, buffer_bindings, descriptor_sets[2]);
 
 	constexpr auto total_writes = vpi_write.writes.size() + texture_write.writes.size() + buffer_write.writes.size();
 	auto descriptor_writes = std::array<vk::WriteDescriptorSet, total_writes>{};

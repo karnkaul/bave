@@ -15,7 +15,7 @@ struct Config {
 
 	glm::vec2 player_size{100.0f};
 	glm::vec2 player_hitbox{78.0f, 56.0f};
-	float gravity{-700.0f};
+	float gravity{700.0f};
 	float jump_speed{1000.0f};
 	bave::Seconds max_jump_duration{1s};
 	std::shared_ptr<bave::Texture> player_texture{};
@@ -29,12 +29,12 @@ struct Config {
 	bave::Rgba background_rgba_bottom{bave::Rgba::from(0xa0d9efff)};
 	glm::vec2 cloud_size{200.0f, 100.0f};
 	int cloud_instances{10};
-	float cloud_speed_min{-50.0f};
-	float cloud_speed_max{-80.0f};
+	float cloud_speed_min{50.0f};
+	float cloud_speed_max{80.0f};
 	std::shared_ptr<bave::Texture> cloud_texture{};
 
 	glm::vec2 pipe_size{150.0f, 1200.0f};
-	float pipe_speed{-400.0f};
+	float pipe_speed{400.0f};
 	float pipe_gap{200.0f};
 	bave::Seconds pipe_period{1.4s};
 	std::shared_ptr<bave::Texture> pipe_texture{};
