@@ -22,7 +22,11 @@ class AndroidApp : public App, public detail::IWsi {
 	static auto self(Ptr<android_app> app) -> AndroidApp&;
 	static void push(Ptr<android_app> window, Event event);
 
-	auto do_run() -> ErrCode final;
+	auto setup() -> std::optional<ErrCode> final;
+	void poll_events() final;
+	void tick() final;
+	void render() final;
+
 	void do_shutdown() final;
 
 	[[nodiscard]] auto do_get_framebuffer_size() const -> glm::ivec2 final;
@@ -35,9 +39,6 @@ class AndroidApp : public App, public detail::IWsi {
 	[[nodiscard]] auto get_framebuffer_extent() const -> vk::Extent2D final;
 
 	void setup_event_callbacks();
-	void poll_events();
-	void tick();
-	void render();
 
 	void start();
 	void destroy();

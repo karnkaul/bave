@@ -148,19 +148,32 @@ auto find_index(Ptr<AInputEvent const> event, Pointer::Id id) -> std::optional<s
 
 AndroidApp::AndroidApp(android_app& app) : m_app(app) { m_app.userData = this; }
 
-auto AndroidApp::do_run() -> ErrCode {
+auto AndroidApp::setup() -> std::optional<ErrCode> {
 	app_dummy();
 
 	setup_event_callbacks();
+	return {};
+}
 
-	while (!m_app.destroyRequested) {
-		start_next_frame();
-		poll_events();
-		tick();
-		render();
+void AndroidApp::poll_events() {
+	auto events = int{};
+	auto source = Ptr<android_poll_source>{};
+	if (ALooper_pollAll(0, nullptr, &events, reinterpret_cast<void**>(&source)) >= 0) { // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+		if (source) { source->process(&m_app, source); }
 	}
+	if (m_game) { m_game->handle_events(get_events()); }
+}
 
-	return ErrCode::eSuccess;
+void AndroidApp::tick() {
+	if (is_shutting_down() || !m_game) { return; }
+	m_game->tick();
+}
+
+void AndroidApp::render() {
+	if (!m_can_render) { return; }
+
+	if (m_renderer->start_render(m_game->clear_colour)) { m_game->render(); }
+	m_renderer->finish_render();
 }
 
 void AndroidApp::do_shutdown() { ANativeActivity_finish(m_app.activity); }
@@ -232,29 +245,6 @@ void AndroidApp::setup_event_callbacks() {
 	};
 }
 
-void AndroidApp::poll_events() {
-	auto events = int{};
-	auto source = Ptr<android_poll_source>{};
-	if (ALooper_pollAll(0, nullptr, &events, reinterpret_cast<void**>(&source)) >= 0) { // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-		if (source) { source->process(&m_app, source); }
-	}
-	m_gesture_recognizer.update(get_active_pointers());
-	m_game->handle_events(get_events());
-}
-
-void AndroidApp::tick() {
-	if (is_shutting_down() || !m_game) { return; }
-	get_audio_streamer().tick(get_dt());
-	m_game->tick();
-}
-
-void AndroidApp::render() {
-	if (!m_can_render) { return; }
-
-	if (m_renderer->start_render(m_game->clear_colour)) { m_game->render(); }
-	m_renderer->finish_render();
-}
-
 void AndroidApp::init_graphics() {
 	m_render_device = std::make_unique<RenderDevice>(this);
 	m_renderer = std::make_unique<Renderer>(m_render_device.get(), &get_data_store());
@@ -282,7 +272,6 @@ void AndroidApp::start() {
 	init_graphics();
 	m_game = make_game();
 	m_can_render = true;
-	start_next_frame(); // clear dt
 	m_log.debug("start");
 }
 

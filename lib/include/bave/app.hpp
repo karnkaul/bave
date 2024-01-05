@@ -63,7 +63,11 @@ class App : public PolyPinned {
 	GestureRecognizer m_gesture_recognizer{};
 
   private:
-	virtual auto do_run() -> ErrCode = 0;
+	virtual auto setup() -> std::optional<ErrCode> = 0;
+	virtual void poll_events() = 0;
+	virtual void tick() = 0;
+	virtual void render() = 0;
+
 	virtual void do_shutdown() = 0;
 
 	[[nodiscard]] virtual auto do_get_window_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
@@ -71,6 +75,8 @@ class App : public PolyPinned {
 
 	[[nodiscard]] virtual auto do_get_render_device() const -> RenderDevice& = 0;
 	[[nodiscard]] virtual auto do_get_renderer() const -> Renderer& = 0;
+
+	void pre_tick();
 
 	std::function<std::unique_ptr<Game>(App&)> m_game_factory{};
 	std::unique_ptr<DataStore> m_data_store{std::make_unique<DataStore>()};

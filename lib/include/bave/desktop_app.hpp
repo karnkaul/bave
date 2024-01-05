@@ -50,7 +50,11 @@ class DesktopApp : public App, public detail::IWsi {
 	static auto self(Ptr<GLFWwindow> window) -> DesktopApp&;
 	static void push(Ptr<GLFWwindow> window, Event event);
 
-	auto do_run() -> ErrCode final;
+	auto setup() -> std::optional<ErrCode> final;
+	void poll_events() final;
+	void tick() final;
+	void render() final;
+
 	void do_shutdown() final;
 
 	[[nodiscard]] auto do_get_window_size() const -> glm::ivec2 final;
@@ -67,10 +71,6 @@ class DesktopApp : public App, public detail::IWsi {
 	void init_data_store();
 	void make_window();
 	void init_graphics();
-
-	void poll_events();
-	void tick();
-	void render();
 
 	CreateInfo m_create_info{};
 	ScopedResource<LogFile, LogFile::Deleter> m_log_file{};

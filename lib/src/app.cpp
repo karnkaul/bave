@@ -30,7 +30,18 @@ void App::set_data_store(std::unique_ptr<DataStore> data_store) {
 
 auto App::run() -> ErrCode {
 	try {
-		return do_run();
+		if (auto const ret = setup()) { return *ret; }
+
+		while (!is_shutting_down()) {
+			start_next_frame();
+			poll_events();
+			pre_tick();
+			tick();
+			render();
+		}
+
+		get_render_device().get_device().waitIdle();
+		return ErrCode::eSuccess;
 	} catch (std::runtime_error const& e) {
 		m_log.error("FATAL: {}", e.what());
 		return ErrCode::eFailure;
@@ -67,6 +78,11 @@ void App::start_next_frame() {
 	m_dt.update();
 }
 
+void App::pre_tick() {
+	m_gesture_recognizer.update(get_active_pointers());
+	m_audio_streamer->tick(get_dt());
+}
+
 void App::push_event(Event event) {
 	if (auto const* pointer_tap = std::get_if<PointerTap>(&event)) { m_gesture_recognizer.on_tap(*pointer_tap); }
 	m_events.push_back(event);
@@ -76,7 +92,9 @@ void App::push_drop(std::string path) { m_drops.push_back(std::move(path)); }
 
 auto App::make_game() -> std::unique_ptr<Game> {
 	assert(m_game_factory);
-	return m_game_factory(*this);
+	auto ret = m_game_factory(*this);
+	m_dt.update();
+	return ret;
 }
 
 auto App::screen_to_framebuffer(glm::vec2 const position) const -> glm::vec2 {

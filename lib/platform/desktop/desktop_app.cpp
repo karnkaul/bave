@@ -133,7 +133,7 @@ DesktopApp::DesktopApp(CreateInfo create_info) : App("DesktopApp"), m_create_inf
 	}
 }
 
-auto DesktopApp::do_run() -> ErrCode {
+auto DesktopApp::setup() -> std::optional<ErrCode> {
 	auto options = clap::Options{
 		clap::make_app_name(m_create_info.args.front()),
 		"bave app",
@@ -159,19 +159,31 @@ auto DesktopApp::do_run() -> ErrCode {
 	make_window();
 	m_log.debug("init_graphics");
 	init_graphics();
+
 	m_game = make_game();
-	start_next_frame(); // clear dt
 
-	while (!is_shutting_down()) {
-		start_next_frame();
-		poll_events();
-		tick();
-		render();
+	return {};
+}
+
+void DesktopApp::poll_events() {
+	glfwPollEvents();
+	m_game->handle_events(get_events());
+	for (auto const& drop : get_file_drops()) { m_game->on_drop(drop); }
+}
+
+void DesktopApp::tick() {
+	m_dear_imgui->new_frame();
+	if (is_shutting_down()) { return; }
+	m_game->tick();
+}
+
+void DesktopApp::render() {
+	m_dear_imgui->end_frame();
+	if (m_renderer->start_render(m_game->clear_colour)) {
+		m_game->render();
+		m_dear_imgui->render(m_renderer->get_command_buffer());
 	}
-
-	m_render_device->get_device().waitIdle();
-
-	return ErrCode::eSuccess;
+	m_renderer->finish_render();
 }
 
 void DesktopApp::do_shutdown() {
@@ -280,28 +292,5 @@ void DesktopApp::init_graphics() {
 	m_render_device = std::make_unique<RenderDevice>(this);
 	m_renderer = std::make_unique<Renderer>(m_render_device.get(), &get_data_store());
 	m_dear_imgui = std::make_unique<detail::DearImGui>(m_window.get(), *m_render_device, m_renderer->get_render_pass());
-}
-
-void DesktopApp::poll_events() {
-	glfwPollEvents();
-	m_gesture_recognizer.update(get_active_pointers());
-	m_game->handle_events(get_events());
-	for (auto const& drop : get_file_drops()) { m_game->on_drop(drop); }
-}
-
-void DesktopApp::tick() {
-	m_dear_imgui->new_frame();
-	get_audio_streamer().tick(get_dt());
-	if (is_shutting_down()) { return; }
-	m_game->tick();
-}
-
-void DesktopApp::render() {
-	m_dear_imgui->end_frame();
-	if (m_renderer->start_render(m_game->clear_colour)) {
-		m_game->render();
-		m_dear_imgui->render(m_renderer->get_command_buffer());
-	}
-	m_renderer->finish_render();
 }
 } // namespace bave
