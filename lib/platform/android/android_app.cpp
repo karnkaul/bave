@@ -161,6 +161,7 @@ void AndroidApp::poll_events() {
 	if (ALooper_pollAll(0, nullptr, &events, reinterpret_cast<void**>(&source)) >= 0) { // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 		if (source) { source->process(&m_app, source); }
 	}
+	swap_game(m_new_game, m_game);
 	if (m_game) { m_game->handle_events(get_events()); }
 }
 
@@ -174,6 +175,12 @@ void AndroidApp::render() {
 
 	if (m_renderer->start_render(m_game->clear_colour)) { m_game->render(); }
 	m_renderer->finish_render();
+}
+
+auto AndroidApp::replace_game(std::unique_ptr<Game> new_game) -> bool {
+	if (!m_game) { return false; }
+	m_new_game = std::move(new_game);
+	return true;
 }
 
 void AndroidApp::do_shutdown() { ANativeActivity_finish(m_app.activity); }
@@ -270,13 +277,13 @@ void AndroidApp::start() {
 	ANativeActivity_setWindowFlags(m_app.activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
 	set_data_store(std::make_unique<AndroidDataStore>(&m_app));
 	init_graphics();
-	m_game = make_game();
+	m_game = boot_game();
 	m_can_render = true;
 	m_log.debug("start");
 }
 
 void AndroidApp::destroy() {
-	m_render_device->get_device().waitIdle();
+	get_render_device().get_device().waitIdle();
 	m_game.reset();
 	m_renderer.reset();
 	m_render_device.reset();

@@ -12,6 +12,8 @@ class Game : public PolyPinned {
 
 	[[nodiscard]] auto get_app() const -> App& { return m_app; }
 
+	void replace_instance(std::unique_ptr<Game> new_game) const;
+
 	virtual void tick() {}
 	virtual void render() const {}
 

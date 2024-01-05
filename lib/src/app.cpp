@@ -5,18 +5,18 @@
 
 namespace bave {
 App::App(std::string tag)
-	: m_log{std::move(tag)}, m_game_factory([](App& app) { return std::make_unique<Game>(app); }), m_audio_device(std::make_unique<AudioDevice>()),
+	: m_log{std::move(tag)}, m_bootloader([](App& app) { return std::make_unique<Game>(app); }), m_audio_device(std::make_unique<AudioDevice>()),
 	  m_audio_streamer(std::make_unique<AudioStreamer>(*m_audio_device)) {
 	log::get_thread_id(); // set thread 0
 }
 
-void App::set_game_factory(std::function<std::unique_ptr<class Game>(App&)> game_factory) {
-	if (!game_factory) {
+void App::set_bootloader(Bootloader bootloader) {
+	if (!bootloader) {
 		m_log.error("cannot set null game factory");
 		return;
 	}
 
-	m_game_factory = std::move(game_factory);
+	m_bootloader = std::move(bootloader);
 }
 
 void App::set_data_store(std::unique_ptr<DataStore> data_store) {
@@ -90,11 +90,20 @@ void App::push_event(Event event) {
 
 void App::push_drop(std::string path) { m_drops.push_back(std::move(path)); }
 
-auto App::make_game() -> std::unique_ptr<Game> {
-	assert(m_game_factory);
-	auto ret = m_game_factory(*this);
+auto App::boot_game() -> std::unique_ptr<Game> {
+	assert(m_bootloader);
+	auto ret = m_bootloader(*this);
+	if (!ret) { throw Error{"failed to boot Game"}; }
 	m_dt.update();
 	return ret;
+}
+
+void App::swap_game(std::unique_ptr<Game>& new_game, std::unique_ptr<Game>& current_game) const {
+	if (!new_game) { return; }
+
+	get_audio_streamer().stop();
+	get_render_device().get_device().waitIdle();
+	current_game = std::move(new_game);
 }
 
 auto App::screen_to_framebuffer(glm::vec2 const position) const -> glm::vec2 {

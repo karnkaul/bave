@@ -56,6 +56,7 @@ class DesktopApp : public App, public detail::IWsi {
 	void render() final;
 
 	void do_shutdown() final;
+	auto replace_game(std::unique_ptr<Game> new_game) -> bool final;
 
 	[[nodiscard]] auto do_get_window_size() const -> glm::ivec2 final;
 	[[nodiscard]] auto do_get_framebuffer_size() const -> glm::ivec2 final;
@@ -81,5 +82,6 @@ class DesktopApp : public App, public detail::IWsi {
 	std::unique_ptr<Renderer> m_renderer{};
 	std::unique_ptr<detail::DearImGui> m_dear_imgui{};
 	std::unique_ptr<Game> m_game{};
+	std::unique_ptr<Game> m_new_game{};
 };
 } // namespace bave

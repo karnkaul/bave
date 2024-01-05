@@ -23,9 +23,11 @@ enum struct ErrCode : int { eSuccess = 0, eFailure = 1 };
 
 class App : public PolyPinned {
   public:
+	using Bootloader = std::function<std::unique_ptr<class Game>(App&)>;
+
 	explicit App(std::string tag = "App");
 
-	void set_game_factory(std::function<std::unique_ptr<class Game>(App&)> factory);
+	void set_bootloader(Bootloader bootloader);
 	void set_data_store(std::unique_ptr<DataStore> data_store);
 
 	auto run() -> ErrCode;
@@ -54,7 +56,8 @@ class App : public PolyPinned {
 	void start_next_frame();
 	void push_event(Event event);
 	void push_drop(std::string path);
-	[[nodiscard]] auto make_game() -> std::unique_ptr<Game>;
+	[[nodiscard]] auto boot_game() -> std::unique_ptr<Game>;
+	void swap_game(std::unique_ptr<Game>& new_game, std::unique_ptr<Game>& current_game) const;
 
 	[[nodiscard]] auto screen_to_framebuffer(glm::vec2 position) const -> glm::vec2;
 
@@ -69,6 +72,7 @@ class App : public PolyPinned {
 	virtual void render() = 0;
 
 	virtual void do_shutdown() = 0;
+	virtual auto replace_game(std::unique_ptr<Game> new_game) -> bool = 0;
 
 	[[nodiscard]] virtual auto do_get_window_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
 	[[nodiscard]] virtual auto do_get_framebuffer_size() const -> glm::ivec2 = 0;
@@ -78,7 +82,7 @@ class App : public PolyPinned {
 
 	void pre_tick();
 
-	std::function<std::unique_ptr<Game>(App&)> m_game_factory{};
+	std::function<std::unique_ptr<Game>(App&)> m_bootloader{};
 	std::unique_ptr<DataStore> m_data_store{std::make_unique<DataStore>()};
 	std::unique_ptr<AudioDevice> m_audio_device{};
 	std::unique_ptr<AudioStreamer> m_audio_streamer{};
@@ -88,5 +92,7 @@ class App : public PolyPinned {
 	DeltaTime m_dt{};
 
 	bool m_shutting_down{};
+
+	friend class Game;
 };
 } // namespace bave

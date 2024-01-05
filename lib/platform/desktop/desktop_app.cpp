@@ -160,13 +160,14 @@ auto DesktopApp::setup() -> std::optional<ErrCode> {
 	m_log.debug("init_graphics");
 	init_graphics();
 
-	m_game = make_game();
+	m_game = boot_game();
 
 	return {};
 }
 
 void DesktopApp::poll_events() {
 	glfwPollEvents();
+	swap_game(m_new_game, m_game);
 	m_game->handle_events(get_events());
 	for (auto const& drop : get_file_drops()) { m_game->on_drop(drop); }
 }
@@ -189,6 +190,11 @@ void DesktopApp::render() {
 void DesktopApp::do_shutdown() {
 	m_game->shutdown();
 	glfwSetWindowShouldClose(m_window.get(), GLFW_TRUE);
+}
+
+auto DesktopApp::replace_game(std::unique_ptr<Game> new_game) -> bool {
+	m_new_game = std::move(new_game);
+	return true;
 }
 
 auto DesktopApp::do_get_window_size() const -> glm::ivec2 {

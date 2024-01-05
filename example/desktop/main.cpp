@@ -15,7 +15,7 @@ auto main(int argc, char** argv) -> int {
 	// create the App instance.
 	auto app = bave::DesktopApp{create_info};
 	// setup the entry point (Flappy).
-	app.set_game_factory([](bave::App& app) { return std::make_unique<Flappy>(app); });
+	app.set_bootloader([](bave::App& app) { return std::make_unique<Flappy>(app); });
 	// run App and return its exit code.
 	// after its own setup, App will create Flappy (via the factory passed above) and drive it every frame.
 	return static_cast<int>(app.run());

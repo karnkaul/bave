@@ -3,6 +3,11 @@
 #include <bave/game.hpp>
 
 namespace bave {
+void Game::replace_instance(std::unique_ptr<Game> new_game) const {
+	if (!new_game) { return; }
+	get_app().replace_game(std::move(new_game));
+}
+
 void Game::handle_events(std::span<Event const> events) {
 	auto const visitor = Visitor{
 		[this](FocusChange const t) { on_focus(t); }, [this](WindowResize const t) { on_resize(t); }, [this](FramebufferResize const t) { on_resize(t); },

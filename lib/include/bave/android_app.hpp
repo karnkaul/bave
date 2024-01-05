@@ -27,6 +27,7 @@ class AndroidApp : public App, public detail::IWsi {
 	void tick() final;
 	void render() final;
 
+	auto replace_game(std::unique_ptr<Game> new_game) -> bool final;
 	void do_shutdown() final;
 
 	[[nodiscard]] auto do_get_framebuffer_size() const -> glm::ivec2 final;
@@ -58,7 +59,9 @@ class AndroidApp : public App, public detail::IWsi {
 	vk::UniqueSurfaceKHR m_surface{};
 	std::unique_ptr<Renderer> m_renderer{};
 	std::unique_ptr<Game> m_game{};
-	std::optional<AudioStreamer::Pause> m_stream_pause{};
+	std::unique_ptr<Game> m_new_game{};
 	bool m_can_render{};
+
+	std::optional<AudioStreamer::Pause> m_stream_pause{};
 };
 } // namespace bave
