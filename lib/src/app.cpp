@@ -63,6 +63,7 @@ auto App::load_shader(std::string_view vertex, std::string_view fragment) const 
 
 void App::start_next_frame() {
 	m_events.clear();
+	m_drops.clear();
 	m_dt.update();
 }
 
@@ -70,6 +71,8 @@ void App::push_event(Event event) {
 	if (auto const* pointer_tap = std::get_if<PointerTap>(&event)) { m_gesture_recognizer.on_tap(*pointer_tap); }
 	m_events.push_back(event);
 }
+
+void App::push_drop(std::string path) { m_drops.push_back(std::move(path)); }
 
 auto App::make_game() -> std::unique_ptr<Game> {
 	assert(m_game_factory);

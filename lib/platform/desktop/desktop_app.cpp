@@ -270,6 +270,10 @@ void DesktopApp::make_window() {
 		auto const& primary = self(window).m_active_pointers[0];
 		push(window, PointerTap{.pointer = primary, .action = to_action(action), .mods = to_mods(mods), .button = static_cast<MouseButton>(button)});
 	});
+
+	glfwSetDropCallback(m_window.get(), [](Ptr<GLFWwindow> window, int count, char const* paths[]) { // NOLINT
+		for (auto const* path : std::span{paths, static_cast<size_t>(count)}) { self(window).push_drop(path); }
+	});
 }
 
 void DesktopApp::init_graphics() {
@@ -282,6 +286,7 @@ void DesktopApp::poll_events() {
 	glfwPollEvents();
 	m_gesture_recognizer.update(get_active_pointers());
 	m_game->handle_events(get_events());
+	for (auto const& drop : get_file_drops()) { m_game->on_drop(drop); }
 }
 
 void DesktopApp::tick() {

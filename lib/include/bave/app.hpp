@@ -40,6 +40,7 @@ class App : public PolyPinned {
 	[[nodiscard]] auto get_audio_streamer() const -> AudioStreamer& { return *m_audio_streamer; }
 
 	[[nodiscard]] auto get_events() const -> std::span<Event const> { return m_events; }
+	[[nodiscard]] auto get_file_drops() const -> std::span<std::string const> { return m_drops; }
 	[[nodiscard]] auto get_active_pointers() const -> std::span<Pointer const> { return m_active_pointers; }
 	[[nodiscard]] auto get_gesture_recognizer() const -> GestureRecognizer const& { return m_gesture_recognizer; }
 	[[nodiscard]] auto get_dt() const -> Seconds { return m_dt.dt; }
@@ -52,6 +53,7 @@ class App : public PolyPinned {
   protected:
 	void start_next_frame();
 	void push_event(Event event);
+	void push_drop(std::string path);
 	[[nodiscard]] auto make_game() -> std::unique_ptr<Game>;
 
 	[[nodiscard]] auto screen_to_framebuffer(glm::vec2 position) const -> glm::vec2;
@@ -75,6 +77,7 @@ class App : public PolyPinned {
 	std::unique_ptr<AudioDevice> m_audio_device{};
 	std::unique_ptr<AudioStreamer> m_audio_streamer{};
 
+	std::vector<std::string> m_drops{};
 	std::vector<Event> m_events{};
 	DeltaTime m_dt{};
 
