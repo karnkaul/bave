@@ -9,9 +9,6 @@
 #include <vector>
 
 namespace bave::detail {
-template <typename Type>
-class Defer;
-
 class DeferQueue : public Pinned {
   public:
 	template <typename Type>
@@ -23,11 +20,6 @@ class DeferQueue : public Pinned {
 
 	void next_frame();
 	void clear();
-
-	template <typename Type>
-	[[nodiscard]] auto make_deferred(Type t) -> Defer<Type> {
-		return Defer<Type>{this, std::move(t)};
-	}
 
   private:
 	struct Base { // NOLINT(cppcoreguidelines-special-member-functions)
@@ -43,43 +35,5 @@ class DeferQueue : public Pinned {
 	Frame m_current{};
 	std::deque<Frame> m_deferred{};
 	std::mutex m_mutex{};
-};
-
-template <typename Type>
-class Defer {
-  public:
-	Defer(Defer const&) = delete;
-	auto operator=(Defer const&) -> Defer& = delete;
-
-	Defer(Defer&& rhs) noexcept { swap(*this, rhs); }
-
-	auto operator=(Defer&& rhs) noexcept -> Defer& {
-		if (&rhs != this) { swap(*this, rhs); }
-		return *this;
-	}
-
-	Defer() = default;
-
-	Defer(NotNull<DeferQueue*> queue, Type obj) : m_queue(queue), m_t(std::move(obj)) {}
-
-	~Defer() {
-		if (m_queue == nullptr) { return; }
-		m_queue->push(std::move(m_t));
-	}
-
-	auto get() const -> Type const& { return m_t; }
-	auto get() -> Type& { return m_t; }
-
-	operator Type const&() const { return get(); }
-	operator Type&() { return get(); }
-
-	friend void swap(Defer& lhs, Defer& rhs) noexcept {
-		std::swap(lhs.m_queue, rhs.m_queue);
-		std::swap(lhs.m_t, rhs.m_t);
-	}
-
-  private:
-	Ptr<DeferQueue> m_queue{};
-	Type m_t{};
 };
 } // namespace bave::detail

@@ -6,9 +6,9 @@
 #include <vector>
 
 namespace bave::detail {
-class RenderBufferCache {
+class VertexBufferCache {
   public:
-	explicit RenderBufferCache(NotNull<RenderDevice*> render_device, vk::BufferUsageFlags usage) : m_render_device(render_device), m_usage(usage) {}
+	explicit VertexBufferCache(NotNull<RenderDevice*> render_device) : m_render_device(render_device) {}
 
 	auto allocate() -> Buffered<std::shared_ptr<RenderBuffer>>;
 
@@ -19,6 +19,5 @@ class RenderBufferCache {
 	Logger m_log{"VertexBufferCache"};
 	NotNull<RenderDevice*> m_render_device;
 	std::vector<Buffered<std::shared_ptr<RenderBuffer>>> m_buffers{};
-	vk::BufferUsageFlags m_usage{};
 };
 } // namespace bave::detail

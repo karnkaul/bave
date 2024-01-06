@@ -14,9 +14,12 @@ class ImTexture {
 
   private:
 	struct Deleter {
+		// Ptr<RenderDevice> render_device{};
+
 		void operator()(vk::DescriptorSet descriptor_set) const noexcept;
 	};
+
 	NotNull<std::shared_ptr<Texture>> m_texture;
-	ScopedResource<vk::DescriptorSet, Deleter> m_descriptor_set{};
+	ScopedResource<vk::DescriptorSet, Deleter> m_descriptor_set;
 };
 } // namespace bave

@@ -20,7 +20,7 @@ class Mesh {
 	void draw(vk::CommandBuffer command_buffer, std::uint32_t instance_count = 1) const;
 
 	NotNull<RenderDevice const*> m_render_device;
-	detail::Defer<detail::Buffered<std::shared_ptr<detail::RenderBuffer>>> m_vbo{};
+	detail::Buffered<std::shared_ptr<detail::RenderBuffer>> m_vbo{};
 	std::vector<std::byte> m_data{};
 	std::uint32_t m_verts{};
 	std::uint32_t m_indices{};
