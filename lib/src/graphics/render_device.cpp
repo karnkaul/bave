@@ -49,7 +49,10 @@ RenderDevice::RenderDevice(NotNull<detail::IWsi*> wsi, CreateInfo create_info) :
 	auto instance = instance_builder.build();
 	if (!instance.instance) { throw Error{"Failed to create Vulkan Instance"}; }
 	m_instance = std::move(instance.instance);
-	m_debug_messenger = std::move(instance.debug_messenger);
+	if (instance.is_validation_enabled()) {
+		m_debug_messenger = std::move(instance.debug_messenger);
+		m_log.info("Vulkan Validation Layers loaded");
+	}
 
 	m_surface = vk::UniqueSurfaceKHR{wsi->make_surface(*m_instance), *m_instance};
 	if (!m_surface) { throw Error{"Failed to create Vulkan Surface"}; }

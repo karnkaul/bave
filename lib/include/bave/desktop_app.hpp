@@ -23,6 +23,7 @@ class DesktopApp : public App, public detail::IWsi {
 		std::function<Gpu(std::span<Gpu const>)> select_gpu{};
 		bool lock_aspect_ratio{true};
 		std::string_view assets_patterns{"assets"};
+		bool validation_layers{debug_v};
 	};
 
 	explicit DesktopApp(CreateInfo create_info);

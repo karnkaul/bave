@@ -16,7 +16,7 @@ class AInputEvent;
 namespace bave {
 class AndroidApp : public App, public detail::IWsi {
   public:
-	explicit AndroidApp(android_app& app);
+	explicit AndroidApp(android_app& app, bool validation_layers = debug_v);
 
   private:
 	static auto self(Ptr<android_app> app) -> AndroidApp&;
@@ -55,6 +55,8 @@ class AndroidApp : public App, public detail::IWsi {
 	void handle_focus(bool gained);
 
 	android_app& m_app; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+	bool m_validation_layers;
+
 	std::unique_ptr<RenderDevice> m_render_device{};
 	vk::UniqueSurfaceKHR m_surface{};
 	std::unique_ptr<Renderer> m_renderer{};

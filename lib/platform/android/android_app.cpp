@@ -146,7 +146,7 @@ auto find_index(Ptr<AInputEvent const> event, Pointer::Id id) -> std::optional<s
 }
 } // namespace
 
-AndroidApp::AndroidApp(android_app& app) : m_app(app) { m_app.userData = this; }
+AndroidApp::AndroidApp(android_app& app, bool validation_layers) : m_app(app), m_validation_layers(validation_layers) { m_app.userData = this; }
 
 auto AndroidApp::setup() -> std::optional<ErrCode> {
 	app_dummy();
@@ -253,7 +253,7 @@ void AndroidApp::setup_event_callbacks() {
 }
 
 void AndroidApp::init_graphics() {
-	m_render_device = std::make_unique<RenderDevice>(this);
+	m_render_device = std::make_unique<RenderDevice>(this, RenderDevice::CreateInfo{.validation_layers = m_validation_layers});
 	m_renderer = std::make_unique<Renderer>(m_render_device.get(), &get_data_store());
 }
 
