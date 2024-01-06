@@ -5,6 +5,7 @@
 #include <bave/build_version.hpp>
 #include <bave/core/polymorphic.hpp>
 #include <bave/core/time.hpp>
+#include <bave/core/timer.hpp>
 #include <bave/data_store.hpp>
 #include <bave/graphics/renderer.hpp>
 #include <bave/graphics/shader.hpp>
@@ -50,6 +51,8 @@ class App : public PolyPinned {
 	[[nodiscard]] auto get_framebuffer_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
 	[[nodiscard]] auto get_pipeline_cache() const -> detail::PipelineCache& { return do_get_renderer().get_pipeline_cache(); }
 
+	[[nodiscard]] auto get_timer() -> Timer& { return m_timer; }
+
 	[[nodiscard]] auto load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader>;
 
   protected:
@@ -90,6 +93,7 @@ class App : public PolyPinned {
 	std::vector<std::string> m_drops{};
 	std::vector<Event> m_events{};
 	DeltaTime m_dt{};
+	Timer m_timer{};
 
 	bool m_shutting_down{};
 

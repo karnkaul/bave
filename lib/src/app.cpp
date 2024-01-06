@@ -81,6 +81,7 @@ void App::start_next_frame() {
 void App::pre_tick() {
 	m_gesture_recognizer.update(get_active_pointers());
 	m_audio_streamer->tick(get_dt());
+	m_timer.tick(get_dt());
 }
 
 void App::push_event(Event event) {

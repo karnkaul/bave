@@ -178,7 +178,7 @@ void AndroidApp::render() {
 }
 
 auto AndroidApp::set_new_game(std::unique_ptr<Game> new_game) -> bool {
-	if (!m_game) { return false; }
+	if (!m_render_device) { return false; }
 	m_new_game = std::move(new_game);
 	return true;
 }
