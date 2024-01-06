@@ -2,7 +2,6 @@
 #include <imgui.h>
 #include <bave/core/scoped_resource.hpp>
 #include <bave/graphics/texture.hpp>
-#include <memory>
 
 namespace bave {
 class ImTexture {
@@ -14,8 +13,7 @@ class ImTexture {
 
   private:
 	struct Deleter {
-		// Ptr<RenderDevice> render_device{};
-
+		vk::Device device{};
 		void operator()(vk::DescriptorSet descriptor_set) const noexcept;
 	};
 

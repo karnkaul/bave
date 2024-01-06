@@ -1,5 +1,6 @@
 #pragma once
 #include <bave/graphics/detail/render_resource.hpp>
+#include <memory>
 
 namespace bave {
 struct CombinedImageSampler {

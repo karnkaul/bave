@@ -6,14 +6,15 @@
 
 namespace bave {
 void ImTexture::Deleter::operator()(vk::DescriptorSet descriptor_set) const noexcept {
+	if (!descriptor_set || !device) { return; }
 	if constexpr (imgui_v) {
-		// assert(render_device != nullptr);
-		// render_device->get_defer_queue().push([descriptor_set] { ImGui_ImplVulkan_RemoveTexture(descriptor_set); });
+		device.waitIdle();
 		ImGui_ImplVulkan_RemoveTexture(descriptor_set);
 	}
 }
 
-ImTexture::ImTexture(NotNull<std::shared_ptr<Texture>> const& texture) : m_texture(texture) {
+ImTexture::ImTexture(NotNull<std::shared_ptr<Texture>> const& texture)
+	: m_texture(texture), m_descriptor_set(vk::DescriptorSet{}, Deleter{m_texture->get_image()->get_render_device().get_device()}) {
 	if constexpr (imgui_v) {
 		auto const cis = m_texture->combined_image_sampler();
 		m_descriptor_set.get() = ImGui_ImplVulkan_AddTexture(cis.sampler, cis.image_view, static_cast<VkImageLayout>(vk::ImageLayout::eShaderReadOnlyOptimal));
