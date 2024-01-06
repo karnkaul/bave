@@ -57,6 +57,21 @@ void App::shutdown() {
 	do_shutdown();
 }
 
+auto App::set_framebuffer_size(glm::ivec2 const size) -> bool {
+	auto const dr = get_display_ratio();
+	if (!is_positive(dr)) { return false; }
+	auto const w_size = glm::vec2{size} / dr;
+	return do_set_window_size(w_size);
+}
+
+auto App::get_display_ratio() const -> glm::vec2 {
+	auto const w_size = get_window_size();
+	auto const f_size = get_framebuffer_size();
+	if (w_size == f_size) { return glm::vec2{1.0f}; }
+	if (!is_positive(w_size)) { return {}; }
+	return glm::vec2{f_size} / glm::vec2{w_size};
+}
+
 auto App::load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader> {
 	auto const& renderer = get_renderer();
 	if (!renderer.is_rendering()) {

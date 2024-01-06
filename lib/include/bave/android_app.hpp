@@ -40,6 +40,8 @@ class AndroidApp : public App, public detail::IWsi {
 	[[nodiscard]] auto make_surface(vk::Instance instance) const -> vk::SurfaceKHR final;
 	[[nodiscard]] auto get_framebuffer_extent() const -> vk::Extent2D final;
 
+	auto do_set_window_size(glm::ivec2 /*size*/) -> bool final { return false; }
+
 	void setup_event_callbacks();
 
 	void start();

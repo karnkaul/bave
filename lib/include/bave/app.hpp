@@ -36,6 +36,9 @@ class App : public PolyPinned {
 	void shutdown();
 	[[nodiscard]] auto is_shutting_down() const { return m_shutting_down; }
 
+	auto set_window_size(glm::ivec2 size) -> bool { return do_set_window_size(size); }
+	auto set_framebuffer_size(glm::ivec2 size) -> bool;
+
 	[[nodiscard]] auto get_data_store() const -> DataStore& { return *m_data_store; }
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return do_get_render_device(); }
 	[[nodiscard]] auto get_renderer() const -> Renderer const& { return do_get_renderer(); }
@@ -49,6 +52,7 @@ class App : public PolyPinned {
 	[[nodiscard]] auto get_dt() const -> Seconds { return m_dt.dt; }
 	[[nodiscard]] auto get_window_size() const -> glm::ivec2 { return do_get_window_size(); }
 	[[nodiscard]] auto get_framebuffer_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
+	[[nodiscard]] auto get_display_ratio() const -> glm::vec2;
 	[[nodiscard]] auto get_pipeline_cache() const -> detail::PipelineCache& { return do_get_renderer().get_pipeline_cache(); }
 
 	[[nodiscard]] auto get_timer() -> Timer& { return m_timer; }
@@ -84,6 +88,8 @@ class App : public PolyPinned {
 	[[nodiscard]] virtual auto do_get_render_device() const -> RenderDevice& = 0;
 	[[nodiscard]] virtual auto do_get_renderer() const -> Renderer& = 0;
 	[[nodiscard]] virtual auto do_get_game() const -> Ptr<Game> = 0;
+
+	virtual auto do_set_window_size(glm::ivec2 size) -> bool = 0;
 
 	void pre_tick();
 

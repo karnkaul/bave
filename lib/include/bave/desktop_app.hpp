@@ -71,6 +71,8 @@ class DesktopApp : public App, public detail::IWsi {
 	[[nodiscard]] auto get_framebuffer_extent() const -> vk::Extent2D final;
 	[[nodiscard]] auto select_gpu(std::span<Gpu const> gpus) const -> Gpu final;
 
+	auto do_set_window_size(glm::ivec2 size) -> bool final;
+
 	void init_data_store();
 	void make_window();
 	void init_graphics();

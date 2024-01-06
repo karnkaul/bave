@@ -238,6 +238,12 @@ auto DesktopApp::select_gpu(std::span<Gpu const> gpus) const -> Gpu {
 	return IWsi::select_gpu(gpus);
 }
 
+auto DesktopApp::do_set_window_size(glm::ivec2 const size) -> bool {
+	if (!is_positive(size)) { return false; }
+	glfwSetWindowSize(m_window.get(), size.x, size.y);
+	return true;
+}
+
 auto DesktopApp::self(Ptr<GLFWwindow> window) -> DesktopApp& {
 	auto* ret = static_cast<DesktopApp*>(glfwGetWindowUserPointer(window));
 	if (ret == nullptr) { throw Error{"Dereferencing null GLFW Window User Pointer"}; }
