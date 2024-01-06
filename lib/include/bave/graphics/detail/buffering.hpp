@@ -15,15 +15,25 @@ struct FrameIndex {
 	constexpr operator std::size_t() const { return value; }
 };
 
-template <typename BufferedT, typename MakeT>
-auto fill_buffered(BufferedT& out, MakeT make) -> void {
-	for (auto& type : out) { type = make(); }
+template <typename BufferedT, typename FactoryT>
+auto fill_buffered(BufferedT& out, FactoryT factory) -> void {
+	for (auto& type : out) { type = factory(); }
 }
 
-template <typename Type, typename MakeT>
-auto make_buffered(MakeT make) -> Buffered<Type> {
-	auto ret = Buffered<Type>{};
-	fill_buffered(ret, std::move(make));
-	return ret;
+template <typename Type, typename FactoryT, std::size_t... I>
+auto make_buffered_impl(FactoryT factory, std::index_sequence<I...> /*is*/) {
+	struct BufferedFactory {
+		FactoryT factory;
+
+		constexpr auto operator[](std::size_t /*index*/) const -> FactoryT const& { return factory; }
+	};
+
+	auto const bf = BufferedFactory{.factory = std::move(factory)};
+	return Buffered<Type>{bf[I]()...};
+}
+
+template <typename Type, typename FactoryT>
+auto make_buffered(FactoryT factory) -> Buffered<Type> {
+	return make_buffered_impl<Type>(std::move(factory), std::make_index_sequence<buffering_v>());
 }
 } // namespace bave::detail

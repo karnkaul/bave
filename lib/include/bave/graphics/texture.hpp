@@ -23,8 +23,16 @@ class Texture {
 		auto operator==(Sampler const&) const -> bool = default;
 	};
 
+	Texture(Texture const&) = delete;
+	auto operator=(Texture const&) -> Texture& = delete;
+
+	Texture(Texture&&) = default;
+	auto operator=(Texture&&) -> Texture& = default;
+
 	explicit Texture(NotNull<RenderDevice*> render_device, bool mip_map = false);
 	explicit Texture(NotNull<RenderDevice*> render_device, BitmapView bitmap, bool mip_map = false);
+
+	~Texture();
 
 	auto load_from_bytes(std::span<std::byte const> compressed) -> bool;
 	void write(BitmapView bitmap);
@@ -37,6 +45,7 @@ class Texture {
 	Sampler sampler{};
 
   private:
+	NotNull<RenderDevice*> m_render_device;
 	std::shared_ptr<detail::RenderImage> m_image{};
 };
 } // namespace bave

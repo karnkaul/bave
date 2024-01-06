@@ -1,11 +1,7 @@
+#include <bave/graphics/detail/buffering.hpp>
 #include <bave/graphics/detail/defer.hpp>
-#include <bave/logger.hpp>
 
 namespace bave::detail {
-namespace {
-auto const g_log{Logger{"Defer"}};
-}
-
 void DeferQueue::next_frame() {
 	auto lock = std::scoped_lock{m_mutex};
 	auto count = size_t{};
@@ -14,7 +10,7 @@ void DeferQueue::next_frame() {
 		count += m_deferred.front().size();
 		m_deferred.pop_front();
 	}
-	if (count > 0) { g_log.debug("{} deferred items destroyed", count); }
+	if (count > 0) { m_log.debug("{} deferred items destroyed", count); }
 }
 
 void DeferQueue::clear() {

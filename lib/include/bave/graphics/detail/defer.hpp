@@ -1,8 +1,6 @@
 #pragma once
-#include <bave/core/not_null.hpp>
 #include <bave/core/pinned.hpp>
-#include <bave/core/ptr.hpp>
-#include <bave/graphics/detail/buffering.hpp>
+#include <bave/logger.hpp>
 #include <deque>
 #include <memory>
 #include <mutex>
@@ -12,26 +10,19 @@ namespace bave::detail {
 class DeferQueue : public Pinned {
   public:
 	template <typename Type>
-	void push(Type obj) {
-		auto model = std::make_unique<Model<Type>>(std::move(obj));
+	void push(std::shared_ptr<Type> obj) {
+		if (!obj) { return; }
 		auto lock = std::scoped_lock{m_mutex};
-		m_current.push_back(std::move(model));
+		m_current.push_back(std::move(obj));
 	}
 
 	void next_frame();
 	void clear();
 
   private:
-	struct Base { // NOLINT(cppcoreguidelines-special-member-functions)
-		virtual ~Base() = default;
-	};
-	template <typename T>
-	struct Model : Base {
-		T t;
-		Model(T&& t) : t(std::move(t)) {}
-	};
-	using Frame = std::vector<std::unique_ptr<Base>>;
+	using Frame = std::vector<std::shared_ptr<void>>;
 
+	Logger m_log{"Defer"};
 	Frame m_current{};
 	std::deque<Frame> m_deferred{};
 	std::mutex m_mutex{};

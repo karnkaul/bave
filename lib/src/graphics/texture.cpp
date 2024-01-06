@@ -5,11 +5,17 @@
 
 namespace bave {
 Texture::Texture(NotNull<RenderDevice*> render_device, bool mip_map)
-	: m_image(render_device->get_image_cache().allocate(detail::RenderImage::CreateInfo{.mip_map = mip_map})) {}
+	: m_render_device(render_device), m_image(render_device->get_image_cache().allocate(detail::RenderImage::CreateInfo{.mip_map = mip_map})) {}
 
 Texture::Texture(NotNull<RenderDevice*> render_device, BitmapView bitmap, bool mip_map)
-	: m_image(render_device->get_image_cache().allocate(detail::RenderImage::CreateInfo{.mip_map = mip_map}, detail::to_vk_extent(bitmap.extent))) {
+	: m_render_device(render_device),
+	  m_image(render_device->get_image_cache().allocate(detail::RenderImage::CreateInfo{.mip_map = mip_map}, detail::to_vk_extent(bitmap.extent))) {
 	m_image->overwrite(bitmap, {});
+}
+
+Texture::~Texture() {
+	if (!m_image) { return; }
+	m_render_device->get_defer_queue().push(std::move(m_image));
 }
 
 auto Texture::load_from_bytes(std::span<std::byte const> compressed) -> bool {
@@ -21,18 +27,19 @@ auto Texture::load_from_bytes(std::span<std::byte const> compressed) -> bool {
 }
 
 void Texture::write(BitmapView bitmap) {
-	if (!is_positive(bitmap.extent)) { return; }
+	if (!is_positive(bitmap.extent) || !m_image) { return; }
 	m_image->recreate(detail::to_vk_extent(bitmap.extent));
 	m_image->overwrite(bitmap, {});
 }
 
 auto Texture::get_size() const -> glm::ivec2 {
-	auto const extent = get_image()->get_extent();
+	if (!m_image) { return {}; }
+	auto const extent = m_image->get_extent();
 	return glm::ivec2{extent.width, extent.height};
 }
 
 auto Texture::combined_image_sampler() const -> CombinedImageSampler {
-	auto const& image = *get_image();
-	return {.image_view = image.get_image_view(), .sampler = image.get_render_device().get_sampler_cache().get(sampler)};
+	if (!m_image) { return {}; }
+	return {.image_view = m_image->get_image_view(), .sampler = m_render_device->get_sampler_cache().get(sampler)};
 }
 } // namespace bave

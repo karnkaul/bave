@@ -6,7 +6,15 @@
 namespace bave {
 class Mesh {
   public:
+	Mesh(Mesh const&) = delete;
+	auto operator=(Mesh const&) -> Mesh& = delete;
+
+	Mesh(Mesh&&) = default;
+	auto operator=(Mesh&&) -> Mesh& = default;
+
 	explicit Mesh(NotNull<RenderDevice*> render_device);
+
+	~Mesh();
 
 	[[nodiscard]] auto get_render_device() const -> RenderDevice const& { return *m_render_device; }
 
@@ -19,8 +27,8 @@ class Mesh {
 	[[nodiscard]] auto get_buffer() const -> Ptr<detail::RenderBuffer>;
 	void draw(vk::CommandBuffer command_buffer, std::uint32_t instance_count = 1) const;
 
-	NotNull<RenderDevice const*> m_render_device;
-	detail::Buffered<std::shared_ptr<detail::RenderBuffer>> m_vbo{};
+	NotNull<RenderDevice*> m_render_device;
+	std::shared_ptr<detail::VertexBuffer> m_vbo{};
 	std::vector<std::byte> m_data{};
 	std::uint32_t m_verts{};
 	std::uint32_t m_indices{};

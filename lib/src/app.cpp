@@ -102,7 +102,6 @@ void App::swap_game(std::unique_ptr<Game>& new_game, std::unique_ptr<Game>& curr
 	if (!new_game) { return; }
 
 	get_audio_streamer().stop();
-	get_render_device().get_device().waitIdle();
 	current_game = std::move(new_game);
 }
 

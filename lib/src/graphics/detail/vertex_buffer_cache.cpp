@@ -3,20 +3,21 @@
 
 namespace bave::detail {
 namespace {
-auto make_buffered(RenderDevice& render_device, vk::BufferUsageFlags usage) -> Buffered<std::shared_ptr<RenderBuffer>> {
-	auto ret = Buffered<std::shared_ptr<RenderBuffer>>{};
-	fill_buffered(ret, [&render_device, usage] { return std::make_shared<RenderBuffer>(&render_device, usage); });
-	return ret;
+auto make_vertex_buffer(RenderDevice& render_device) -> std::shared_ptr<VertexBuffer> {
+	auto const factory = [&render_device] {
+		return RenderBuffer{&render_device, vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndexBuffer};
+	};
+	return std::make_shared<VertexBuffer>(make_buffered<RenderBuffer>(factory));
 }
 } // namespace
 
-auto VertexBufferCache::allocate() -> Buffered<std::shared_ptr<RenderBuffer>> {
+auto VertexBufferCache::allocate() -> std::shared_ptr<VertexBuffer> {
 	auto lock = std::scoped_lock{m_mutex};
 	for (auto const& buffer : m_buffers) {
-		if (buffer[0].use_count() == 1) { return buffer; }
+		if (buffer.use_count() == 1) { return buffer; }
 	}
 
-	m_buffers.push_back(make_buffered(*m_render_device, vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndexBuffer));
+	m_buffers.push_back(make_vertex_buffer(*m_render_device));
 	m_log.debug("new Vulkan Vertex Buffer created (total: {})", m_buffers.size());
 
 	return m_buffers.back();
