@@ -16,14 +16,14 @@ auto VertexBufferCache::allocate() -> Buffered<std::shared_ptr<RenderBuffer>> {
 	}
 
 	m_buffers.push_back(make_buffered(*m_render_device, vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndexBuffer));
-	m_log.debug("new Vulkan Vertex Buffer created (total: {})", m_buffers.size());
+	m_log.debug("new Vulkan Vertex Buffer created (total: {})", buffer_count());
 
 	return m_buffers.back();
 }
 
 auto VertexBufferCache::clear() -> void {
 	m_render_device->get_device().waitIdle();
-	m_log.debug("{} Vertex Buffers destroyed", m_buffers.size());
+	m_log.debug("{} Vertex Buffers destroyed", buffer_count());
 	m_buffers.clear();
 }
 } // namespace bave::detail

@@ -74,19 +74,13 @@ class RenderImage : public RenderResource {
 
 	static auto compute_mip_levels(vk::Extent2D extent) -> std::uint32_t;
 
-	template <typename Type>
-	static constexpr auto to_vk_extent(glm::tvec2<Type> const in) -> vk::Extent2D {
-		auto const uextent = glm::uvec2{in};
-		return {uextent.x, uextent.y};
-	}
-
 	explicit RenderImage(NotNull<RenderDevice*> render_device, CreateInfo const& create_info, vk::Extent2D extent = min_extent_v);
 
 	auto copy_from(BitmapView bitmap) -> bool;
 
-	auto recreate(vk::Extent2D extent) -> void;
+	void recreate(vk::Extent2D extent);
 	auto overwrite(BitmapView bitmap, glm::ivec2 top_left) -> bool;
-	auto resize(vk::Extent2D extent) -> void;
+	void resize(vk::Extent2D extent);
 
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return *m_render_device; }
 
@@ -112,5 +106,11 @@ class RenderImage : public RenderResource {
 	vk::ImageLayout m_layout{};
 	std::uint32_t m_mip_levels{};
 };
+
+template <typename Type>
+static constexpr auto to_vk_extent(glm::tvec2<Type> const in) -> vk::Extent2D {
+	auto const uextent = glm::uvec2{in};
+	return {uextent.x, uextent.y};
+}
 } // namespace detail
 } // namespace bave

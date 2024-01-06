@@ -242,8 +242,8 @@ auto RenderImage::copy_from(BitmapView const bitmap) -> bool {
 	return true;
 }
 
-auto RenderImage::recreate(vk::Extent2D extent) -> void {
-	if (extent.width == 0 || extent.height == 0) { return; }
+void RenderImage::recreate(vk::Extent2D extent) {
+	if (extent.width == 0 || extent.height == 0 || extent == m_extent) { return; }
 
 	auto const mip_levels = m_create_info.mip_map ? compute_mip_levels(extent) : 1;
 	auto vma_image = VmaImage::make(*m_render_device, m_create_info, extent, mip_levels);
@@ -287,7 +287,7 @@ auto RenderImage::overwrite(BitmapView const bitmap, glm::ivec2 top_left) -> boo
 	return true;
 }
 
-auto RenderImage::resize(vk::Extent2D extent) -> void {
+void RenderImage::resize(vk::Extent2D extent) {
 	assert(extent.width < 40960 && extent.height < 40960);
 	auto const mip_levels = m_create_info.mip_map ? compute_mip_levels(extent) : 1;
 	auto new_image = VmaImage::make(*m_render_device, m_create_info, extent, mip_levels);

@@ -73,6 +73,7 @@ RenderDevice::RenderDevice(NotNull<detail::IWsi*> wsi, CreateInfo create_info) :
 
 	m_vbo_cache = std::make_unique<detail::VertexBufferCache>(this);
 	m_sb_cache = std::make_unique<detail::ScratchBufferCache>(this);
+	m_ti_cache = std::make_unique<detail::TextureImageCache>(this);
 	m_sampler_cache = std::make_unique<detail::SamplerCache>(get_device());
 
 	auto const line_width_range = get_gpu().device.getProperties().limits.lineWidthRange;

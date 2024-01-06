@@ -26,17 +26,17 @@ class Texture {
 	explicit Texture(NotNull<RenderDevice*> render_device, bool mip_map = false);
 	explicit Texture(NotNull<RenderDevice*> render_device, BitmapView bitmap, bool mip_map = false);
 
-	auto load_from_bytes(std::span<std::byte const> compressed, bool mip_map = false) -> bool;
-	void write(BitmapView bitmap, bool mip_map = false);
+	auto load_from_bytes(std::span<std::byte const> compressed) -> bool;
+	void write(BitmapView bitmap);
 
 	[[nodiscard]] auto get_size() const -> glm::ivec2;
 	[[nodiscard]] auto combined_image_sampler() const -> CombinedImageSampler;
 
-	[[nodiscard]] auto get_image() const -> detail::RenderImage const& { return m_image; }
+	[[nodiscard]] auto get_image() const -> std::shared_ptr<detail::RenderImage> const& { return m_image; }
 
 	Sampler sampler{};
 
   private:
-	detail::RenderImage m_image;
+	std::shared_ptr<detail::RenderImage> m_image{};
 };
 } // namespace bave
