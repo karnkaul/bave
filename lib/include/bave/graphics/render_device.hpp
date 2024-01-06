@@ -7,10 +7,10 @@
 #include <bave/graphics/detail/buffering.hpp>
 #include <bave/graphics/detail/defer.hpp>
 #include <bave/graphics/detail/device_blocker.hpp>
+#include <bave/graphics/detail/image_cache.hpp>
 #include <bave/graphics/detail/sampler_cache.hpp>
 #include <bave/graphics/detail/scratch_buffer_cache.hpp>
 #include <bave/graphics/detail/swapchain.hpp>
-#include <bave/graphics/detail/texture_image_cache.hpp>
 #include <bave/graphics/detail/vertex_buffer_cache.hpp>
 #include <bave/graphics/detail/wsi.hpp>
 #include <bave/graphics/extent_scaler.hpp>
@@ -68,7 +68,7 @@ class RenderDevice {
 	[[nodiscard]] auto get_defer_queue() -> detail::DeferQueue& { return m_defer_queue; }
 	[[nodiscard]] auto get_vertex_buffer_cache() const -> detail::VertexBufferCache& { return *m_vbo_cache; }
 	[[nodiscard]] auto get_scratch_buffer_cache() const -> detail::ScratchBufferCache& { return *m_sb_cache; }
-	[[nodiscard]] auto get_texture_image_cache() const -> detail::TextureImageCache& { return *m_ti_cache; }
+	[[nodiscard]] auto get_image_cache() const -> detail::ImageCache& { return *m_image_cache; }
 	[[nodiscard]] auto get_sampler_cache() const -> detail::SamplerCache& { return *m_sampler_cache; }
 	[[nodiscard]] auto get_font_library() const -> detail::FontLibrary& { return *m_font_library; }
 
@@ -99,7 +99,7 @@ class RenderDevice {
 	detail::Swapchain m_swapchain{};
 	std::unique_ptr<detail::VertexBufferCache> m_vbo_cache{};
 	std::unique_ptr<detail::ScratchBufferCache> m_sb_cache{};
-	std::unique_ptr<detail::TextureImageCache> m_ti_cache{};
+	std::unique_ptr<detail::ImageCache> m_image_cache{};
 	std::unique_ptr<detail::SamplerCache> m_sampler_cache{};
 	std::unique_ptr<detail::FontLibrary> m_font_library{detail::FontLibrary::make()};
 

@@ -1,8 +1,8 @@
-#include <bave/graphics/detail/texture_image_cache.hpp>
+#include <bave/graphics/detail/image_cache.hpp>
 #include <bave/graphics/render_device.hpp>
 
 namespace bave::detail {
-auto TextureImageCache::allocate(RenderImage::CreateInfo const& create_info, vk::Extent2D extent) -> std::shared_ptr<RenderImage> {
+auto ImageCache::allocate(RenderImage::CreateInfo const& create_info, vk::Extent2D extent) -> std::shared_ptr<RenderImage> {
 	auto lock = std::scoped_lock{m_mutex};
 	for (auto const& image : m_images) {
 		if (image.use_count() == 1) {
@@ -17,12 +17,12 @@ auto TextureImageCache::allocate(RenderImage::CreateInfo const& create_info, vk:
 	return m_images.back();
 }
 
-auto TextureImageCache::image_count() const -> std::size_t {
+auto ImageCache::image_count() const -> std::size_t {
 	auto lock = std::scoped_lock{m_mutex};
 	return m_images.size();
 }
 
-auto TextureImageCache::clear() -> void {
+auto ImageCache::clear() -> void {
 	m_render_device->get_device().waitIdle();
 	auto lock = std::scoped_lock{m_mutex};
 	m_log.debug("{} Texture Images destroyed", m_images.size());

@@ -5,10 +5,10 @@
 
 namespace bave {
 Texture::Texture(NotNull<RenderDevice*> render_device, bool mip_map)
-	: m_image(render_device->get_texture_image_cache().allocate(detail::RenderImage::CreateInfo{.mip_map = mip_map})) {}
+	: m_image(render_device->get_image_cache().allocate(detail::RenderImage::CreateInfo{.mip_map = mip_map})) {}
 
 Texture::Texture(NotNull<RenderDevice*> render_device, BitmapView bitmap, bool mip_map)
-	: m_image(render_device->get_texture_image_cache().allocate(detail::RenderImage::CreateInfo{.mip_map = mip_map}, detail::to_vk_extent(bitmap.extent))) {
+	: m_image(render_device->get_image_cache().allocate(detail::RenderImage::CreateInfo{.mip_map = mip_map}, detail::to_vk_extent(bitmap.extent))) {
 	m_image->overwrite(bitmap, {});
 }
 
