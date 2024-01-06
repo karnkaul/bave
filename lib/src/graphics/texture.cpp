@@ -4,39 +4,42 @@
 #include <bave/graphics/texture.hpp>
 
 namespace bave {
-namespace {} // namespace
-
-Texture::Texture(NotNull<RenderDevice*> render_device, bool mip_map) : m_image(render_device, detail::RenderImage::CreateInfo{.mip_map = mip_map}) {}
+Texture::Texture(NotNull<RenderDevice*> render_device, bool mip_map)
+	: m_render_device(render_device), m_image(render_device->get_image_cache().allocate(detail::RenderImage::CreateInfo{.mip_map = mip_map})) {}
 
 Texture::Texture(NotNull<RenderDevice*> render_device, BitmapView bitmap, bool mip_map)
-	: m_image(render_device, detail::RenderImage::CreateInfo{.mip_map = mip_map}, detail::RenderImage::to_vk_extent(bitmap.extent)) {
-	m_image.overwrite(bitmap, {});
+	: m_render_device(render_device),
+	  m_image(render_device->get_image_cache().allocate(detail::RenderImage::CreateInfo{.mip_map = mip_map}, detail::to_vk_extent(bitmap.extent))) {
+	m_image->overwrite(bitmap, {});
 }
 
-auto Texture::load_from_bytes(std::span<std::byte const> compressed, bool mip_map) -> bool {
+Texture::~Texture() {
+	if (!m_image) { return; }
+	m_render_device->get_defer_queue().push(std::move(m_image));
+}
+
+auto Texture::load_from_bytes(std::span<std::byte const> compressed) -> bool {
 	auto image_file = ImageFile{};
 	if (!image_file.load_from_bytes(compressed)) { return false; }
 
-	write(image_file.get_bitmap_view(), mip_map);
+	write(image_file.get_bitmap_view());
 	return true;
 }
 
-void Texture::write(BitmapView bitmap, bool mip_map) {
-	if (!is_positive(bitmap.extent)) { return; }
-
-	auto& render_device = m_image.get_render_device();
-	render_device.get_defer_queue().push(std::move(m_image));
-	m_image = detail::RenderImage{&render_device, detail::RenderImage::CreateInfo{.mip_map = mip_map}, detail::RenderImage::to_vk_extent(bitmap.extent)};
-	m_image.overwrite(bitmap, {});
+void Texture::write(BitmapView bitmap) {
+	if (!is_positive(bitmap.extent) || !m_image) { return; }
+	m_image->recreate(detail::to_vk_extent(bitmap.extent));
+	m_image->overwrite(bitmap, {});
 }
 
 auto Texture::get_size() const -> glm::ivec2 {
-	auto const extent = get_image().get_extent();
+	if (!m_image) { return {}; }
+	auto const extent = m_image->get_extent();
 	return glm::ivec2{extent.width, extent.height};
 }
 
 auto Texture::combined_image_sampler() const -> CombinedImageSampler {
-	auto& sampler_cache = get_image().get_render_device().get_sampler_cache();
-	return {.image_view = get_image().get_image_view(), .sampler = sampler_cache.get(sampler)};
+	if (!m_image) { return {}; }
+	return {.image_view = m_image->get_image_view(), .sampler = m_render_device->get_sampler_cache().get(sampler)};
 }
 } // namespace bave

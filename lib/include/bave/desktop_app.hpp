@@ -23,6 +23,7 @@ class DesktopApp : public App, public detail::IWsi {
 		std::function<Gpu(std::span<Gpu const>)> select_gpu{};
 		bool lock_aspect_ratio{true};
 		std::string_view assets_patterns{"assets"};
+		bool validation_layers{debug_v};
 	};
 
 	explicit DesktopApp(CreateInfo create_info);
@@ -50,14 +51,20 @@ class DesktopApp : public App, public detail::IWsi {
 	static auto self(Ptr<GLFWwindow> window) -> DesktopApp&;
 	static void push(Ptr<GLFWwindow> window, Event event);
 
-	auto do_run() -> ErrCode final;
+	auto setup() -> std::optional<ErrCode> final;
+	void poll_events() final;
+	void tick() final;
+	void render() final;
+
 	void do_shutdown() final;
+	auto set_new_game(std::unique_ptr<Game> new_game) -> bool final;
 
 	[[nodiscard]] auto do_get_window_size() const -> glm::ivec2 final;
 	[[nodiscard]] auto do_get_framebuffer_size() const -> glm::ivec2 final;
 
 	[[nodiscard]] auto do_get_render_device() const -> RenderDevice& final;
 	[[nodiscard]] auto do_get_renderer() const -> Renderer& final;
+	[[nodiscard]] auto do_get_game() const -> Ptr<Game> final { return m_game.get(); }
 
 	[[nodiscard]] auto get_instance_extensions() const -> std::span<char const* const> final;
 	[[nodiscard]] auto make_surface(vk::Instance instance) const -> vk::SurfaceKHR final;
@@ -68,10 +75,6 @@ class DesktopApp : public App, public detail::IWsi {
 	void make_window();
 	void init_graphics();
 
-	void poll_events();
-	void tick();
-	void render();
-
 	CreateInfo m_create_info{};
 	ScopedResource<LogFile, LogFile::Deleter> m_log_file{};
 	ScopedResource<Glfw, Glfw::Deleter> m_glfw{};
@@ -81,5 +84,6 @@ class DesktopApp : public App, public detail::IWsi {
 	std::unique_ptr<Renderer> m_renderer{};
 	std::unique_ptr<detail::DearImGui> m_dear_imgui{};
 	std::unique_ptr<Game> m_game{};
+	std::unique_ptr<Game> m_new_game{};
 };
 } // namespace bave

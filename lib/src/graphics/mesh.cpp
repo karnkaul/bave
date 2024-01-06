@@ -1,8 +1,12 @@
 #include <bave/graphics/mesh.hpp>
 
 namespace bave {
-Mesh::Mesh(NotNull<RenderDevice*> render_device)
-	: m_render_device(render_device), m_vbo(&render_device->get_defer_queue(), render_device->get_vertex_buffer_cache().allocate()) {}
+Mesh::Mesh(NotNull<RenderDevice*> render_device) : m_render_device(render_device), m_vbo(render_device->get_vertex_buffer_cache().allocate()) {}
+
+Mesh::~Mesh() {
+	if (!m_vbo) { return; }
+	m_render_device->get_defer_queue().push(std::move(m_vbo));
+}
 
 void Mesh::write(Geometry const& geometry) {
 	if (geometry.vertices.empty()) {
@@ -37,10 +41,11 @@ void Mesh::draw(vk::CommandBuffer command_buffer, std::uint32_t instance_count) 
 }
 
 auto Mesh::get_buffer() const -> Ptr<detail::RenderBuffer> {
-	if (m_data.empty()) { return {}; }
+	if (m_data.empty() || !m_vbo) { return {}; }
 
-	auto const& ret = m_vbo.get().at(m_render_device->get_frame_index());
-	ret->write(m_data.data(), m_data.size());
-	return ret.get();
+	auto& ret = m_vbo->at(m_render_device->get_frame_index());
+
+	ret.write(m_data.data(), m_data.size());
+	return &ret;
 }
 } // namespace bave

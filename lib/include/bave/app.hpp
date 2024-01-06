@@ -5,6 +5,7 @@
 #include <bave/build_version.hpp>
 #include <bave/core/polymorphic.hpp>
 #include <bave/core/time.hpp>
+#include <bave/core/timer.hpp>
 #include <bave/data_store.hpp>
 #include <bave/graphics/renderer.hpp>
 #include <bave/graphics/shader.hpp>
@@ -23,9 +24,11 @@ enum struct ErrCode : int { eSuccess = 0, eFailure = 1 };
 
 class App : public PolyPinned {
   public:
+	using Bootloader = std::function<std::unique_ptr<class Game>(App&)>;
+
 	explicit App(std::string tag = "App");
 
-	void set_game_factory(std::function<std::unique_ptr<class Game>(App&)> factory);
+	void set_bootloader(Bootloader bootloader);
 	void set_data_store(std::unique_ptr<DataStore> data_store);
 
 	auto run() -> ErrCode;
@@ -40,6 +43,7 @@ class App : public PolyPinned {
 	[[nodiscard]] auto get_audio_streamer() const -> AudioStreamer& { return *m_audio_streamer; }
 
 	[[nodiscard]] auto get_events() const -> std::span<Event const> { return m_events; }
+	[[nodiscard]] auto get_file_drops() const -> std::span<std::string const> { return m_drops; }
 	[[nodiscard]] auto get_active_pointers() const -> std::span<Pointer const> { return m_active_pointers; }
 	[[nodiscard]] auto get_gesture_recognizer() const -> GestureRecognizer const& { return m_gesture_recognizer; }
 	[[nodiscard]] auto get_dt() const -> Seconds { return m_dt.dt; }
@@ -47,12 +51,17 @@ class App : public PolyPinned {
 	[[nodiscard]] auto get_framebuffer_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
 	[[nodiscard]] auto get_pipeline_cache() const -> detail::PipelineCache& { return do_get_renderer().get_pipeline_cache(); }
 
+	[[nodiscard]] auto get_timer() -> Timer& { return m_timer; }
+	[[nodiscard]] auto get_game() const -> Ptr<Game> { return do_get_game(); }
+
 	[[nodiscard]] auto load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader>;
 
   protected:
 	void start_next_frame();
 	void push_event(Event event);
-	[[nodiscard]] auto make_game() -> std::unique_ptr<Game>;
+	void push_drop(std::string path);
+	[[nodiscard]] auto boot_game() -> std::unique_ptr<Game>;
+	void swap_game(std::unique_ptr<Game>& new_game, std::unique_ptr<Game>& current_game) const;
 
 	[[nodiscard]] auto screen_to_framebuffer(glm::vec2 position) const -> glm::vec2;
 
@@ -61,23 +70,35 @@ class App : public PolyPinned {
 	GestureRecognizer m_gesture_recognizer{};
 
   private:
-	virtual auto do_run() -> ErrCode = 0;
+	virtual auto setup() -> std::optional<ErrCode> = 0;
+	virtual void poll_events() = 0;
+	virtual void tick() = 0;
+	virtual void render() = 0;
+
 	virtual void do_shutdown() = 0;
+	virtual auto set_new_game(std::unique_ptr<Game> new_game) -> bool = 0;
 
 	[[nodiscard]] virtual auto do_get_window_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
 	[[nodiscard]] virtual auto do_get_framebuffer_size() const -> glm::ivec2 = 0;
 
 	[[nodiscard]] virtual auto do_get_render_device() const -> RenderDevice& = 0;
 	[[nodiscard]] virtual auto do_get_renderer() const -> Renderer& = 0;
+	[[nodiscard]] virtual auto do_get_game() const -> Ptr<Game> = 0;
 
-	std::function<std::unique_ptr<Game>(App&)> m_game_factory{};
+	void pre_tick();
+
+	std::function<std::unique_ptr<Game>(App&)> m_bootloader{};
 	std::unique_ptr<DataStore> m_data_store{std::make_unique<DataStore>()};
 	std::unique_ptr<AudioDevice> m_audio_device{};
 	std::unique_ptr<AudioStreamer> m_audio_streamer{};
 
+	std::vector<std::string> m_drops{};
 	std::vector<Event> m_events{};
 	DeltaTime m_dt{};
+	Timer m_timer{};
 
 	bool m_shutting_down{};
+
+	friend class Game;
 };
 } // namespace bave

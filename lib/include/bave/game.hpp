@@ -12,10 +12,10 @@ class Game : public PolyPinned {
 
 	[[nodiscard]] auto get_app() const -> App& { return m_app; }
 
+	void replace_next_frame(std::unique_ptr<Game> new_game) const;
+
 	virtual void tick() {}
 	virtual void render() const {}
-
-	virtual void shutdown() {}
 
 	virtual void on_focus(FocusChange const& /*focus_change*/) {}
 	virtual void on_resize(WindowResize const& /*window_resize*/) {}
@@ -25,6 +25,8 @@ class Game : public PolyPinned {
 	virtual void on_tap(PointerTap const& /*pointer_tap*/) {}
 	virtual void on_move(PointerMove const& /*pointer_move*/) {}
 	virtual void on_scroll(MouseScroll const& /*mouse_scroll*/) {}
+
+	virtual void on_drop(std::string const& /*path*/) {}
 
 	Rgba clear_colour{black_v};
 

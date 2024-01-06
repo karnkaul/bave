@@ -133,7 +133,7 @@ DesktopApp::DesktopApp(CreateInfo create_info) : App("DesktopApp"), m_create_inf
 	}
 }
 
-auto DesktopApp::do_run() -> ErrCode {
+auto DesktopApp::setup() -> std::optional<ErrCode> {
 	auto options = clap::Options{
 		clap::make_app_name(m_create_info.args.front()),
 		"bave app",
@@ -159,24 +159,39 @@ auto DesktopApp::do_run() -> ErrCode {
 	make_window();
 	m_log.debug("init_graphics");
 	init_graphics();
-	m_game = make_game();
-	start_next_frame(); // clear dt
 
-	while (!is_shutting_down()) {
-		start_next_frame();
-		poll_events();
-		tick();
-		render();
-	}
+	m_game = boot_game();
 
-	m_render_device->get_device().waitIdle();
-
-	return ErrCode::eSuccess;
+	return {};
 }
 
-void DesktopApp::do_shutdown() {
-	m_game->shutdown();
-	glfwSetWindowShouldClose(m_window.get(), GLFW_TRUE);
+void DesktopApp::poll_events() {
+	glfwPollEvents();
+	swap_game(m_new_game, m_game);
+	m_game->handle_events(get_events());
+	for (auto const& drop : get_file_drops()) { m_game->on_drop(drop); }
+}
+
+void DesktopApp::tick() {
+	m_dear_imgui->new_frame();
+	if (is_shutting_down()) { return; }
+	m_game->tick();
+}
+
+void DesktopApp::render() {
+	m_dear_imgui->end_frame();
+	if (m_renderer->start_render(m_game->clear_colour)) {
+		m_game->render();
+		m_dear_imgui->render(m_renderer->get_command_buffer());
+	}
+	m_renderer->finish_render();
+}
+
+void DesktopApp::do_shutdown() { glfwSetWindowShouldClose(m_window.get(), GLFW_TRUE); }
+
+auto DesktopApp::set_new_game(std::unique_ptr<Game> new_game) -> bool {
+	m_new_game = std::move(new_game);
+	return true;
 }
 
 auto DesktopApp::do_get_window_size() const -> glm::ivec2 {
@@ -270,33 +285,15 @@ void DesktopApp::make_window() {
 		auto const& primary = self(window).m_active_pointers[0];
 		push(window, PointerTap{.pointer = primary, .action = to_action(action), .mods = to_mods(mods), .button = static_cast<MouseButton>(button)});
 	});
+
+	glfwSetDropCallback(m_window.get(), [](Ptr<GLFWwindow> window, int count, char const* paths[]) { // NOLINT
+		for (auto const* path : std::span{paths, static_cast<size_t>(count)}) { self(window).push_drop(path); }
+	});
 }
 
 void DesktopApp::init_graphics() {
-	m_render_device = std::make_unique<RenderDevice>(this);
+	m_render_device = std::make_unique<RenderDevice>(this, RenderDevice::CreateInfo{.validation_layers = m_create_info.validation_layers});
 	m_renderer = std::make_unique<Renderer>(m_render_device.get(), &get_data_store());
 	m_dear_imgui = std::make_unique<detail::DearImGui>(m_window.get(), *m_render_device, m_renderer->get_render_pass());
-}
-
-void DesktopApp::poll_events() {
-	glfwPollEvents();
-	m_gesture_recognizer.update(get_active_pointers());
-	m_game->handle_events(get_events());
-}
-
-void DesktopApp::tick() {
-	m_dear_imgui->new_frame();
-	get_audio_streamer().tick(get_dt());
-	if (is_shutting_down()) { return; }
-	m_game->tick();
-}
-
-void DesktopApp::render() {
-	m_dear_imgui->end_frame();
-	if (m_renderer->start_render(m_game->clear_colour)) {
-		m_game->render();
-		m_dear_imgui->render(m_renderer->get_command_buffer());
-	}
-	m_renderer->finish_render();
 }
 } // namespace bave

@@ -26,7 +26,7 @@ auto make_instance(std::vector<char const*> extensions, bool& out_validation) ->
 		if (std::find_if(available_layers.begin(), available_layers.end(), layer_search) != available_layers.end()) {
 			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		} else {
-			g_log.warn("Validation layers requested but not available");
+			g_log.warn("Vulkan Validation Layers requested but not available");
 			out_validation = false;
 		}
 	}

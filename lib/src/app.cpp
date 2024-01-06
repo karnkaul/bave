@@ -5,18 +5,18 @@
 
 namespace bave {
 App::App(std::string tag)
-	: m_log{std::move(tag)}, m_game_factory([](App& app) { return std::make_unique<Game>(app); }), m_audio_device(std::make_unique<AudioDevice>()),
+	: m_log{std::move(tag)}, m_bootloader([](App& app) { return std::make_unique<Game>(app); }), m_audio_device(std::make_unique<AudioDevice>()),
 	  m_audio_streamer(std::make_unique<AudioStreamer>(*m_audio_device)) {
 	log::get_thread_id(); // set thread 0
 }
 
-void App::set_game_factory(std::function<std::unique_ptr<class Game>(App&)> game_factory) {
-	if (!game_factory) {
+void App::set_bootloader(Bootloader bootloader) {
+	if (!bootloader) {
 		m_log.error("cannot set null game factory");
 		return;
 	}
 
-	m_game_factory = std::move(game_factory);
+	m_bootloader = std::move(bootloader);
 }
 
 void App::set_data_store(std::unique_ptr<DataStore> data_store) {
@@ -30,7 +30,18 @@ void App::set_data_store(std::unique_ptr<DataStore> data_store) {
 
 auto App::run() -> ErrCode {
 	try {
-		return do_run();
+		if (auto const ret = setup()) { return *ret; }
+
+		while (!is_shutting_down()) {
+			start_next_frame();
+			poll_events();
+			pre_tick();
+			tick();
+			render();
+		}
+
+		get_render_device().get_device().waitIdle();
+		return ErrCode::eSuccess;
 	} catch (std::runtime_error const& e) {
 		m_log.error("FATAL: {}", e.what());
 		return ErrCode::eFailure;
@@ -63,7 +74,14 @@ auto App::load_shader(std::string_view vertex, std::string_view fragment) const 
 
 void App::start_next_frame() {
 	m_events.clear();
+	m_drops.clear();
 	m_dt.update();
+}
+
+void App::pre_tick() {
+	m_gesture_recognizer.update(get_active_pointers());
+	m_audio_streamer->tick(get_dt());
+	m_timer.tick(get_dt());
 }
 
 void App::push_event(Event event) {
@@ -71,9 +89,21 @@ void App::push_event(Event event) {
 	m_events.push_back(event);
 }
 
-auto App::make_game() -> std::unique_ptr<Game> {
-	assert(m_game_factory);
-	return m_game_factory(*this);
+void App::push_drop(std::string path) { m_drops.push_back(std::move(path)); }
+
+auto App::boot_game() -> std::unique_ptr<Game> {
+	assert(m_bootloader);
+	auto ret = m_bootloader(*this);
+	if (!ret) { throw Error{"failed to boot Game"}; }
+	m_dt.update();
+	return ret;
+}
+
+void App::swap_game(std::unique_ptr<Game>& new_game, std::unique_ptr<Game>& current_game) const {
+	if (!new_game) { return; }
+
+	get_audio_streamer().stop();
+	current_game = std::move(new_game);
 }
 
 auto App::screen_to_framebuffer(glm::vec2 const position) const -> glm::vec2 {

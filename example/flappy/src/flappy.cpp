@@ -1,3 +1,4 @@
+#include <backends/imgui_impl_vulkan.h>
 #include <bave/graphics/pixmap.hpp>
 #include <bave/graphics/projector.hpp>
 #include <bave/loader.hpp>
@@ -30,6 +31,8 @@ Flappy::Flappy(App& app)
 	create_entities();
 	// create and setup the HUD (mainly text here).
 	setup_hud();
+
+	m_im_texture = bave::ImTexture{m_config.cloud_texture};
 }
 
 void Flappy::tick() {
@@ -82,6 +85,12 @@ void Flappy::tick() {
 			if (ImGui::Button(pause_text)) { m_paused = !m_paused; }
 
 			ImGui::Checkbox("force lag", &m_force_lag);
+
+			if (m_im_texture->get_id() != vk::DescriptorSet{}) {
+				ImGui::Separator();
+				glm::vec2 const size = m_im_texture->get_texture()->get_size();
+				ImGui::Image(m_im_texture->get_id(), {size.x, size.y});
+			}
 		}
 		ImGui::End();
 	}

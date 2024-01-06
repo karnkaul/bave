@@ -16,12 +16,13 @@ void DearImGui::Instance::Deleter::operator()(Instance /*instance*/) const noexc
 }
 
 DearImGui::DearImGui(Ptr<GLFWwindow> window, RenderDevice& render_device, vk::RenderPass render_pass) : m_blocker(render_device.get_device()) {
+	static constexpr std::uint32_t max_textures_v{16};
 	auto const pool_sizes = std::array{
-		vk::DescriptorPoolSize{vk::DescriptorType::eCombinedImageSampler, 2},
+		vk::DescriptorPoolSize{vk::DescriptorType::eCombinedImageSampler, max_textures_v},
 	};
 	auto dpci = vk::DescriptorPoolCreateInfo{};
 	dpci.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
-	dpci.maxSets = 2;
+	dpci.maxSets = max_textures_v;
 	dpci.poolSizeCount = static_cast<std::uint32_t>(pool_sizes.size());
 	dpci.pPoolSizes = pool_sizes.data();
 	m_pool = render_device.get_device().createDescriptorPoolUnique(dpci);

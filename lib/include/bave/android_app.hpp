@@ -16,28 +16,31 @@ class AInputEvent;
 namespace bave {
 class AndroidApp : public App, public detail::IWsi {
   public:
-	explicit AndroidApp(android_app& app);
+	explicit AndroidApp(android_app& app, bool validation_layers = debug_v);
 
   private:
 	static auto self(Ptr<android_app> app) -> AndroidApp&;
 	static void push(Ptr<android_app> window, Event event);
 
-	auto do_run() -> ErrCode final;
+	auto setup() -> std::optional<ErrCode> final;
+	void poll_events() final;
+	void tick() final;
+	void render() final;
+
+	auto set_new_game(std::unique_ptr<Game> new_game) -> bool final;
 	void do_shutdown() final;
 
 	[[nodiscard]] auto do_get_framebuffer_size() const -> glm::ivec2 final;
 
 	[[nodiscard]] auto do_get_render_device() const -> RenderDevice& final;
 	[[nodiscard]] auto do_get_renderer() const -> Renderer& final;
+	[[nodiscard]] auto do_get_game() const -> Ptr<Game> final { return m_game.get(); }
 
 	[[nodiscard]] auto get_instance_extensions() const -> std::span<char const* const> final;
 	[[nodiscard]] auto make_surface(vk::Instance instance) const -> vk::SurfaceKHR final;
 	[[nodiscard]] auto get_framebuffer_extent() const -> vk::Extent2D final;
 
 	void setup_event_callbacks();
-	void poll_events();
-	void tick();
-	void render();
 
 	void start();
 	void destroy();
@@ -53,11 +56,15 @@ class AndroidApp : public App, public detail::IWsi {
 	void handle_focus(bool gained);
 
 	android_app& m_app; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+	bool m_validation_layers;
+
 	std::unique_ptr<RenderDevice> m_render_device{};
 	vk::UniqueSurfaceKHR m_surface{};
 	std::unique_ptr<Renderer> m_renderer{};
 	std::unique_ptr<Game> m_game{};
-	std::optional<AudioStreamer::Pause> m_stream_pause{};
+	std::unique_ptr<Game> m_new_game{};
 	bool m_can_render{};
+
+	std::optional<AudioStreamer::Pause> m_stream_pause{};
 };
 } // namespace bave
