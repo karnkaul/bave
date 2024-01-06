@@ -34,6 +34,7 @@ class AndroidApp : public App, public detail::IWsi {
 
 	[[nodiscard]] auto do_get_render_device() const -> RenderDevice& final;
 	[[nodiscard]] auto do_get_renderer() const -> Renderer& final;
+	[[nodiscard]] auto do_get_game() const -> Ptr<Game> final { return m_game.get(); }
 
 	[[nodiscard]] auto get_instance_extensions() const -> std::span<char const* const> final;
 	[[nodiscard]] auto make_surface(vk::Instance instance) const -> vk::SurfaceKHR final;

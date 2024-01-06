@@ -52,6 +52,7 @@ class App : public PolyPinned {
 	[[nodiscard]] auto get_pipeline_cache() const -> detail::PipelineCache& { return do_get_renderer().get_pipeline_cache(); }
 
 	[[nodiscard]] auto get_timer() -> Timer& { return m_timer; }
+	[[nodiscard]] auto get_game() const -> Ptr<Game> { return do_get_game(); }
 
 	[[nodiscard]] auto load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader>;
 
@@ -82,6 +83,7 @@ class App : public PolyPinned {
 
 	[[nodiscard]] virtual auto do_get_render_device() const -> RenderDevice& = 0;
 	[[nodiscard]] virtual auto do_get_renderer() const -> Renderer& = 0;
+	[[nodiscard]] virtual auto do_get_game() const -> Ptr<Game> = 0;
 
 	void pre_tick();
 
