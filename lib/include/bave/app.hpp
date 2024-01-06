@@ -72,7 +72,7 @@ class App : public PolyPinned {
 	virtual void render() = 0;
 
 	virtual void do_shutdown() = 0;
-	virtual auto replace_game(std::unique_ptr<Game> new_game) -> bool = 0;
+	virtual auto set_new_game(std::unique_ptr<Game> new_game) -> bool = 0;
 
 	[[nodiscard]] virtual auto do_get_window_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
 	[[nodiscard]] virtual auto do_get_framebuffer_size() const -> glm::ivec2 = 0;

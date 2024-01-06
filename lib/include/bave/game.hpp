@@ -12,12 +12,10 @@ class Game : public PolyPinned {
 
 	[[nodiscard]] auto get_app() const -> App& { return m_app; }
 
-	void replace_instance(std::unique_ptr<Game> new_game) const;
+	void replace_next_frame(std::unique_ptr<Game> new_game) const;
 
 	virtual void tick() {}
 	virtual void render() const {}
-
-	virtual void shutdown() {}
 
 	virtual void on_focus(FocusChange const& /*focus_change*/) {}
 	virtual void on_resize(WindowResize const& /*window_resize*/) {}

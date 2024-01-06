@@ -27,7 +27,7 @@ class AndroidApp : public App, public detail::IWsi {
 	void tick() final;
 	void render() final;
 
-	auto replace_game(std::unique_ptr<Game> new_game) -> bool final;
+	auto set_new_game(std::unique_ptr<Game> new_game) -> bool final;
 	void do_shutdown() final;
 
 	[[nodiscard]] auto do_get_framebuffer_size() const -> glm::ivec2 final;

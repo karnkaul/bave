@@ -187,12 +187,9 @@ void DesktopApp::render() {
 	m_renderer->finish_render();
 }
 
-void DesktopApp::do_shutdown() {
-	m_game->shutdown();
-	glfwSetWindowShouldClose(m_window.get(), GLFW_TRUE);
-}
+void DesktopApp::do_shutdown() { glfwSetWindowShouldClose(m_window.get(), GLFW_TRUE); }
 
-auto DesktopApp::replace_game(std::unique_ptr<Game> new_game) -> bool {
+auto DesktopApp::set_new_game(std::unique_ptr<Game> new_game) -> bool {
 	m_new_game = std::move(new_game);
 	return true;
 }

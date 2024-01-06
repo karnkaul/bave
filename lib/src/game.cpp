@@ -3,9 +3,9 @@
 #include <bave/game.hpp>
 
 namespace bave {
-void Game::replace_instance(std::unique_ptr<Game> new_game) const {
+void Game::replace_next_frame(std::unique_ptr<Game> new_game) const {
 	if (!new_game) { return; }
-	get_app().replace_game(std::move(new_game));
+	get_app().set_new_game(std::move(new_game));
 }
 
 void Game::handle_events(std::span<Event const> events) {
