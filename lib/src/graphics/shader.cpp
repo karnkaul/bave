@@ -166,6 +166,7 @@ void Shader::draw(Mesh const& mesh, std::span<RenderInstance::Baked const> insta
 	command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
 	command_buffer.setViewport(0, m_viewport);
 	command_buffer.setScissor(0, m_scissor);
+	command_buffer.setLineWidth(m_renderer->get_render_device().get_line_width_limits().clamp(line_width));
 	mesh.draw(command_buffer, static_cast<std::uint32_t>(instances.size()));
 
 	m_sets = {}; // clear for next draw

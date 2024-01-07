@@ -98,6 +98,11 @@ struct NineSlice {
 	[[nodiscard]] constexpr auto get_bounds(glm::vec2 const position) const -> Rect<> { return Rect<>::from_extent(size.total, origin + position); }
 	[[nodiscard]] auto to_geometry() const -> Geometry { return Geometry::from(*this); }
 
+	constexpr void recompute_uvs() {
+		top_uv.rb = size.left_top / size.total;
+		bottom_uv.lt = (size.total - size.right_bottom) / size.total;
+	}
+
 	auto operator==(NineSlice const&) const -> bool = default;
 };
 } // namespace bave
