@@ -13,6 +13,4 @@ class DesktopDataStore : public DataStore {
   public:
 	explicit DesktopDataStore(std::string data_dir);
 };
-
-[[nodiscard]] auto find_super_dir(std::string_view base, std::string_view patterns) -> std::string;
 } // namespace bave

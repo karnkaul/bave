@@ -3,6 +3,7 @@
 
 #include <bave/core/error.hpp>
 #include <bave/desktop_app.hpp>
+#include <bave/file_io.hpp>
 #include <platform/desktop/clap/clap.hpp>
 #include <platform/desktop/desktop_data_store.hpp>
 #include <filesystem>
@@ -169,7 +170,7 @@ void DesktopApp::poll_events() {
 	glfwPollEvents();
 	swap_game(m_new_game, m_game);
 	m_game->handle_events(get_events());
-	for (auto const& drop : get_file_drops()) { m_game->on_drop(drop); }
+	if (auto const drops = get_file_drops(); !drops.empty()) { m_game->on_drop(drops); }
 }
 
 void DesktopApp::tick() {

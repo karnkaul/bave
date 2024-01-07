@@ -11,5 +11,10 @@ struct InclusiveRange {
 		using glm::clamp;
 		return clamp(in, lo, hi);
 	}
+
+	template <typename Type>
+	constexpr operator InclusiveRange<Type>() const {
+		return {.lo = static_cast<Type>(lo), .hi = static_cast<Type>(hi)};
+	}
 };
 } // namespace bave
