@@ -162,15 +162,6 @@ auto append_sliced(Geometry& out, Sliced const& sliced) -> void {
 }
 } // namespace
 
-auto NineSlice::Size::rescaled(glm::vec2 const extent) const -> Size {
-	assert(total.x > 0.0f && total.y > 0.0f);
-	auto ret = *this;
-	ret.left_top *= extent / total;
-	ret.right_bottom *= extent / total;
-	ret.total = extent;
-	return ret;
-}
-
 auto Geometry::append(std::span<Vertex const> vs, std::span<std::uint32_t const> is) -> Geometry& {
 	auto const i_offset = static_cast<std::uint32_t>(vertices.size());
 	vertices.reserve(vertices.size() + vs.size());
