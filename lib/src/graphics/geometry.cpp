@@ -78,9 +78,10 @@ auto append_sliced(Geometry& out, Sliced const& sliced) -> void {
 	};
 	// origin offsets
 	auto const cell_offsets = std::array{
-		glm::vec2{-half_size.x + 0.5f * nine_slice.size.top.x, half_size.y - 0.5f * nine_slice.size.top.y},								 // 00
-		glm::vec2{0.5f * (nine_slice.size.top.x - nine_slice.size.bottom.x), 0.5f * (nine_slice.size.bottom.y - nine_slice.size.top.y)}, // 11
-		glm::vec2{half_size.x - 0.5f * nine_slice.size.bottom.x, 0.5f * (-nine_slice.size.total.y + nine_slice.size.bottom.y)},			 // 22
+		glm::vec2{-half_size.x + 0.5f * nine_slice.size.left_top.x, half_size.y - 0.5f * nine_slice.size.left_top.y}, // 00
+		glm::vec2{0.5f * (nine_slice.size.left_top.x - nine_slice.size.right_bottom.x),
+				  0.5f * (nine_slice.size.right_bottom.y - nine_slice.size.left_top.y)},													// 11
+		glm::vec2{half_size.x - 0.5f * nine_slice.size.right_bottom.x, 0.5f * (-nine_slice.size.total.y + nine_slice.size.right_bottom.y)}, // 22
 	};
 	// rounded corner arcs
 	auto const corner_arcs = std::array{
@@ -91,10 +92,10 @@ auto append_sliced(Geometry& out, Sliced const& sliced) -> void {
 	};
 	// rounded corner offsets
 	auto const corner_offsets = std::array{
-		0.5f * glm::vec2{nine_slice.size.top.x, -nine_slice.size.top.y},	   // 00
-		0.5f * glm::vec2{-nine_slice.size.bottom.x, -nine_slice.size.top.y},   // 02
-		0.5f * glm::vec2{nine_slice.size.top.x, nine_slice.size.bottom.y},	   // 20
-		0.5f * glm::vec2{-nine_slice.size.bottom.x, nine_slice.size.bottom.y}, // 22
+		0.5f * glm::vec2{nine_slice.size.left_top.x, -nine_slice.size.left_top.y},		   // 00
+		0.5f * glm::vec2{-nine_slice.size.right_bottom.x, -nine_slice.size.left_top.y},	   // 02
+		0.5f * glm::vec2{nine_slice.size.left_top.x, nine_slice.size.right_bottom.y},	   // 20
+		0.5f * glm::vec2{-nine_slice.size.right_bottom.x, nine_slice.size.right_bottom.y}, // 22
 	};
 
 	auto const rgba = Rgba::to_linear(nine_slice.rgba.to_vec4());
@@ -118,44 +119,44 @@ auto append_sliced(Geometry& out, Sliced const& sliced) -> void {
 		}
 	};
 
-	auto const size_00 = nine_slice.size.top;
+	auto const size_00 = nine_slice.size.left_top;
 	auto const origin_00 = nine_slice.origin + glm::vec2{cell_offsets[0].x, cell_offsets[0].y};
 	append_corner(0, size_00, corner_uvs[0], origin_00);
 
-	auto const size_01 = glm::vec2{nine_slice.size.total.x - (nine_slice.size.top.x + nine_slice.size.bottom.x), nine_slice.size.top.y};
+	auto const size_01 = glm::vec2{nine_slice.size.total.x - (nine_slice.size.left_top.x + nine_slice.size.right_bottom.x), nine_slice.size.left_top.y};
 	auto const origin_01 = nine_slice.origin + glm::vec2{cell_offsets[1].x, cell_offsets[0].y};
 	auto const uv_01 = UvRect{.lt = corner_uvs[0].top_right(), .rb = corner_uvs[1].bottom_left()};
 	out.append(Quad{.size = size_01, .uv = uv_01, .rgba = nine_slice.rgba, .origin = origin_01});
 
-	auto const size_02 = glm::vec2{nine_slice.size.bottom.x, nine_slice.size.top.y};
+	auto const size_02 = glm::vec2{nine_slice.size.right_bottom.x, nine_slice.size.left_top.y};
 	auto const origin_02 = nine_slice.origin + glm::vec2{cell_offsets[2].x, cell_offsets[0].y};
 	append_corner(1, size_02, corner_uvs[1], origin_02);
 
-	auto const size_10 = glm::vec2{nine_slice.size.top.x, nine_slice.size.total.y - (nine_slice.size.top.y + nine_slice.size.bottom.y)};
+	auto const size_10 = glm::vec2{nine_slice.size.left_top.x, nine_slice.size.total.y - (nine_slice.size.left_top.y + nine_slice.size.right_bottom.y)};
 	auto const origin_10 = nine_slice.origin + glm::vec2{cell_offsets[0].x, cell_offsets[1].y};
 	auto const uv_10 = UvRect{.lt = corner_uvs[0].bottom_left(), .rb = corner_uvs[2].top_right()};
 	out.append(Quad{.size = size_10, .uv = uv_10, .rgba = nine_slice.rgba, .origin = origin_10});
 
-	auto const size_11 = nine_slice.size.total - (nine_slice.size.top + nine_slice.size.bottom);
+	auto const size_11 = nine_slice.size.total - (nine_slice.size.left_top + nine_slice.size.right_bottom);
 	auto const origin_11 = nine_slice.origin + glm::vec2{cell_offsets[1].x, cell_offsets[1].y};
 	auto const uv_11 = UvRect{.lt = corner_uvs[0].bottom_right(), .rb = corner_uvs[3].top_left()};
 	out.append(Quad{.size = size_11, .uv = uv_11, .rgba = nine_slice.rgba, .origin = origin_11});
 
-	auto const size_12 = glm::vec2{nine_slice.size.bottom.x, nine_slice.size.total.y - (nine_slice.size.top.y + nine_slice.size.bottom.y)};
+	auto const size_12 = glm::vec2{nine_slice.size.right_bottom.x, nine_slice.size.total.y - (nine_slice.size.left_top.y + nine_slice.size.right_bottom.y)};
 	auto const origin_12 = nine_slice.origin + glm::vec2{cell_offsets[2].x, cell_offsets[1].y};
 	auto const uv_12 = UvRect{.lt = corner_uvs[1].bottom_left(), .rb = corner_uvs[3].top_right()};
 	out.append(Quad{.size = size_12, .uv = uv_12, .rgba = nine_slice.rgba, .origin = origin_12});
 
-	auto const size_20 = glm::vec2{nine_slice.size.top.x, nine_slice.size.bottom.y};
+	auto const size_20 = glm::vec2{nine_slice.size.left_top.x, nine_slice.size.right_bottom.y};
 	auto const origin_20 = nine_slice.origin + glm::vec2{cell_offsets[0].x, cell_offsets[2].y};
 	append_corner(2, size_20, corner_uvs[2], origin_20);
 
-	auto const size_21 = glm::vec2{nine_slice.size.total.x - (nine_slice.size.top.x + nine_slice.size.bottom.x), nine_slice.size.bottom.y};
+	auto const size_21 = glm::vec2{nine_slice.size.total.x - (nine_slice.size.left_top.x + nine_slice.size.right_bottom.x), nine_slice.size.right_bottom.y};
 	auto const origin_21 = nine_slice.origin + glm::vec2{cell_offsets[1].x, cell_offsets[2].y};
 	auto const uv_21 = UvRect{.lt = corner_uvs[2].top_right(), .rb = corner_uvs[3].bottom_left()};
 	out.append(Quad{.size = size_21, .uv = uv_21, .rgba = nine_slice.rgba, .origin = origin_21});
 
-	auto const size_22 = nine_slice.size.bottom;
+	auto const size_22 = nine_slice.size.right_bottom;
 	auto const origin_22 = nine_slice.origin + glm::vec2{cell_offsets[2].x, cell_offsets[2].y};
 	append_corner(3, size_22, corner_uvs[3], origin_22);
 }
@@ -164,8 +165,8 @@ auto append_sliced(Geometry& out, Sliced const& sliced) -> void {
 auto NineSlice::Size::rescaled(glm::vec2 const extent) const -> Size {
 	assert(total.x > 0.0f && total.y > 0.0f);
 	auto ret = *this;
-	ret.top *= extent / total;
-	ret.bottom *= extent / total;
+	ret.left_top *= extent / total;
+	ret.right_bottom *= extent / total;
 	ret.total = extent;
 	return ret;
 }
@@ -218,7 +219,7 @@ auto Geometry::append(RoundedQuad const& rounded_quad) -> Geometry& {
 	auto const corner_size = glm::vec2{rounded_quad.corner_radius};
 	auto const n_corner_size = corner_size / rounded_quad.size;
 	auto const nine_slice = NineSlice{
-		.size = NineSlice::Size{.total = rounded_quad.size, .top = corner_size, .bottom = corner_size},
+		.size = NineSlice::Size{.total = rounded_quad.size, .left_top = corner_size, .right_bottom = corner_size},
 		.top_uv = UvRect{.lt = rounded_quad.uv.lt, .rb = rounded_quad.uv.lt + n_corner_size},
 		.bottom_uv = UvRect{.lt = rounded_quad.uv.rb - n_corner_size, .rb = rounded_quad.uv.rb},
 		.rgba = rounded_quad.rgba,

@@ -81,8 +81,8 @@ struct RoundedQuad : Quad {
 struct NineSlice {
 	struct Size {
 		glm::vec2 total{Quad::size_v};
-		glm::vec2 top{0.25f * Quad::size_v};
-		glm::vec2 bottom{0.25f * Quad::size_v};
+		glm::vec2 left_top{0.25f * Quad::size_v};
+		glm::vec2 right_bottom{0.25f * Quad::size_v};
 
 		[[nodiscard]] auto rescaled(glm::vec2 extent) const -> Size;
 
