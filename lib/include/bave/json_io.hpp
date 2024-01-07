@@ -1,4 +1,5 @@
 #pragma once
+#include <bave/graphics/geometry.hpp>
 #include <bave/graphics/rect.hpp>
 #include <bave/graphics/rgba.hpp>
 #include <djson/json.hpp>
@@ -33,4 +34,7 @@ void from_json(dj::Json const& json, Rect<Type>& out) {
 
 void to_json(dj::Json& out, Rgba const& rgba);
 void from_json(dj::Json const& json, Rgba& out);
+
+void to_json(dj::Json& out, NineSlice const& nine_slice);
+void from_json(dj::Json const& json, NineSlice& out);
 } // namespace bave
