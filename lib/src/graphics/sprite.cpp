@@ -37,7 +37,7 @@ void Sprite::set_tile(SpriteSheet::Tile const& tile, bool resize) {
 void SlicedSprite::set_size(glm::vec2 const size) {
 	if (size != get_size()) {
 		auto shape = get_shape();
-		shape.resize(size);
+		shape.size.current = size;
 		set_shape(shape);
 	}
 }

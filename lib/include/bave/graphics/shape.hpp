@@ -37,5 +37,5 @@ class Shape : public BasicShape {
 using QuadShape = Shape<Quad>;
 using CircleShape = Shape<Circle>;
 using RoundedQuadShape = Shape<RoundedQuad>;
-using NineSliceShape = Shape<NineSlice>;
+using NineQuadShape = Shape<NineQuad>;
 } // namespace bave

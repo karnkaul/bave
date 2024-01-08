@@ -18,7 +18,7 @@ struct Vertex {
 struct Quad;
 struct Circle;
 struct RoundedQuad;
-struct NineSlice;
+struct NineQuad;
 
 struct Geometry {
 	std::vector<Vertex> vertices{};
@@ -29,7 +29,7 @@ struct Geometry {
 	auto append(Quad const& quad) -> Geometry&;
 	auto append(Circle const& circle) -> Geometry&;
 	auto append(RoundedQuad const& rounded_quad) -> Geometry&;
-	auto append(NineSlice const& nine_slice) -> Geometry&;
+	auto append(NineQuad const& nine_quad) -> Geometry&;
 
 	template <typename ShapeT>
 	static auto from(ShapeT const& shape) -> Geometry {
@@ -79,39 +79,31 @@ struct RoundedQuad : Quad {
 };
 
 struct NineSlice {
-	struct Size {
-		glm::vec2 total{Quad::size_v};
-		glm::vec2 left_top{0.25f * Quad::size_v};
-		glm::vec2 right_bottom{0.25f * Quad::size_v};
+	glm::vec2 n_left_top{0.25f};
+	glm::vec2 n_right_bottom{0.75f};
 
-		[[nodiscard]] constexpr auto rescaled(glm::vec2 extent) const -> Size {
-			if (total.x <= 0.0f || total.y <= 0.0f) { return {}; }
-			auto ret = *this;
-			ret.left_top *= extent / total;
-			ret.right_bottom *= extent / total;
-			ret.total = extent;
-			return ret;
-		}
+	auto operator==(NineSlice const&) const -> bool = default;
+};
+
+struct NineQuad {
+	struct Size {
+		glm::vec2 reference{Quad::size_v};
+		glm::vec2 current{Quad::size_v};
+
+		constexpr Size(glm::vec2 const size = Quad::size_v) : reference(size), current(size) {}
+		constexpr Size(glm::vec2 const reference, glm::vec2 const current) : reference(reference), current(current) {}
 
 		auto operator==(Size const&) const -> bool = default;
 	};
 
 	Size size{};
-	UvRect top_uv{.lt = {}, .rb = glm::vec2{0.25f}};
-	UvRect bottom_uv{.lt = glm::vec2{0.75f}, .rb = glm::vec2{1.0f}};
+	NineSlice slice{};
 	Rgba rgba{white_v};
 	glm::vec2 origin{};
 
-	[[nodiscard]] constexpr auto get_bounds(glm::vec2 const position) const -> Rect<> { return Rect<>::from_extent(size.total, origin + position); }
+	[[nodiscard]] constexpr auto get_bounds(glm::vec2 const position) const -> Rect<> { return Rect<>::from_extent(size.current, origin + position); }
 	[[nodiscard]] auto to_geometry() const -> Geometry { return Geometry::from(*this); }
 
-	constexpr void recompute_uvs() {
-		top_uv.rb = size.left_top / size.total;
-		bottom_uv.lt = (size.total - size.right_bottom) / size.total;
-	}
-
-	constexpr void resize(glm::vec2 const total) { size = size.rescaled(total); }
-
-	auto operator==(NineSlice const&) const -> bool = default;
+	auto operator==(NineQuad const&) const -> bool = default;
 };
 } // namespace bave

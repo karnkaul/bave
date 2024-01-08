@@ -18,13 +18,13 @@ class Sprite : public QuadShape {
 	void set_tile(SpriteSheet::Tile const& tile, bool resize = false);
 };
 
-class SlicedSprite : public NineSliceShape {
+class SlicedSprite : public NineQuadShape {
   public:
-	explicit SlicedSprite(NotNull<RenderDevice*> render_device) : NineSliceShape(render_device) {}
+	explicit SlicedSprite(NotNull<RenderDevice*> render_device) : NineQuadShape(render_device) {}
 
 	void set_size(glm::vec2 size);
 
-	[[nodiscard]] auto get_size() const -> glm::vec2 { return get_shape().size.total; }
+	[[nodiscard]] auto get_size() const -> glm::vec2 { return get_shape().size.current; }
 };
 
 class AnimatedSprite : public Sprite {

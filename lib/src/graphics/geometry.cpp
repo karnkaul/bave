@@ -18,11 +18,6 @@ struct Sector {
 	UvRect uv{uv_rect_v};
 };
 
-struct Sliced {
-	NineSlice const& nine_slice; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
-	int corner_resolution{};
-};
-
 auto append_sector(Geometry& out, Sector const& sector) -> void {
 	auto const& o = sector.origin;
 	auto const uvo = sector.uv.centre();
@@ -52,114 +47,184 @@ auto append_sector(Geometry& out, Sector const& sector) -> void {
 	add_tri(prev, get_dir(sector.arc.finish));
 }
 
-auto append_sliced(Geometry& out, Sliced const& sliced) -> void {
-	/*
-		cells and their addresses:
-		+----+--------+----+
-		| 00 |   01   | 02 |
-		+----+--------+----+
-		|    |        |    |
-		| 10 |   11   | 12 |
-		|    |        |    |
-		+----+--------+----+
-		| 20 |   21   | 22 |
-		+----+--------+----+
+/*
+	cells and their addresses:
+	+----+--------+----+
+	| 00 |   01   | 02 |
+	+----+--------+----+
+	|    |        |    |
+	| 10 |   11   | 12 |
+	|    |        |    |
+	+----+--------+----+
+	| 20 |   21   | 22 |
+	+----+--------+----+
+*/
+struct QuadSlicer {
+	NineQuad const& nine_quad; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 
-		corner cells: 00, 02, 20, 22 (these retain their size and UVs on size.total changing)
-	*/
+	std::array<std::array<Quad, 3>, 3> quads{};
+	std::array<UvRect, 4> corner_uvs{};
+	std::array<glm::vec2, 4> corner_sizes{};
+	std::array<glm::vec2, 4> corner_origins{};
 
-	auto const& nine_slice = sliced.nine_slice;
-	auto const half_size = 0.5f * nine_slice.size.total;
-	auto const corner_uvs = std::array{
-		nine_slice.top_uv,																											  // 00
-		UvRect{.lt = {nine_slice.bottom_uv.lt.x, nine_slice.top_uv.lt.y}, .rb = {nine_slice.bottom_uv.rb.x, nine_slice.top_uv.rb.y}}, // 02
-		UvRect{.lt = {nine_slice.top_uv.lt.x, nine_slice.bottom_uv.lt.y}, .rb = {nine_slice.top_uv.rb.x, nine_slice.bottom_uv.rb.y}}, // 20
-		nine_slice.bottom_uv,																										  // 22
-	};
-	// origin offsets
-	auto const cell_offsets = std::array{
-		glm::vec2{-half_size.x + 0.5f * nine_slice.size.left_top.x, half_size.y - 0.5f * nine_slice.size.left_top.y}, // 00
-		glm::vec2{0.5f * (nine_slice.size.left_top.x - nine_slice.size.right_bottom.x),
-				  0.5f * (nine_slice.size.right_bottom.y - nine_slice.size.left_top.y)},													// 11
-		glm::vec2{half_size.x - 0.5f * nine_slice.size.right_bottom.x, 0.5f * (-nine_slice.size.total.y + nine_slice.size.right_bottom.y)}, // 22
-	};
-	// rounded corner arcs
-	auto const corner_arcs = std::array{
-		Arc{.start = Degrees{0.0f}, .finish = Degrees{90.0f}},	  // 00
-		Arc{.start = Degrees{270.0f}, .finish = Degrees{360.0f}}, // 02
-		Arc{.start = Degrees{90.0f}, .finish = Degrees{180.0f}},  // 20
-		Arc{.start = Degrees{180.0f}, .finish = Degrees{270.0f}}, // 22
-	};
-	// rounded corner offsets
-	auto const corner_offsets = std::array{
-		0.5f * glm::vec2{nine_slice.size.left_top.x, -nine_slice.size.left_top.y},		   // 00
-		0.5f * glm::vec2{-nine_slice.size.right_bottom.x, -nine_slice.size.left_top.y},	   // 02
-		0.5f * glm::vec2{nine_slice.size.left_top.x, nine_slice.size.right_bottom.y},	   // 20
-		0.5f * glm::vec2{-nine_slice.size.right_bottom.x, nine_slice.size.right_bottom.y}, // 22
-	};
+	QuadSlicer(NineQuad const& nine_quad) : nine_quad(nine_quad) {
+		auto const top_uv = UvRect{.rb = nine_quad.slice.n_left_top};
+		auto const bottom_uv = UvRect{.lt = nine_quad.slice.n_right_bottom, .rb = glm::vec2{1.0f}};
+		corner_uvs = {
+			top_uv,																			  // 00
+			UvRect{.lt = {bottom_uv.lt.x, top_uv.lt.y}, .rb = {bottom_uv.rb.x, top_uv.rb.y}}, // 02
+			UvRect{.lt = {top_uv.lt.x, bottom_uv.lt.y}, .rb = {top_uv.rb.x, bottom_uv.rb.y}}, // 20
+			bottom_uv,																		  // 22
+		};
+		corner_sizes = {
+			nine_quad.size.reference * nine_quad.slice.n_left_top,
+			nine_quad.size.reference * glm::vec2{1.0f - nine_quad.slice.n_right_bottom.x, nine_quad.slice.n_left_top.y},
+			nine_quad.size.reference * glm::vec2{nine_quad.slice.n_left_top.x, 1.0f - nine_quad.slice.n_right_bottom.y},
+			nine_quad.size.reference * (1.0f - nine_quad.slice.n_right_bottom),
+		};
+		corner_origins = {
+			nine_quad.origin + 0.5f * glm::vec2{-nine_quad.size.current.x + corner_sizes[0].x, nine_quad.size.current.y - corner_sizes[0].y},
+			nine_quad.origin + 0.5f * (nine_quad.size.current - corner_sizes[1]),
+			nine_quad.origin + 0.5f * (-nine_quad.size.current + corner_sizes[2]),
+			nine_quad.origin + 0.5f * glm::vec2{nine_quad.size.current.x - corner_sizes[3].x, -nine_quad.size.current.y + corner_sizes[3].y},
+		};
 
-	auto const rgba = Rgba::to_linear(nine_slice.rgba.to_vec4());
-	auto const append_corner = [&](std::size_t index, glm::vec2 size, UvRect uv, glm::vec2 origin) {
-		if (sliced.corner_resolution > 1) {
+		for (auto& arr : quads) {
+			for (auto& q : arr) { q.rgba = nine_quad.rgba; }
+		}
+	}
+
+	void append_five_quad(Geometry& out) {
+		auto const x_horz = nine_quad.origin.x + 0.5f * (corner_sizes[0].x - corner_sizes[1].x);
+		// 01
+		quads[0][1].size = {
+			nine_quad.size.current.x - corner_sizes[0].x - corner_sizes[1].x,
+			corner_sizes[0].y,
+		};
+		quads[0][1].origin = {x_horz, corner_origins[0].y};
+		quads[0][1].uv = UvRect{
+			.lt = {corner_uvs[0].rb.x, corner_uvs[0].lt.y},
+			.rb = {corner_uvs[1].lt.x, corner_uvs[1].rb.y},
+		};
+		out.append(quads[0][1]);
+
+		// 21
+		quads[2][1].size = {
+			nine_quad.size.current.x - corner_sizes[2].x - corner_sizes[3].x,
+			corner_sizes[2].y,
+		};
+		quads[2][1].origin = {x_horz, corner_origins[2].y};
+		quads[2][1].uv = UvRect{
+			.lt = {corner_uvs[2].rb.x, corner_uvs[2].lt.y},
+			.rb = {corner_uvs[3].lt.x, corner_uvs[3].rb.y},
+		};
+		out.append(quads[2][1]);
+
+		auto const y_vert = nine_quad.origin.y + 0.5f * (corner_sizes[2].y - corner_sizes[0].y);
+		// 10
+		quads[1][0].size = {
+			corner_sizes[0].x,
+			nine_quad.size.current.y - corner_sizes[0].y - corner_sizes[2].y,
+		};
+		quads[1][0].origin = {corner_origins[0].x, y_vert};
+		quads[1][0].uv = UvRect{
+			.lt = {corner_uvs[0].lt.x, corner_uvs[0].rb.y},
+			.rb = {corner_uvs[2].rb.x, corner_uvs[2].lt.y},
+		};
+		out.append(quads[1][0]);
+
+		// 12
+		quads[1][2].size = {
+			corner_sizes[1].x,
+			nine_quad.size.current.y - corner_sizes[1].y - corner_sizes[3].y,
+		};
+		quads[1][2].origin = {corner_origins[1].x, y_vert};
+		quads[1][2].uv = UvRect{
+			.lt = {corner_uvs[1].lt.x, corner_uvs[1].rb.y},
+			.rb = {corner_uvs[3].rb.x, corner_uvs[3].lt.y},
+		};
+		out.append(quads[1][2]);
+
+		// 11
+		quads[1][1].size = {quads[0][1].size.x, quads[1][0].size.y};
+		quads[1][1].origin = {x_horz, y_vert};
+		quads[1][1].uv = UvRect{.lt = corner_uvs[0].rb, .rb = corner_uvs[3].lt};
+		out.append(quads[1][1]);
+	}
+
+	// corner cells: 00, 02, 20, 22 (these retain their size and UVs on size.current changing)
+	void append_nine_quad(Geometry& out) {
+		// 00
+		quads[0][0].size = corner_sizes[0];
+		quads[0][0].origin = corner_origins[0];
+		quads[0][0].uv = corner_uvs[0];
+		out.append(quads[0][0]);
+
+		// 02
+		quads[0][2].size = corner_sizes[1];
+		quads[0][2].origin = corner_origins[1];
+		quads[0][2].uv = corner_uvs[1];
+		out.append(quads[0][2]);
+
+		// 20
+		quads[2][0].size = corner_sizes[2];
+		quads[2][0].origin = corner_origins[2];
+		quads[2][0].uv = corner_uvs[2];
+		out.append(quads[2][0]);
+
+		// 22
+		quads[2][2].size = corner_sizes[3];
+		quads[2][2].origin = corner_origins[3];
+		quads[2][2].uv = corner_uvs[3];
+		out.append(quads[2][2]);
+
+		append_five_quad(out);
+	}
+
+	void append_rounded_quad(Geometry& out, int const corner_resolution) {
+		auto const corner_arcs = std::array{
+			Arc{.start = Degrees{0.0f}, .finish = Degrees{90.0f}},	  // 00
+			Arc{.start = Degrees{270.0f}, .finish = Degrees{360.0f}}, // 02
+			Arc{.start = Degrees{90.0f}, .finish = Degrees{180.0f}},  // 20
+			Arc{.start = Degrees{180.0f}, .finish = Degrees{270.0f}}, // 22
+		};
+		// rounded corner offsets
+		auto const ref_slice = NineSlice{
+			.n_left_top = nine_quad.slice.n_left_top * nine_quad.size.reference,
+			.n_right_bottom = (1.0f - nine_quad.slice.n_right_bottom) * nine_quad.size.reference,
+		};
+		auto const corner_offsets = std::array{
+			0.5f * glm::vec2{ref_slice.n_left_top.x, -ref_slice.n_left_top.y},		   // 00
+			0.5f * glm::vec2{-ref_slice.n_right_bottom.x, -ref_slice.n_left_top.y},	   // 02
+			0.5f * glm::vec2{ref_slice.n_left_top.x, ref_slice.n_right_bottom.y},	   // 20
+			0.5f * glm::vec2{-ref_slice.n_right_bottom.x, ref_slice.n_right_bottom.y}, // 22
+		};
+
+		auto const append_corner = [&](std::size_t index) {
 			auto const arc = corner_arcs.at(index);
-			auto const step = Degrees{(arc.finish - arc.start) / static_cast<float>(sliced.corner_resolution)};
+			auto const step = Degrees{(arc.finish - arc.start) / static_cast<float>(corner_resolution)};
+			auto uv = corner_uvs.at(index);
 			uv.lt *= 2.0f;
 			uv.rb *= 2.0f;
 			auto const sector = Sector{
-				.origin = origin + corner_offsets.at(index),
-				.rgba = rgba,
-				.radius = std::min(size.x, size.y),
+				.origin = corner_origins.at(index) + corner_offsets.at(index),
+				.rgba = nine_quad.rgba.to_vec4(),
+				.radius = std::min(corner_sizes.at(index).x, corner_sizes.at(index).y),
 				.arc = arc,
 				.step = step,
 				.uv = uv,
 			};
 			append_sector(out, sector);
-		} else {
-			out.append(Quad{.size = size, .uv = uv, .rgba = nine_slice.rgba, .origin = origin});
-		}
-	};
+		};
 
-	auto const size_00 = nine_slice.size.left_top;
-	auto const origin_00 = nine_slice.origin + glm::vec2{cell_offsets[0].x, cell_offsets[0].y};
-	append_corner(0, size_00, corner_uvs[0], origin_00);
+		append_corner(0);
+		append_corner(1);
+		append_corner(2);
+		append_corner(3);
 
-	auto const size_01 = glm::vec2{nine_slice.size.total.x - (nine_slice.size.left_top.x + nine_slice.size.right_bottom.x), nine_slice.size.left_top.y};
-	auto const origin_01 = nine_slice.origin + glm::vec2{cell_offsets[1].x, cell_offsets[0].y};
-	auto const uv_01 = UvRect{.lt = corner_uvs[0].top_right(), .rb = corner_uvs[1].bottom_left()};
-	out.append(Quad{.size = size_01, .uv = uv_01, .rgba = nine_slice.rgba, .origin = origin_01});
-
-	auto const size_02 = glm::vec2{nine_slice.size.right_bottom.x, nine_slice.size.left_top.y};
-	auto const origin_02 = nine_slice.origin + glm::vec2{cell_offsets[2].x, cell_offsets[0].y};
-	append_corner(1, size_02, corner_uvs[1], origin_02);
-
-	auto const size_10 = glm::vec2{nine_slice.size.left_top.x, nine_slice.size.total.y - (nine_slice.size.left_top.y + nine_slice.size.right_bottom.y)};
-	auto const origin_10 = nine_slice.origin + glm::vec2{cell_offsets[0].x, cell_offsets[1].y};
-	auto const uv_10 = UvRect{.lt = corner_uvs[0].bottom_left(), .rb = corner_uvs[2].top_right()};
-	out.append(Quad{.size = size_10, .uv = uv_10, .rgba = nine_slice.rgba, .origin = origin_10});
-
-	auto const size_11 = nine_slice.size.total - (nine_slice.size.left_top + nine_slice.size.right_bottom);
-	auto const origin_11 = nine_slice.origin + glm::vec2{cell_offsets[1].x, cell_offsets[1].y};
-	auto const uv_11 = UvRect{.lt = corner_uvs[0].bottom_right(), .rb = corner_uvs[3].top_left()};
-	out.append(Quad{.size = size_11, .uv = uv_11, .rgba = nine_slice.rgba, .origin = origin_11});
-
-	auto const size_12 = glm::vec2{nine_slice.size.right_bottom.x, nine_slice.size.total.y - (nine_slice.size.left_top.y + nine_slice.size.right_bottom.y)};
-	auto const origin_12 = nine_slice.origin + glm::vec2{cell_offsets[2].x, cell_offsets[1].y};
-	auto const uv_12 = UvRect{.lt = corner_uvs[1].bottom_left(), .rb = corner_uvs[3].top_right()};
-	out.append(Quad{.size = size_12, .uv = uv_12, .rgba = nine_slice.rgba, .origin = origin_12});
-
-	auto const size_20 = glm::vec2{nine_slice.size.left_top.x, nine_slice.size.right_bottom.y};
-	auto const origin_20 = nine_slice.origin + glm::vec2{cell_offsets[0].x, cell_offsets[2].y};
-	append_corner(2, size_20, corner_uvs[2], origin_20);
-
-	auto const size_21 = glm::vec2{nine_slice.size.total.x - (nine_slice.size.left_top.x + nine_slice.size.right_bottom.x), nine_slice.size.right_bottom.y};
-	auto const origin_21 = nine_slice.origin + glm::vec2{cell_offsets[1].x, cell_offsets[2].y};
-	auto const uv_21 = UvRect{.lt = corner_uvs[2].top_right(), .rb = corner_uvs[3].bottom_left()};
-	out.append(Quad{.size = size_21, .uv = uv_21, .rgba = nine_slice.rgba, .origin = origin_21});
-
-	auto const size_22 = nine_slice.size.right_bottom;
-	auto const origin_22 = nine_slice.origin + glm::vec2{cell_offsets[2].x, cell_offsets[2].y};
-	append_corner(3, size_22, corner_uvs[3], origin_22);
-}
+		append_five_quad(out);
+	}
+};
 } // namespace
 
 auto Geometry::append(std::span<Vertex const> vs, std::span<std::uint32_t const> is) -> Geometry& {
@@ -209,22 +274,15 @@ auto Geometry::append(RoundedQuad const& rounded_quad) -> Geometry& {
 	if (rounded_quad.corner_radius <= 0.0f) { return append(static_cast<Quad const&>(rounded_quad)); }
 	auto const corner_size = glm::vec2{rounded_quad.corner_radius};
 	auto const n_corner_size = corner_size / rounded_quad.size;
-	auto const nine_slice = NineSlice{
-		.size = NineSlice::Size{.total = rounded_quad.size, .left_top = corner_size, .right_bottom = corner_size},
-		.top_uv = UvRect{.lt = rounded_quad.uv.lt, .rb = rounded_quad.uv.lt + n_corner_size},
-		.bottom_uv = UvRect{.lt = rounded_quad.uv.rb - n_corner_size, .rb = rounded_quad.uv.rb},
-		.rgba = rounded_quad.rgba,
-		.origin = rounded_quad.origin,
-	};
-	auto sliced = Sliced{.nine_slice = nine_slice, .corner_resolution = rounded_quad.corner_resolution};
-	append_sliced(*this, sliced);
+	auto const nine_slice = NineSlice{.n_left_top = n_corner_size, .n_right_bottom = 1.0f - n_corner_size};
+	auto const nine_quad = NineQuad{.size = rounded_quad.size, .slice = nine_slice, .rgba = rounded_quad.rgba, .origin = rounded_quad.origin};
+	QuadSlicer{nine_quad}.append_rounded_quad(*this, rounded_quad.corner_resolution);
 	return *this;
 }
 
-auto Geometry::append(NineSlice const& nine_slice) -> Geometry& {
-	if (nine_slice.size.total.x <= 0.0f || nine_slice.size.total.y <= 0.0f) { return *this; }
-	auto const sliced = Sliced{.nine_slice = nine_slice};
-	append_sliced(*this, sliced);
+auto Geometry::append(NineQuad const& nine_quad) -> Geometry& {
+	if (nine_quad.size.current.x <= 0.0f || nine_quad.size.current.y <= 0.0f) { return *this; }
+	QuadSlicer{nine_quad}.append_nine_quad(*this);
 	return *this;
 }
 } // namespace bave
