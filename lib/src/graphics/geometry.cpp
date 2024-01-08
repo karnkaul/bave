@@ -239,7 +239,7 @@ auto Geometry::append(Quad const& quad) -> Geometry& {
 	if (quad.size.x <= 0.0f || quad.size.y <= 0.0f) { return *this; }
 	auto const h = 0.5f * quad.size;
 	auto const& o = quad.origin;
-	auto const rgba = Rgba::to_linear(quad.rgba.to_vec4());
+	auto const rgba = quad.rgba.to_vec4();
 	// NOLINTNEXTLINE
 	Vertex const vs[] = {
 		{{o.x - h.x, o.y + h.y}, quad.uv.top_left(), rgba},
@@ -260,7 +260,7 @@ auto Geometry::append(Circle const& circle) -> Geometry& {
 	auto const resolution = circle.resolution;
 	auto const sector = Sector{
 		.origin = circle.origin,
-		.rgba = Rgba::to_linear(circle.rgba.to_vec4()),
+		.rgba = circle.rgba.to_vec4(),
 		.radius = 0.5f * circle.diameter,
 		.arc = {.finish = finish},
 		.step = Degrees{finish / static_cast<float>(resolution)},
