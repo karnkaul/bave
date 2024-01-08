@@ -22,6 +22,7 @@ class SlicedSprite : public NineQuadShape {
   public:
 	explicit SlicedSprite(NotNull<RenderDevice*> render_device) : NineQuadShape(render_device) {}
 
+	void set_sliced_texture(std::shared_ptr<Texture> texture, NineSlice const& nine_slice);
 	void set_size(glm::vec2 size);
 
 	[[nodiscard]] auto get_size() const -> glm::vec2 { return get_shape().size.current; }
@@ -29,7 +30,7 @@ class SlicedSprite : public NineQuadShape {
 
 class AnimatedSprite : public Sprite {
   public:
-	explicit AnimatedSprite(NotNull<RenderDevice*> render_device, std::shared_ptr<SpriteSheet> sheet, Seconds duration = 1s);
+	explicit AnimatedSprite(NotNull<RenderDevice*> render_device, std::shared_ptr<SpriteSheet> sheet = {}, Seconds duration = 1s);
 
 	void tick(Seconds dt);
 
