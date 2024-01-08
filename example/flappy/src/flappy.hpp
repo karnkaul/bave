@@ -2,7 +2,7 @@
 #include <bave/game.hpp>
 #include <bave/graphics/sprite.hpp>
 #include <bave/graphics/text.hpp>
-#include <bave/im_texture.hpp>
+#include <bave/imgui/im_texture.hpp>
 #include <src/background.hpp>
 #include <src/pipes.hpp>
 #include <src/player.hpp>
