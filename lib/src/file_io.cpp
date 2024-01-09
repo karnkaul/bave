@@ -1,4 +1,5 @@
 #include <bave/file_io.hpp>
+#include <array>
 #include <filesystem>
 #include <fstream>
 

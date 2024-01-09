@@ -1,6 +1,7 @@
 #include <bave/core/ptr.hpp>
 #include <bave/imgui/im_input_text.hpp>
 #include <cassert>
+#include <cstring>
 
 namespace bave {
 auto ImInputText::update(CString const name) -> bool {
