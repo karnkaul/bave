@@ -73,14 +73,6 @@ auto Loader::load_json(std::string_view const uri) const -> dj::Json {
 	return ret;
 }
 
-auto Loader::load_nine_slice(std::string_view uri) const -> NineSlice {
-	auto const json = load_json(uri);
-	if (!json) { return {}; }
-	auto ret = NineSlice{};
-	from_json(json, ret);
-	return ret;
-}
-
 auto Loader::load_image_file(std::string_view uri) const -> std::shared_ptr<ImageFile> {
 	auto const bytes = load_bytes(uri);
 	if (bytes.empty()) { return {}; }
@@ -105,10 +97,23 @@ auto Loader::load_texture(std::string_view const uri, bool const mip_map) const 
 		return {};
 	}
 
-	auto ret = std::make_shared<Texture>(m_render_device, mip_map);
-	ret->write(image_file.get_bitmap_view());
-
+	auto ret = std::make_shared<Texture>(m_render_device, image_file.get_bitmap_view(), mip_map);
 	m_log.info("loaded Texture: '{}'", uri);
+	return ret;
+}
+
+auto Loader::load_sliced_texture(std::string_view const uri) const -> std::shared_ptr<SlicedTexture> {
+	auto json = load_json(uri);
+	if (!json || !json.contains("image") || !json.contains("nine_slice")) { return {}; }
+
+	auto image = load_image_file(json["image"].as_string());
+	if (!image) { return {}; }
+
+	auto slice = NineSlice{};
+	from_json(json["nine_slice"], slice);
+
+	auto ret = std::make_shared<SlicedTexture>(m_render_device, image->get_bitmap_view(), slice);
+	m_log.info("loaded SlicedTexture: '{}'", uri);
 	return ret;
 }
 

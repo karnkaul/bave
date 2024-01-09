@@ -22,7 +22,7 @@ class SlicedSprite : public NineQuadShape {
   public:
 	explicit SlicedSprite(NotNull<RenderDevice*> render_device) : NineQuadShape(render_device) {}
 
-	void set_sliced_texture(std::shared_ptr<Texture> texture, NineSlice const& nine_slice);
+	void set_sliced_texture(std::shared_ptr<SlicedTexture const> texture);
 	void set_size(glm::vec2 size);
 
 	[[nodiscard]] auto get_size() const -> glm::vec2 { return get_shape().size.current; }

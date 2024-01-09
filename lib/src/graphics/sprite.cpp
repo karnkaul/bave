@@ -34,11 +34,13 @@ void Sprite::set_tile(SpriteSheet::Tile const& tile, bool resize) {
 	if (resize) { set_size(tile.size); }
 }
 
-void SlicedSprite::set_sliced_texture(std::shared_ptr<Texture> texture, NineSlice const& nine_slice) {
-	auto quad = get_shape();
-	quad.slice = nine_slice;
-	quad.size = glm::vec2{texture->get_size()};
-	set_shape(quad);
+void SlicedSprite::set_sliced_texture(std::shared_ptr<SlicedTexture const> texture) {
+	if (texture) {
+		auto quad = get_shape();
+		quad.slice = texture->get_slice();
+		quad.size = glm::vec2{texture->get_size()};
+		set_shape(quad);
+	}
 	set_texture(std::move(texture));
 }
 

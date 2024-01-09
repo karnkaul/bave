@@ -18,10 +18,9 @@ class Loader {
 	[[nodiscard]] auto load_bytes(std::string_view uri) const -> std::vector<std::byte>;
 	[[nodiscard]] auto load_json(std::string_view uri) const -> dj::Json;
 
-	[[nodiscard]] auto load_nine_slice(std::string_view uri) const -> NineSlice;
-
 	[[nodiscard]] auto load_image_file(std::string_view uri) const -> std::shared_ptr<ImageFile>;
 	[[nodiscard]] auto load_texture(std::string_view uri, bool mip_map = false) const -> std::shared_ptr<Texture>;
+	[[nodiscard]] auto load_sliced_texture(std::string_view uri) const -> std::shared_ptr<SlicedTexture>;
 	[[nodiscard]] auto load_font(std::string_view uri) const -> std::shared_ptr<Font>;
 	[[nodiscard]] auto load_audio_clip(std::string_view uri) const -> std::shared_ptr<AudioClip>;
 	[[nodiscard]] auto load_sprite_sheet(std::string_view uri) const -> std::shared_ptr<SpriteSheet>;
