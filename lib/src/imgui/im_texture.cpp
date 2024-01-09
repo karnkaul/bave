@@ -1,8 +1,7 @@
 #include <backends/imgui_impl_vulkan.h>
 #include <bave/graphics/render_device.hpp>
-#include <bave/im_texture.hpp>
+#include <bave/imgui/im_texture.hpp>
 #include <bave/platform.hpp>
-#include <cassert>
 
 namespace bave {
 void ImTexture::Deleter::operator()(vk::DescriptorSet descriptor_set) const noexcept {

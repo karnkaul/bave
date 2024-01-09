@@ -34,6 +34,22 @@ void Sprite::set_tile(SpriteSheet::Tile const& tile, bool resize) {
 	if (resize) { set_size(tile.size); }
 }
 
+void SlicedSprite::set_sliced_texture(std::shared_ptr<Texture> texture, NineSlice const& nine_slice) {
+	auto quad = get_shape();
+	quad.slice = nine_slice;
+	quad.size = glm::vec2{texture->get_size()};
+	set_shape(quad);
+	set_texture(std::move(texture));
+}
+
+void SlicedSprite::set_size(glm::vec2 const size) {
+	if (size != get_size()) {
+		auto shape = get_shape();
+		shape.size.current = size;
+		set_shape(shape);
+	}
+}
+
 AnimatedSprite::AnimatedSprite(NotNull<RenderDevice*> render_device, std::shared_ptr<SpriteSheet> sheet, Seconds const duration)
 	: Sprite(render_device), sheet(std::move(sheet)), animation(make_animation(this->sheet, duration)) {
 	m_current_tile_id = animation.get_tile_at({});

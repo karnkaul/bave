@@ -28,7 +28,11 @@ class Shape : public BasicShape {
 	}
 
 	[[nodiscard]] auto get_shape() const -> ShapeT const& { return m_shape; }
-	[[nodiscard]] auto get_bounds() const -> Rect<> { return m_shape.get_bounds(transform.position); }
+
+	[[nodiscard]] auto get_bounds() const -> Rect<> {
+		auto const bounds = m_shape.get_bounds();
+		return Rect<>::from_extent(bounds.extent() * transform.scale, bounds.centre() + transform.position);
+	}
 
   private:
 	ShapeT m_shape{};
@@ -37,5 +41,5 @@ class Shape : public BasicShape {
 using QuadShape = Shape<Quad>;
 using CircleShape = Shape<Circle>;
 using RoundedQuadShape = Shape<RoundedQuad>;
-using NineSliceShape = Shape<NineSlice>;
+using NineQuadShape = Shape<NineQuad>;
 } // namespace bave

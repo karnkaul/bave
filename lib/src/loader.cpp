@@ -73,6 +73,14 @@ auto Loader::load_json(std::string_view const uri) const -> dj::Json {
 	return ret;
 }
 
+auto Loader::load_nine_slice(std::string_view uri) const -> NineSlice {
+	auto const json = load_json(uri);
+	if (!json) { return {}; }
+	auto ret = NineSlice{};
+	from_json(json, ret);
+	return ret;
+}
+
 auto Loader::load_image_file(std::string_view uri) const -> std::shared_ptr<ImageFile> {
 	auto const bytes = load_bytes(uri);
 	if (bytes.empty()) { return {}; }

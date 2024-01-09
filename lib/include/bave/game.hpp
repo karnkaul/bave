@@ -26,7 +26,7 @@ class Game : public PolyPinned {
 	virtual void on_move(PointerMove const& /*pointer_move*/) {}
 	virtual void on_scroll(MouseScroll const& /*mouse_scroll*/) {}
 
-	virtual void on_drop(std::string const& /*path*/) {}
+	virtual void on_drop(std::span<std::string const> /*paths*/) {}
 
 	Rgba clear_colour{black_v};
 

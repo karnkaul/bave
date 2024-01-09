@@ -2,14 +2,19 @@
 #include <glm/common.hpp>
 
 namespace bave {
-template <typename T>
+template <typename Type>
 struct InclusiveRange {
-	T lo{};
-	T hi{};
+	Type lo{};
+	Type hi{};
 
-	constexpr auto clamp(T const& in) const -> T {
+	constexpr auto clamp(Type const& in) const -> Type {
 		using glm::clamp;
 		return clamp(in, lo, hi);
+	}
+
+	template <typename T>
+	constexpr operator InclusiveRange<T>() const {
+		return {.lo = static_cast<T>(lo), .hi = static_cast<T>(hi)};
 	}
 };
 } // namespace bave

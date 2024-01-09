@@ -3,6 +3,7 @@
 
 #include <bave/core/error.hpp>
 #include <bave/desktop_app.hpp>
+#include <bave/file_io.hpp>
 #include <platform/desktop/clap/clap.hpp>
 #include <platform/desktop/desktop_data_store.hpp>
 #include <filesystem>
@@ -169,7 +170,7 @@ void DesktopApp::poll_events() {
 	glfwPollEvents();
 	swap_game(m_new_game, m_game);
 	m_game->handle_events(get_events());
-	for (auto const& drop : get_file_drops()) { m_game->on_drop(drop); }
+	if (auto const drops = get_file_drops(); !drops.empty()) { m_game->on_drop(drops); }
 }
 
 void DesktopApp::tick() {
@@ -236,6 +237,12 @@ auto DesktopApp::get_framebuffer_extent() const -> vk::Extent2D {
 auto DesktopApp::select_gpu(std::span<Gpu const> gpus) const -> Gpu {
 	if (m_create_info.select_gpu) { return m_create_info.select_gpu(gpus); }
 	return IWsi::select_gpu(gpus);
+}
+
+auto DesktopApp::do_set_window_size(glm::ivec2 const size) -> bool {
+	if (!is_positive(size)) { return false; }
+	glfwSetWindowSize(m_window.get(), size.x, size.y);
+	return true;
 }
 
 auto DesktopApp::self(Ptr<GLFWwindow> window) -> DesktopApp& {
