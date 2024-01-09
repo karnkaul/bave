@@ -90,6 +90,16 @@ auto PipelineCache::load_pipeline(Program shader, State state) -> vk::Pipeline {
 	return *itr->second;
 }
 
+void PipelineCache::clear_loaded() {
+	auto const pc = pipeline_count();
+	auto const sc = shader_count();
+	if (pc == 0 && sc == 0) { return; }
+	m_shader_cache.get_device().waitIdle();
+	m_pipelines.clear();
+	m_shader_cache.clear();
+	m_log.info("{} Vulkan Pipeline(s) and {} Shader Module(s) destroyed", pc, sc);
+}
+
 auto PipelineCache::build(Key const& key) -> vk::UniquePipeline {
 	auto shader_stages = std::array<vk::PipelineShaderStageCreateInfo, 2>{};
 	shader_stages[0].stage = vk::ShaderStageFlagBits::eVertex;

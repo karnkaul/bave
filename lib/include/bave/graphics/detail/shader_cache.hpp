@@ -18,6 +18,8 @@ class ShaderCache {
 
 	[[nodiscard]] auto shader_count() const -> std::size_t { return m_modules.size(); }
 
+	void clear() { m_modules.clear(); }
+
   private:
 	vk::Device m_device;
 	NotNull<DataStore const*> m_data_store;

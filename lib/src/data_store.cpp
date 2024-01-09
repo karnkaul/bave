@@ -46,6 +46,11 @@ auto DataStore::read_json(std::string_view uri) const -> dj::Json {
 
 auto DataStore::make_full_path(std::string_view uri) const -> std::string { return (fs::path{m_prefix} / uri).generic_string(); }
 
+auto DataStore::make_uri(std::string_view const full_path) const -> std::string {
+	if (full_path.empty()) { return {}; }
+	return fs::path{full_path}.lexically_relative(get_mount_point());
+}
+
 auto DataStore::to_spir_v(std::string_view const glsl) const -> std::string {
 	auto spir_v_uri = make_spir_v_path(glsl);
 	if (!exists(spir_v_uri)) {

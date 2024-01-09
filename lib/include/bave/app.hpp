@@ -60,6 +60,9 @@ class App : public PolyPinned {
 
 	[[nodiscard]] auto load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader>;
 
+	auto change_mount_point(std::string_view directory) -> bool;
+	auto set_title(CString title) -> bool { return do_set_title(title); }
+
   protected:
 	void start_next_frame();
 	void push_event(Event event);
@@ -90,6 +93,7 @@ class App : public PolyPinned {
 	[[nodiscard]] virtual auto do_get_game() const -> Ptr<Game> = 0;
 
 	virtual auto do_set_window_size(glm::ivec2 size) -> bool = 0;
+	virtual auto do_set_title(CString /*title*/) -> bool { return false; }
 
 	void pre_tick();
 

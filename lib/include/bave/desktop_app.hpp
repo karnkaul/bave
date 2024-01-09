@@ -72,6 +72,7 @@ class DesktopApp : public App, public detail::IWsi {
 	[[nodiscard]] auto select_gpu(std::span<Gpu const> gpus) const -> Gpu final;
 
 	auto do_set_window_size(glm::ivec2 size) -> bool final;
+	auto do_set_title(CString title) -> bool final;
 
 	void init_data_store();
 	void make_window();

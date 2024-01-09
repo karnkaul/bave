@@ -245,6 +245,11 @@ auto DesktopApp::do_set_window_size(glm::ivec2 const size) -> bool {
 	return true;
 }
 
+auto DesktopApp::do_set_title(CString title) -> bool {
+	glfwSetWindowTitle(m_window.get(), title.c_str());
+	return true;
+}
+
 auto DesktopApp::self(Ptr<GLFWwindow> window) -> DesktopApp& {
 	auto* ret = static_cast<DesktopApp*>(glfwGetWindowUserPointer(window));
 	if (ret == nullptr) { throw Error{"Dereferencing null GLFW Window User Pointer"}; }

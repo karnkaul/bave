@@ -87,6 +87,13 @@ auto App::load_shader(std::string_view vertex, std::string_view fragment) const 
 	return Shader{&get_renderer(), vert, frag};
 }
 
+// NOLINTNEXTLINE(readability-make-member-function-const)
+auto App::change_mount_point(std::string_view const directory) -> bool {
+	if (!get_data_store().set_mount_point(directory)) { return false; }
+	get_renderer().get_pipeline_cache().clear_loaded();
+	return true;
+}
+
 void App::start_next_frame() {
 	m_events.clear();
 	m_drops.clear();
