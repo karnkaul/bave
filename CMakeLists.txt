@@ -40,7 +40,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   target_compile_options(${project_prefix}-compile-options INTERFACE
     /MP
   )
-  target_compile_definitions(${project_prefix}-compile-options PRIVATE
+  target_compile_definitions(${project_prefix}-compile-options INTERFACE
     _AMD64_ NOMINMAX
   )
 endif()

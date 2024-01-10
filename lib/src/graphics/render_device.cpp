@@ -126,7 +126,9 @@ auto RenderDevice::acquire_next_image(vk::Fence wait, vk::Semaphore signal) -> s
 	reset_fence(wait);
 	m_defer_queue.next_frame();
 
-	if (m_swapchain.desired_present_mode != m_swapchain.create_info.presentMode) { recreate_swapchain(framebuffer); }
+	if (m_swapchain.desired_present_mode != m_swapchain.create_info.presentMode || framebuffer != m_swapchain.create_info.imageExtent) {
+		if (!recreate_swapchain(framebuffer)) { return {}; }
+	}
 
 	if (!m_swapchain.active.image_index) {
 		auto image_index = std::uint32_t{};
