@@ -1,6 +1,7 @@
 #include <bave/desktop_app.hpp>
 #include <bave/logger.hpp>
 #include <tools/nine_slicer.hpp>
+#include <tools/tiler.hpp>
 
 namespace {
 using namespace bave::tools;
@@ -20,6 +21,7 @@ using namespace bave::tools;
 
 auto main(int argc, char** argv) -> int {
 	Applet::add_applet<NineSlicer>("NineSlicer");
+	Applet::add_applet<Tiler>("Tiler");
 
 	auto const state = load_or_create_state();
 
