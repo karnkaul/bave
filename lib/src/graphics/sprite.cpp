@@ -2,7 +2,7 @@
 
 namespace bave {
 namespace {
-auto make_animation(std::shared_ptr<SpriteSheet> const& sheet, Seconds const duration) {
+auto make_animation(std::shared_ptr<TiledTexture> const& sheet, Seconds const duration) {
 	if (sheet) {
 		auto const blocks = sheet->get_blocks();
 		auto tile_ids = std::vector<std::string>{};
@@ -29,7 +29,7 @@ void Sprite::set_uv(UvRect const uv) {
 	}
 }
 
-void Sprite::set_tile(SpriteSheet::Tile const& tile, bool resize) {
+void Sprite::set_tile(TiledTexture::Tile const& tile, bool resize) {
 	set_uv(tile.uv);
 	if (resize) { set_size(tile.size); }
 }
@@ -52,11 +52,11 @@ void SlicedSprite::set_size(glm::vec2 const size) {
 	}
 }
 
-AnimatedSprite::AnimatedSprite(NotNull<RenderDevice*> render_device, std::shared_ptr<SpriteSheet> sheet, Seconds const duration)
+AnimatedSprite::AnimatedSprite(NotNull<RenderDevice*> render_device, std::shared_ptr<TiledTexture> sheet, Seconds const duration)
 	: Sprite(render_device), sheet(std::move(sheet)), animation(make_animation(this->sheet, duration)) {
 	m_current_tile_id = animation.get_tile_at({});
 	if (this->sheet) {
-		set_texture(this->sheet->get_texture());
+		set_texture(this->sheet);
 		if (auto tile = this->sheet->find_tile(m_current_tile_id)) { set_tile(*tile); }
 	}
 }

@@ -181,7 +181,7 @@ void Flappy::load_assets() {
 	m_config.player_texture = loader.load_texture("images/bird_256x256.png");
 	m_config.jump_sfx = loader.load_audio_clip("audio_clips/beep.wav");
 
-	m_config.explode_sheet = loader.load_sprite_sheet("images/explode_sheet.json");
+	m_config.explode_sheet = loader.load_tiled_texture("images/explode_sheet.json");
 	m_config.explode_animation = loader.load_sprite_animation("animations/explode_anim.json");
 	m_config.explode_sfx = loader.load_audio_clip("audio_clips/explode.wav");
 

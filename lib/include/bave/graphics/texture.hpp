@@ -1,6 +1,5 @@
 #pragma once
 #include <bave/graphics/detail/render_resource.hpp>
-#include <bave/graphics/geometry.hpp>
 #include <memory>
 
 namespace bave {
@@ -53,15 +52,5 @@ class DynamicTexture : public Texture {
 
 	auto load_from_bytes(std::span<std::byte const> compressed) -> bool;
 	void write(BitmapView bitmap);
-};
-
-class SlicedTexture : public Texture {
-  public:
-	explicit SlicedTexture(NotNull<RenderDevice*> render_device, BitmapView bitmap, NineSlice slice) : Texture(render_device, bitmap, false), m_slice(slice) {}
-
-	[[nodiscard]] auto get_slice() const -> NineSlice const& { return m_slice; }
-
-  private:
-	NineSlice m_slice;
 };
 } // namespace bave
