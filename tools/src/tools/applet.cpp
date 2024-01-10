@@ -95,20 +95,20 @@ void Applet::resize_framebuffer(glm::ivec2 const size, glm::ivec2 const pad) { g
 
 auto Applet::dialog_open_file(CString const title) const -> std::string {
 	auto const mount_point = get_app().get_data_store().get_mount_point();
-	auto result = pfd::open_file(title.c_str(), mount_point.data()).result();
+	auto result = pfd::open_file(title.c_str(), fs::path{mount_point}.make_preferred().string()).result();
 	if (result.empty()) { return {}; }
 	return truncate_to_uri(result.front());
 }
 
 auto Applet::dialog_save_file(CString const title, std::string_view const uri) const -> std::string {
-	auto const mount_point = get_app().get_data_store().get_mount_point();
-	auto const path = (fs::path{mount_point} / uri).generic_string();
+	auto const mount_point = fs::path{get_app().get_data_store().get_mount_point()};
+	auto const path = (mount_point / uri).make_preferred().string();
 	return truncate_to_uri(pfd::save_file(title.c_str(), path).result());
 }
 
 auto Applet::save_json(dj::Json const& json, std::string_view uri) const -> bool {
 	auto const mount_point = fs::path{get_app().get_data_store().get_mount_point()};
-	auto const path = (mount_point / uri).generic_string();
+	auto const path = (mount_point / uri).make_preferred().string();
 	return json.to_file(path.c_str());
 }
 
