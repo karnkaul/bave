@@ -1,5 +1,6 @@
 #include <bave/json_io.hpp>
 #include <tools/tiler.hpp>
+#include <algorithm>
 #include <filesystem>
 
 namespace bave::tools {

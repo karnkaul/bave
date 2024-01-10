@@ -48,7 +48,7 @@ auto DataStore::make_full_path(std::string_view uri) const -> std::string { retu
 
 auto DataStore::make_uri(std::string_view const full_path) const -> std::string {
 	if (full_path.empty()) { return {}; }
-	return fs::path{full_path}.lexically_relative(get_mount_point());
+	return fs::path{full_path}.lexically_relative(get_mount_point()).generic_string();
 }
 
 auto DataStore::to_spir_v(std::string_view const glsl) const -> std::string {

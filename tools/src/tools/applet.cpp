@@ -113,7 +113,7 @@ auto Applet::save_json(dj::Json const& json, std::string_view uri) const -> bool
 }
 
 auto Applet::format_title(std::string_view name, std::string_view uri, bool unsaved) -> std::string {
-	auto ret = std::format("{}{}", unsaved ? "*" : "", name);
+	auto ret = fmt::format("{}{}", unsaved ? "*" : "", name);
 	if (!uri.empty()) { fmt::format_to(std::back_inserter(ret), " - {}", uri); }
 	return ret;
 }
