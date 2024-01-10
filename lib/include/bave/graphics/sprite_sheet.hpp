@@ -21,7 +21,7 @@ class SpriteSheet {
 		UvRect uv{};
 	};
 
-	[[nodiscard]] static auto make_rects(glm::ivec2, glm::ivec2 tile_count) -> std::vector<Rect<int>>;
+	[[nodiscard]] static auto make_rects(glm::ivec2 size, glm::ivec2 tile_count) -> std::vector<Rect<int>>;
 
 	explicit SpriteSheet(NotNull<std::shared_ptr<Texture const>> const& texture, std::vector<Block> blocks);
 

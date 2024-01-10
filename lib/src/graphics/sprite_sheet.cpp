@@ -26,6 +26,8 @@ auto SpriteSheet::make_rects(glm::ivec2 size, glm::ivec2 tile_count) -> std::vec
 			tile.lt.x += tile_size.x;
 			tile.rb.x += tile_size.x;
 		}
+		tile.lt.x = 0;
+		tile.rb.x = tile_size.x;
 		tile.lt.y += tile_size.y;
 		tile.rb.y += tile_size.y;
 	}
