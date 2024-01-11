@@ -17,7 +17,7 @@ class DataStore : public Polymorphic {
 
 	[[nodiscard]] static auto as_string_view(std::span<std::byte const> bytes) -> std::string_view;
 
-	[[nodiscard]] auto exists(std::string_view uri) const -> bool { return do_exists(make_full_path(uri).c_str()); }
+	[[nodiscard]] auto exists(std::string_view uri) const -> bool { return !uri.empty() && do_exists(make_full_path(uri).c_str()); }
 
 	[[nodiscard]] auto read_bytes(std::string_view uri) const -> std::vector<std::byte>;
 	[[nodiscard]] auto read_string(std::string_view uri) const -> std::string;

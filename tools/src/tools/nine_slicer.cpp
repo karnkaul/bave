@@ -16,7 +16,7 @@ NineSlicer::NineSlicer(App& app, NotNull<std::shared_ptr<State>> const& state)
 
 	m_top->tint = m_bottom->tint = m_left->tint = m_right->tint = red_v;
 
-	new_slice();
+	if (!load_uri(state->nine_slicer.last_loaded)) { new_slice(); }
 
 	view_position.x = -150.0f;
 }
@@ -119,10 +119,21 @@ void NineSlicer::position_guides() {
 }
 
 auto NineSlicer::load_uri(std::string_view const uri) -> bool {
+	if (!get_app().get_data_store().exists(uri)) { return false; }
 	auto const extension = fs::path{uri}.extension().string();
 
-	if (extension == ".json") { return load_slice(uri); }
-	if (load_image_at(uri)) { return true; }
+	auto ret = false;
+	if (extension == ".json") {
+		ret = load_slice(uri);
+	} else if (load_image_at(uri)) {
+		ret = true;
+	}
+
+	if (ret) {
+		state->nine_slicer.last_loaded = uri;
+		save_state();
+		return true;
+	}
 
 	m_log.warn("failed to open '{}'", uri);
 	return false;
@@ -138,9 +149,10 @@ auto NineSlicer::load_image_at(std::string_view const uri) -> bool {
 	resize_framebuffer(image_size, {500, 200});
 
 	m_image_uri = uri;
+	m_json_uri.clear();
+	set_title();
 
 	m_log.info("loaded '{}'", m_image_uri);
-
 	return true;
 }
 
@@ -170,6 +182,7 @@ auto NineSlicer::load_slice(std::string_view const uri) -> bool {
 	m_json_uri = uri;
 	set_title();
 
+	m_log.info("loaded '{}'", uri);
 	return true;
 }
 

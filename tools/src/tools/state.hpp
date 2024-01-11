@@ -12,6 +12,14 @@ struct State {
 
 	std::string active_applet{};
 
+	struct {
+		std::string last_loaded{};
+	} nine_slicer{};
+
+	struct {
+		std::string last_loaded{};
+	} tiler{};
+
 	auto load(CString path = path_v) -> bool;
 	auto save(CString path = path_v) const -> bool; // NOLINT(modernize-use-nodiscard)
 

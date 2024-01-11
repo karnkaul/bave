@@ -12,8 +12,6 @@ class Runner : public Driver {
 
 	[[nodiscard]] auto load_active() const -> std::unique_ptr<Applet>;
 
-	void save_state();
-
 	void main_menu_bar();
 	void applet_menu();
 

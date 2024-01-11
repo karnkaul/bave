@@ -10,7 +10,7 @@ Tiler::Tiler(App& app, NotNull<std::shared_ptr<State>> const& state)
 	: Applet(app, state), m_loader(&get_app().get_data_store(), &get_app().get_render_device()) {
 	m_sprite = push(std::make_unique<Sprite>(&app.get_render_device()));
 
-	new_sheet();
+	if (!load_uri(state->tiler.last_loaded)) { new_sheet(); }
 
 	view_position.x = -150.0f;
 }
@@ -140,10 +140,21 @@ void Tiler::metadata_control() {
 }
 
 auto Tiler::load_uri(std::string_view const uri) -> bool {
+	if (!get_app().get_data_store().exists(uri)) { return false; }
 	auto const extension = fs::path{uri}.extension().string();
 
-	if (extension == ".json") { return load_sheet(uri); }
-	if (load_image_at(uri)) { return true; }
+	auto ret = false;
+	if (extension == ".json") {
+		ret = load_sheet(uri);
+	} else if (load_image_at(uri)) {
+		ret = true;
+	}
+
+	if (ret) {
+		state->tiler.last_loaded = uri;
+		save_state();
+		return true;
+	}
 
 	m_log.warn("failed to open '{}'", uri);
 	return false;
@@ -160,9 +171,10 @@ auto Tiler::load_image_at(std::string_view const uri) -> bool {
 
 	m_blocks.clear();
 	m_image_uri = uri;
+	m_json_uri.clear();
+	set_title();
 
-	m_log.info("loaded '{}'", m_image_uri);
-
+	m_log.info("loaded '{}'", uri);
 	return true;
 }
 
@@ -195,6 +207,8 @@ auto Tiler::load_sheet(std::string_view const uri) -> bool {
 
 	m_json_uri = uri;
 	set_title();
+
+	m_log.info("loaded '{}'", uri);
 
 	return true;
 }

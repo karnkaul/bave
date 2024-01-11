@@ -27,6 +27,8 @@ class Applet : public Polymorphic {
 	virtual void file_menu_items();
 	virtual void main_menu() {}
 
+	void save_state();
+
   protected:
 	static constexpr float y_top_v{20.0f};
 	static constexpr auto zoom_range_v = InclusiveRange<int>{1, 500};

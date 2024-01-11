@@ -46,14 +46,6 @@ auto Runner::load_active() const -> std::unique_ptr<Applet> {
 	return std::make_unique<Tiler>(get_app(), m_state);
 }
 
-void Runner::save_state() {
-	if (m_state->save()) {
-		m_log.info("State saved to '{}'", State::path_v.as_view());
-	} else {
-		m_log.warn("failed to save State to '{}'", State::path_v.as_view());
-	}
-}
-
 void Runner::main_menu_bar() {
 	if (ImGui::BeginMainMenuBar()) {
 		if (ImGui::BeginMenu("File")) {
@@ -74,7 +66,7 @@ void Runner::applet_menu() {
 			if (ImGui::MenuItem(name.data())) {
 				m_log.info("loading '{}'", name);
 				m_state->active_applet = name;
-				save_state();
+				m_active->save_state();
 				m_active = factory();
 			}
 		}

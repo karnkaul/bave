@@ -42,6 +42,14 @@ void Applet::render(Shader& shader) const {
 	for (auto const& drawable : drawables) { drawable->draw(shader); }
 }
 
+void Applet::save_state() {
+	if (state->save()) {
+		m_log.info("State saved to '{}'", State::path_v.as_view());
+	} else {
+		m_log.warn("failed to save State to '{}'", State::path_v.as_view());
+	}
+}
+
 void Applet::zoom_control() {
 	auto i_zoom = static_cast<int>(zoom);
 	if (ImGui::SliderInt("Zoom", &i_zoom, zoom_range_v.lo, zoom_range_v.hi)) { zoom = static_cast<float>(i_zoom); }
