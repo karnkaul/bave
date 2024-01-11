@@ -1,29 +1,9 @@
 #include <bave/desktop_app.hpp>
 #include <bave/logger.hpp>
-#include <tools/nine_slicer.hpp>
-#include <tools/tiler.hpp>
-
-namespace {
-using namespace bave::tools;
-
-[[nodiscard]] auto load_or_create_state() {
-	static auto const logger = bave::Logger{"BaveTools"};
-	auto ret = State{};
-	if (ret.load()) {
-		logger.info("loaded State from '{}'", State::path_v.as_view());
-	} else {
-		ret.save();
-		logger.info("created State at '{}'", State::path_v.as_view());
-	}
-	return ret;
-}
-} // namespace
+#include <tools/runner.hpp>
 
 auto main(int argc, char** argv) -> int {
-	Applet::add_applet<NineSlicer>("NineSlicer");
-	Applet::add_applet<Tiler>("Tiler");
-
-	auto const state = load_or_create_state();
+	using namespace bave::tools;
 
 	auto const daci = bave::DesktopApp::CreateInfo{
 		.args = bave::make_args(argc, argv),
@@ -33,6 +13,6 @@ auto main(int argc, char** argv) -> int {
 		.assets_patterns = "assets,example/assets",
 	};
 	auto app = bave::DesktopApp{daci};
-	app.set_bootloader(Applet::make_bootloader(state));
+	app.set_bootloader(Bootloader{});
 	return static_cast<int>(app.run());
 }

@@ -6,7 +6,8 @@
 namespace bave::tools {
 namespace fs = std::filesystem;
 
-NineSlicer::NineSlicer(App& app, State state) : Applet(app, std::move(state)), m_loader(&get_app().get_data_store(), &get_app().get_render_device()) {
+NineSlicer::NineSlicer(App& app, NotNull<std::shared_ptr<State>> const& state)
+	: Applet(app, state), m_loader(&get_app().get_data_store(), &get_app().get_render_device()) {
 	m_image_quad = push(std::make_unique<NineQuadShape>(&app.get_render_device()));
 	m_top = push(std::make_unique<QuadShape>(&app.get_render_device()));
 	m_bottom = push(std::make_unique<QuadShape>(&app.get_render_device()));
@@ -185,5 +186,5 @@ void NineSlicer::save_slice() {
 	m_log.error("failed to save JSON to '{}'", m_json_uri);
 }
 
-void NineSlicer::set_title() { get_app().set_title(format_title("NineSlice", m_json_uri, m_unsaved).c_str()); }
+void NineSlicer::set_title() { get_app().set_title(format_title("NineSlicer", m_json_uri, m_unsaved).c_str()); }
 } // namespace bave::tools

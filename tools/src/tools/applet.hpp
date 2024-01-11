@@ -1,12 +1,10 @@
 #pragma once
 #include <bave/core/inclusive_range.hpp>
-#include <bave/game.hpp>
+#include <bave/driver.hpp>
 #include <bave/graphics/drawable.hpp>
 #include <bave/imgui/im_text.hpp>
 #include <djson/json.hpp>
 #include <tools/state.hpp>
-#include <functional>
-#include <unordered_map>
 #include <pfd/portable-file-dialogs.hpp>
 
 namespace bave::tools {
@@ -15,18 +13,19 @@ namespace bave::tools {
 	return in;
 }
 
-class Applet : public Game {
+class Applet : public Polymorphic {
   public:
-	static constexpr std::string_view title_prefix_v{"Bave Tools"};
+	explicit Applet(App& app, NotNull<std::shared_ptr<State>> const& state);
 
-	template <std::derived_from<Applet> Type>
-	static void add_applet(std::string_view name) {
-		s_applets.insert_or_assign(name, [](App& app, State state) { return std::make_unique<Type>(app, std::move(state)); });
-	}
+	virtual void tick() {}
+	virtual void render() const;
 
-	static auto make_bootloader(State const& state) -> std::function<std::unique_ptr<Applet>(App&)>;
+	virtual void on_key(KeyInput const& key_input);
+	virtual void on_scroll(MouseScroll const& scroll);
+	virtual void on_drop(std::span<std::string const> /*paths*/) {}
 
-	explicit Applet(App& app, State state);
+	virtual void file_menu_items();
+	virtual void main_menu() {}
 
   protected:
 	static constexpr float y_top_v{20.0f};
@@ -34,13 +33,8 @@ class Applet : public Game {
 
 	static auto drag_ivec2(CString label, glm::ivec2& out, InclusiveRange<glm::ivec2> range = {}, float width = 50.0f) -> bool;
 
-	void tick() override;
-	void render() const final;
-
-	void on_key(KeyInput const& key_input) override;
-	void on_scroll(MouseScroll const& scroll) override;
-
-	virtual void render(Shader& shader) const;
+	[[nodiscard]] auto get_app() const -> App& { return *m_app; }
+	virtual void render(Shader& default_shader) const;
 
 	static void begin_lt_window(CString name, bool resizeable);
 	void begin_fullscreen_window(CString name) const;
@@ -50,12 +44,7 @@ class Applet : public Game {
 	void wireframe_control();
 	static void image_meta_control(std::string_view image_uri, glm::ivec2 size);
 
-	void save_state();
-
 	[[nodiscard]] auto get_sidepanel_width() const -> float { return m_sidepanel_width; }
-
-	virtual void file_menu_items();
-	virtual void main_menu() {}
 
 	[[nodiscard]] static auto replace_extension(std::string_view uri, std::string_view extension) -> std::string;
 	[[nodiscard]] auto truncate_to_uri(std::string_view path) const -> std::string;
@@ -73,7 +62,8 @@ class Applet : public Game {
 		return ret;
 	}
 
-	State state;
+	NotNull<App*> m_app;
+	NotNull<std::shared_ptr<State>> state;
 
 	std::vector<std::unique_ptr<Drawable>> drawables{};
 	float zoom{100.0f};
@@ -82,11 +72,6 @@ class Applet : public Game {
 	bool wireframe{};
 
   private:
-	void main_menu_bar();
-	void applet_menu();
-
-	// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
-	inline static std::unordered_map<std::string_view, std::function<std::unique_ptr<Applet>(App&, State)>> s_applets{};
 	float m_sidepanel_width{};
 	Logger m_log{"Applet"};
 };

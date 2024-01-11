@@ -52,6 +52,6 @@ class Tiler : public Applet {
 	bool m_unsaved{};
 
   public:
-	Tiler(App& app, State state);
+	Tiler(App& app, NotNull<std::shared_ptr<State>> const& state);
 };
 } // namespace bave::tools

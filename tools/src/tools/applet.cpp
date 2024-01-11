@@ -1,15 +1,9 @@
 #include <tools/applet.hpp>
+#include <tools/nine_slicer.hpp>
 #include <filesystem>
 
 namespace bave::tools {
 namespace fs = std::filesystem;
-
-auto Applet::make_bootloader(State const& state) -> std::function<std::unique_ptr<Applet>(App&)> {
-	return [state](App& app) {
-		if (auto const it = s_applets.find(state.active_applet); it != s_applets.end()) { return it->second(app, state); }
-		return std::make_unique<Applet>(app, state);
-	};
-}
 
 auto Applet::drag_ivec2(CString label, glm::ivec2& out, InclusiveRange<glm::ivec2> range, float width) -> bool {
 	ImGui::SetNextItemWidth(width);
@@ -20,9 +14,7 @@ auto Applet::drag_ivec2(CString label, glm::ivec2& out, InclusiveRange<glm::ivec
 	return ret;
 }
 
-Applet::Applet(App& app, State state) : Game(app), state(std::move(state)) { app.set_title(title_prefix_v.data()); }
-
-void Applet::tick() { main_menu_bar(); }
+Applet::Applet(App& app, NotNull<std::shared_ptr<State>> const& state) : m_app(&app), state(state) { app.set_title("Bave Tools"); }
 
 void Applet::render() const {
 	auto render_view = get_app().get_render_device().get_default_view();
@@ -118,14 +110,6 @@ auto Applet::format_title(std::string_view name, std::string_view uri, bool unsa
 	return ret;
 }
 
-void Applet::save_state() {
-	if (state.save()) {
-		m_log.info("State saved to '{}'", State::path_v.as_view());
-	} else {
-		m_log.warn("failed to save State to '{}'", State::path_v.as_view());
-	}
-}
-
 void Applet::begin_lt_window(CString name, bool resizeable) {
 	ImGui::SetNextWindowPos({0.0f, y_top_v}, ImGuiCond_Always);
 	auto flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
@@ -144,33 +128,5 @@ void Applet::begin_sidepanel_window(CString const name, float const min_width) {
 	ImGui::SetNextWindowSizeConstraints({min_width, fb_size.y - y_top_v}, {fb_size.x, fb_size.y - y_top_v});
 	begin_lt_window(name, true);
 	m_sidepanel_width = ImGui::GetWindowWidth();
-}
-
-void Applet::main_menu_bar() {
-	if (ImGui::BeginMainMenuBar()) {
-		if (ImGui::BeginMenu("File")) {
-			file_menu_items();
-			ImGui::EndMenu();
-		}
-
-		main_menu();
-		applet_menu();
-
-		ImGui::EndMainMenuBar();
-	}
-}
-
-void Applet::applet_menu() {
-	if (ImGui::BeginMenu("Applets")) {
-		for (auto const& [name, factory] : s_applets) {
-			if (ImGui::MenuItem(name.data())) {
-				m_log.info("loading '{}'", name);
-				state.active_applet = name;
-				save_state();
-				replace_next_frame(factory(get_app(), std::move(state)));
-			}
-		}
-		ImGui::EndMenu();
-	}
 }
 } // namespace bave::tools

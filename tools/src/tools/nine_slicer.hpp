@@ -42,6 +42,6 @@ class NineSlicer : public Applet {
 	bool m_unsaved{};
 
   public:
-	NineSlicer(App& app, State state);
+	NineSlicer(App& app, NotNull<std::shared_ptr<State>> const& state);
 };
 } // namespace bave::tools

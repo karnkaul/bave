@@ -6,7 +6,8 @@
 namespace bave::tools {
 namespace fs = std::filesystem;
 
-Tiler::Tiler(App& app, State state) : Applet(app, std::move(state)), m_loader(&get_app().get_data_store(), &get_app().get_render_device()) {
+Tiler::Tiler(App& app, NotNull<std::shared_ptr<State>> const& state)
+	: Applet(app, state), m_loader(&get_app().get_data_store(), &get_app().get_render_device()) {
 	m_sprite = push(std::make_unique<Sprite>(&app.get_render_device()));
 
 	new_sheet();
