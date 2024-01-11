@@ -5,7 +5,7 @@
 #include <bave/android_app.hpp>
 #include <bave/core/error.hpp>
 #include <bave/core/ptr.hpp>
-#include <bave/game.hpp>
+#include <bave/driver.hpp>
 #include <platform/android/android_data_store.hpp>
 #include <cassert>
 #include <unordered_map>
@@ -161,25 +161,25 @@ void AndroidApp::poll_events() {
 	if (ALooper_pollAll(0, nullptr, &events, reinterpret_cast<void**>(&source)) >= 0) { // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 		if (source) { source->process(&m_app, source); }
 	}
-	swap_game(m_new_game, m_game);
-	if (m_game) { m_game->handle_events(get_events()); }
+	swap_driver(m_new_driver, m_driver);
+	if (m_driver) { m_driver->handle_events(get_events()); }
 }
 
 void AndroidApp::tick() {
-	if (is_shutting_down() || !m_game) { return; }
-	m_game->tick();
+	if (is_shutting_down() || !m_driver) { return; }
+	m_driver->tick();
 }
 
 void AndroidApp::render() {
 	if (!m_can_render) { return; }
 
-	if (m_renderer->start_render(m_game->clear_colour)) { m_game->render(); }
+	if (m_renderer->start_render(m_driver->clear_colour)) { m_driver->render(); }
 	m_renderer->finish_render();
 }
 
-auto AndroidApp::set_new_game(std::unique_ptr<Game> new_game) -> bool {
+auto AndroidApp::set_new_driver(std::unique_ptr<Driver> new_driver) -> bool {
 	if (!m_render_device) { return false; }
-	m_new_game = std::move(new_game);
+	m_new_driver = std::move(new_driver);
 	return true;
 }
 
@@ -277,14 +277,14 @@ void AndroidApp::start() {
 	ANativeActivity_setWindowFlags(m_app.activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
 	set_data_store(std::make_unique<AndroidDataStore>(&m_app));
 	init_graphics();
-	m_game = boot_game();
+	m_driver = boot_driver();
 	m_can_render = true;
 	m_log.debug("start");
 }
 
 void AndroidApp::destroy() {
 	get_render_device().get_device().waitIdle();
-	m_game.reset();
+	m_driver.reset();
 	m_renderer.reset();
 	m_render_device.reset();
 	m_can_render = false;

@@ -1,18 +1,18 @@
 #include <bave/app.hpp>
 #include <bave/core/error.hpp>
-#include <bave/game.hpp>
+#include <bave/driver.hpp>
 #include <capo/error_handler.hpp>
 
 namespace bave {
 App::App(std::string tag)
-	: m_log{std::move(tag)}, m_bootloader([](App& app) { return std::make_unique<Game>(app); }), m_audio_device(std::make_unique<AudioDevice>()),
+	: m_log{std::move(tag)}, m_bootloader([](App& app) { return std::make_unique<Driver>(app); }), m_audio_device(std::make_unique<AudioDevice>()),
 	  m_audio_streamer(std::make_unique<AudioStreamer>(*m_audio_device)) {
 	log::get_thread_id(); // set thread 0
 }
 
 void App::set_bootloader(Bootloader bootloader) {
 	if (!bootloader) {
-		m_log.error("cannot set null game factory");
+		m_log.error("cannot set null driver factory");
 		return;
 	}
 
@@ -113,19 +113,19 @@ void App::push_event(Event event) {
 
 void App::push_drop(std::string path) { m_drops.push_back(std::move(path)); }
 
-auto App::boot_game() -> std::unique_ptr<Game> {
+auto App::boot_driver() -> std::unique_ptr<Driver> {
 	assert(m_bootloader);
 	auto ret = m_bootloader(*this);
-	if (!ret) { throw Error{"failed to boot Game"}; }
+	if (!ret) { throw Error{"failed to boot Driver"}; }
 	m_dt.update();
 	return ret;
 }
 
-void App::swap_game(std::unique_ptr<Game>& new_game, std::unique_ptr<Game>& current_game) const {
-	if (!new_game) { return; }
+void App::swap_driver(std::unique_ptr<Driver>& new_driver, std::unique_ptr<Driver>& current_driver) const {
+	if (!new_driver) { return; }
 
 	get_audio_streamer().stop();
-	current_game = std::move(new_game);
+	current_driver = std::move(new_driver);
 }
 
 auto App::screen_to_framebuffer(glm::vec2 const position) const -> glm::vec2 {

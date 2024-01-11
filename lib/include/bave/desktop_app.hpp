@@ -2,7 +2,7 @@
 #include <bave/app.hpp>
 #include <bave/core/ptr.hpp>
 #include <bave/detail/dear_imgui.hpp>
-#include <bave/game.hpp>
+#include <bave/driver.hpp>
 #include <bave/platform.hpp>
 #include <functional>
 #include <span>
@@ -57,14 +57,14 @@ class DesktopApp : public App, public detail::IWsi {
 	void render() final;
 
 	void do_shutdown() final;
-	auto set_new_game(std::unique_ptr<Game> new_game) -> bool final;
+	auto set_new_driver(std::unique_ptr<Driver> new_driver) -> bool final;
 
 	[[nodiscard]] auto do_get_window_size() const -> glm::ivec2 final;
 	[[nodiscard]] auto do_get_framebuffer_size() const -> glm::ivec2 final;
 
 	[[nodiscard]] auto do_get_render_device() const -> RenderDevice& final;
 	[[nodiscard]] auto do_get_renderer() const -> Renderer& final;
-	[[nodiscard]] auto do_get_game() const -> Ptr<Game> final { return m_game.get(); }
+	[[nodiscard]] auto do_get_driver() const -> Ptr<Driver> final { return m_driver.get(); }
 
 	[[nodiscard]] auto get_instance_extensions() const -> std::span<char const* const> final;
 	[[nodiscard]] auto make_surface(vk::Instance instance) const -> vk::SurfaceKHR final;
@@ -86,7 +86,7 @@ class DesktopApp : public App, public detail::IWsi {
 	vk::UniqueSurfaceKHR m_surface{};
 	std::unique_ptr<Renderer> m_renderer{};
 	std::unique_ptr<detail::DearImGui> m_dear_imgui{};
-	std::unique_ptr<Game> m_game{};
-	std::unique_ptr<Game> m_new_game{};
+	std::unique_ptr<Driver> m_driver{};
+	std::unique_ptr<Driver> m_new_driver{};
 };
 } // namespace bave

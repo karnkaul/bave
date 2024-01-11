@@ -1,5 +1,5 @@
 #pragma once
-#include <bave/game.hpp>
+#include <bave/driver.hpp>
 #include <bave/graphics/sprite.hpp>
 #include <bave/graphics/text.hpp>
 #include <bave/imgui/im_texture.hpp>
@@ -8,9 +8,9 @@
 #include <src/player.hpp>
 #include <future>
 
-// entry point Game subclass.
+// entry point Driver subclass.
 // the entry point is setup in bave via a 'game factory' callback in bave::App.  (see main.cpp)
-class Flappy : public bave::Game {
+class Flappy : public bave::Driver {
 	// tick is called every frame, until the engine is shutting down.
 	void tick() final;
 	// render is called after tick, unless there is no render target to draw to (eg the Vulkan Swapchain got resized).

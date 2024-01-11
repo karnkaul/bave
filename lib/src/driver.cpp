@@ -1,14 +1,14 @@
 #include <bave/core/error.hpp>
 #include <bave/core/visitor.hpp>
-#include <bave/game.hpp>
+#include <bave/driver.hpp>
 
 namespace bave {
-void Game::replace_next_frame(std::unique_ptr<Game> new_game) const {
-	if (!new_game) { return; }
-	get_app().set_new_game(std::move(new_game));
+void Driver::replace_next_frame(std::unique_ptr<Driver> new_driver) const {
+	if (!new_driver) { return; }
+	get_app().set_new_driver(std::move(new_driver));
 }
 
-void Game::handle_events(std::span<Event const> events) {
+void Driver::handle_events(std::span<Event const> events) {
 	auto const visitor = Visitor{
 		[this](FocusChange const t) { on_focus(t); }, [this](WindowResize const t) { on_resize(t); }, [this](FramebufferResize const t) { on_resize(t); },
 		[this](KeyInput const t) { on_key(t); },	   [this](CharInput const t) { on_char(t); },	   [this](PointerTap const t) { on_tap(t); },

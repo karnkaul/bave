@@ -8,6 +8,7 @@
 using bave::Action;
 using bave::AnimatedSprite;
 using bave::App;
+using bave::Driver;
 using bave::FocusChange;
 using bave::Key;
 using bave::KeyInput;
@@ -21,7 +22,7 @@ using bave::Texture;
 // bave will reset delta time after using game factory, so time spent in this constructor will not bloat up the first tick's dt.
 // it will still halt the app until complete though; taking too long might trigger an ANR (App Not Responding) on Android.
 Flappy::Flappy(App& app)
-	: Game(app), m_game_view(app.get_render_device().render_view), m_score_bg(&app.get_render_device()), m_score_text(&app.get_render_device()),
+	: Driver(app), m_game_view(app.get_render_device().render_view), m_score_bg(&app.get_render_device()), m_score_text(&app.get_render_device()),
 	  m_game_over_text(&app.get_render_device()), m_restart_text(&app.get_render_device()) {
 	// we use a custom / fixed viewport so that the same game world is visible regardless of screen / framebuffer size.
 	setup_viewport();

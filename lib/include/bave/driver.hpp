@@ -6,13 +6,13 @@
 #include <vulkan/vulkan.hpp>
 
 namespace bave {
-class Game : public PolyPinned {
+class Driver : public PolyPinned {
   public:
-	explicit Game(App& app) : m_app(app) {}
+	explicit Driver(App& app) : m_app(app) {}
 
 	[[nodiscard]] auto get_app() const -> App& { return m_app; }
 
-	void replace_next_frame(std::unique_ptr<Game> new_game) const;
+	void replace_next_frame(std::unique_ptr<Driver> new_driver) const;
 
 	virtual void tick() {}
 	virtual void render() const {}
