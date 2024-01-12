@@ -63,6 +63,7 @@ AnimatedSprite::AnimatedSprite(NotNull<RenderDevice*> render_device, std::shared
 
 void AnimatedSprite::tick(Seconds dt) {
 	if (!sheet) { animate = false; }
+	set_texture(sheet);
 	if (!animate) {
 		elapsed = {};
 		return;
@@ -73,7 +74,7 @@ void AnimatedSprite::tick(Seconds dt) {
 		if (auto tile = sheet->find_tile(tile_id)) { set_tile(*tile); }
 		m_current_tile_id = tile_id;
 	}
-	if (elapsed > animation.get_duration()) {
+	if (elapsed > animation.duration) {
 		elapsed = {};
 		if (!repeat) { animate = false; }
 	}

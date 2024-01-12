@@ -136,29 +136,15 @@ auto Loader::load_audio_clip(std::string_view const uri) const -> std::shared_pt
 	return ret;
 }
 
-auto Loader::load_sprite_animation(std::string_view const uri) const -> std::shared_ptr<SpriteAnimation> {
+auto Loader::load_sprite_animation(std::string_view const uri) const -> std::optional<SpriteAnimation> {
 	auto const json = load_json(uri);
 	if (!json) { return {}; }
 
-	auto const duration = Seconds{json["duration"].as<float>()};
+	auto ret = SpriteAnimation{};
+	ret.duration = Seconds{json["duration"].as<float>()};
 	auto const& in_key_frames = json["key_frames"];
-	auto ret = std::shared_ptr<SpriteAnimation>{};
-	if (!in_key_frames.array_view().empty()) {
-		if (in_key_frames[0].is_object()) {
-			auto key_frames = std::vector<SpriteAnimation::KeyFrame>{};
-			for (auto const& in_kf : in_key_frames.array_view()) {
-				auto out_kf = SpriteAnimation::KeyFrame{};
-				out_kf.tile_id = std::string{in_kf["tile_id"].as_string()};
-				out_kf.timestamp = Seconds{in_kf["timestamp"].as<float>()};
-				if (!out_kf.tile_id.empty()) { key_frames.push_back(std::move(out_kf)); }
-			}
-			ret = std::make_shared<SpriteAnimation>(std::move(key_frames), duration);
-		} else {
-			auto tile_ids = std::vector<std::string>{};
-			for (auto const& in_tile_id : in_key_frames.array_view()) { tile_ids.emplace_back(in_tile_id.as_string()); }
-			ret = std::make_shared<SpriteAnimation>(std::move(tile_ids), duration);
-		}
-	}
+	ret.tile_ids.reserve(in_key_frames.array_view().size());
+	for (auto const& in_tile_id : in_key_frames.array_view()) { ret.tile_ids.emplace_back(in_tile_id.as_string()); }
 
 	m_log.info("loaded SpriteAnimation: '{}'", uri);
 	return ret;

@@ -25,7 +25,8 @@ class Loader {
 	[[nodiscard]] auto load_tiled_texture(std::string_view uri, bool mip_map = false) const -> std::shared_ptr<TiledTexture>;
 	[[nodiscard]] auto load_font(std::string_view uri) const -> std::shared_ptr<Font>;
 	[[nodiscard]] auto load_audio_clip(std::string_view uri) const -> std::shared_ptr<AudioClip>;
-	[[nodiscard]] auto load_sprite_animation(std::string_view uri) const -> std::shared_ptr<SpriteAnimation>;
+
+	[[nodiscard]] auto load_sprite_animation(std::string_view uri) const -> std::optional<SpriteAnimation>;
 
   private:
 	Logger m_log{"Loader"};

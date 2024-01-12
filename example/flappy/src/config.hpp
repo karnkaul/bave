@@ -22,7 +22,7 @@ struct Config {
 	std::shared_ptr<bave::AudioClip> jump_sfx{};
 
 	std::shared_ptr<bave::TiledTexture> explode_sheet{};
-	std::shared_ptr<bave::SpriteAnimation> explode_animation{};
+	std::optional<bave::SpriteAnimation> explode_animation{};
 	std::shared_ptr<bave::AudioClip> explode_sfx{};
 
 	bave::Rgba background_rgba_top{bave::Rgba::from(0x1c96c5ff)};
