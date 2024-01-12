@@ -51,7 +51,7 @@ class Flappy : public bave::Driver {
 	std::optional<Player> m_player{};
 	std::optional<Background> m_background{};
 	std::optional<Pipes> m_pipes{};
-	std::optional<bave::AnimatedSprite> m_explode{};
+	std::optional<bave::SpriteAnim> m_explode{};
 
 	bave::QuadShape m_score_bg;
 	bave::Text m_score_text;

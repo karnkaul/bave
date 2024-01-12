@@ -136,11 +136,11 @@ auto Loader::load_audio_clip(std::string_view const uri) const -> std::shared_pt
 	return ret;
 }
 
-auto Loader::load_sprite_animation(std::string_view const uri) const -> std::optional<SpriteAnimation> {
+auto Loader::load_sprite_animation(std::string_view const uri) const -> std::optional<SpriteAnim::Animation> {
 	auto const json = load_json(uri);
 	if (!json) { return {}; }
 
-	auto ret = SpriteAnimation{};
+	auto ret = SpriteAnim::Animation{};
 	ret.duration = Seconds{json["duration"].as<float>()};
 	auto const& in_key_frames = json["key_frames"];
 	ret.tile_ids.reserve(in_key_frames.array_view().size());

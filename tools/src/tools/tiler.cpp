@@ -10,7 +10,7 @@ Tiler::Tiler(App& app, NotNull<std::shared_ptr<State>> const& state)
 	: Applet(app, state), m_loader(&get_app().get_data_store(), &get_app().get_render_device()) {
 	m_sprite = push(std::make_unique<Sprite>(&app.get_render_device()));
 
-	if (!load_uri(state->tiler.last_loaded)) { new_sheet(); }
+	if (!load_uri(state->tiler.last_loaded)) { new_atlas(); }
 
 	view_position.x = -150.0f;
 }
@@ -24,7 +24,7 @@ void Tiler::tick() {
 
 	if (ImGui::CollapsingHeader("Metadata", ImGuiTreeNodeFlags_DefaultOpen)) { metadata_control(); }
 
-	if (ImGui::CollapsingHeader("Misc")) { zoom_control(); }
+	if (ImGui::CollapsingHeader("Misc")) { zoom_control("Zoom", zoom); }
 
 	ImGui::End();
 }
@@ -40,17 +40,17 @@ void Tiler::render(Shader& shader) const {
 }
 
 void Tiler::file_menu_items() {
-	if (ImGui::MenuItem("New")) { new_sheet(); }
+	if (ImGui::MenuItem("New")) { new_atlas(); }
 	if (ImGui::MenuItem("Open...")) {
 		if (auto uri = dialog_open_file("Open"); !uri.empty()) { load_uri(uri); }
 	}
-	if (ImGui::MenuItem("Save", nullptr, false, !m_json_uri.empty())) { save_sheet(); }
+	if (ImGui::MenuItem("Save", nullptr, false, !m_json_uri.empty())) { save_atlas(); }
 	if (ImGui::MenuItem("Save As...", nullptr, false, !m_image_uri.empty())) {
 		auto json_uri = fs::path{m_json_uri};
-		if (json_uri.empty()) { json_uri = replace_extension(m_image_uri, ".sheet.json"); }
+		if (json_uri.empty()) { json_uri = replace_extension(m_image_uri, ".atlas.json"); }
 		if (auto uri = dialog_save_file("Save SpriteSheet", json_uri.generic_string()); !uri.empty()) {
 			m_json_uri = uri;
-			save_sheet();
+			save_atlas();
 		}
 	}
 
@@ -145,7 +145,7 @@ auto Tiler::load_uri(std::string_view const uri) -> bool {
 
 	auto ret = false;
 	if (extension == ".json") {
-		ret = load_sheet(uri);
+		ret = load_atlas(uri);
 	} else if (load_image_at(uri)) {
 		ret = true;
 	}
@@ -167,18 +167,19 @@ auto Tiler::load_image_at(std::string_view const uri) -> bool {
 	glm::vec2 const image_size = texture->get_size();
 	m_sprite->set_texture(std::move(texture));
 	m_sprite->set_size(image_size);
-	resize_framebuffer(image_size, {500, 200});
 
 	m_blocks.clear();
 	m_image_uri = uri;
 	m_json_uri.clear();
+
+	auto_zoom(image_size);
 	set_title();
 
 	m_log.info("loaded '{}'", uri);
 	return true;
 }
 
-void Tiler::new_sheet() {
+void Tiler::new_atlas() {
 	m_sprite->set_texture({});
 	m_sprite->set_size(Quad::size_v);
 
@@ -186,11 +187,11 @@ void Tiler::new_sheet() {
 	m_json_uri.clear();
 	m_unsaved = false;
 
-	resize_framebuffer(m_sprite->get_size(), {500, 200});
+	auto_zoom(m_sprite->get_size());
 	set_title();
 }
 
-auto Tiler::load_sheet(std::string_view const uri) -> bool {
+auto Tiler::load_atlas(std::string_view const uri) -> bool {
 	auto json = m_loader.load_json(uri);
 	if (!json || !json.contains("image") || !json.contains("blocks")) { return false; }
 
@@ -198,7 +199,7 @@ auto Tiler::load_sheet(std::string_view const uri) -> bool {
 
 	m_blocks.clear();
 	for (auto const& in_block : json["blocks"].array_view()) {
-		auto out_block = TiledTexture::Block{};
+		auto out_block = TextureAtlas::Block{};
 		out_block.id = in_block["id"].as_string();
 		from_json(in_block["rect"], out_block.rect);
 		m_blocks.push_back(make_block(std::move(out_block)));
@@ -213,7 +214,7 @@ auto Tiler::load_sheet(std::string_view const uri) -> bool {
 	return true;
 }
 
-void Tiler::save_sheet() {
+void Tiler::save_atlas() {
 	if (m_json_uri.empty()) { return; }
 	auto json = dj::Json{};
 	json["image"] = m_image_uri;
@@ -235,7 +236,7 @@ void Tiler::save_sheet() {
 void Tiler::generate_blocks() {
 	m_tile_count.x = std::max(m_tile_count.x, 1);
 	m_tile_count.y = std::max(m_tile_count.y, 1);
-	auto const rects = TiledTexture::make_rects(m_sprite->get_size(), m_tile_count);
+	auto const rects = TextureAtlas::make_rects(m_sprite->get_size(), m_tile_count);
 	m_blocks.clear();
 	auto id = int{};
 	for (auto const& rect : rects) { m_blocks.push_back(make_block(id++, rect)); }
@@ -250,7 +251,7 @@ auto Tiler::make_block(int id, Rect<int> const& rect) const -> Block {
 	return ret;
 }
 
-auto Tiler::make_block(TiledTexture::Block in) const -> Block {
+auto Tiler::make_block(TextureAtlas::Block in) const -> Block {
 	auto ret = Block{.rect = CustomShape{&get_app().get_render_device()}, .block = std::move(in)};
 	ret.id.set_text(ret.block.id);
 	ret.rect.tint = m_block_rgba;

@@ -15,6 +15,8 @@ namespace bave::tools {
 
 class Applet : public Polymorphic {
   public:
+	static constexpr auto window_size_v = glm::ivec2{1280, 720};
+
 	explicit Applet(App& app, NotNull<std::shared_ptr<State>> const& state);
 
 	virtual void tick() {}
@@ -33,16 +35,17 @@ class Applet : public Polymorphic {
 	static constexpr float y_top_v{20.0f};
 	static constexpr auto zoom_range_v = InclusiveRange<int>{1, 500};
 
-	static auto drag_ivec2(CString label, glm::ivec2& out, InclusiveRange<glm::ivec2> range = {}, float width = 50.0f) -> bool;
-
 	[[nodiscard]] auto get_app() const -> App& { return *m_app; }
 	virtual void render(Shader& default_shader) const;
 
-	static void begin_lt_window(CString name, bool resizeable);
-	void begin_fullscreen_window(CString name) const;
-	void begin_sidepanel_window(CString name, float min_width = 300.0f);
+	void auto_zoom(glm::vec2 content_area, glm::vec2 pad = {500.0f, 200.0f});
 
-	void zoom_control();
+	static void begin_lt_window(CString label, bool resizeable);
+	void begin_fullscreen_window(CString label) const;
+	void begin_sidepanel_window(CString label, float min_width = 300.0f);
+
+	static auto drag_ivec2(CString label, glm::ivec2& out, InclusiveRange<glm::ivec2> range = {}, float width = 50.0f) -> bool;
+	static void zoom_control(CString label, float& out_zoom);
 	void wireframe_control();
 	static void image_meta_control(std::string_view image_uri, glm::ivec2 size);
 
@@ -50,7 +53,6 @@ class Applet : public Polymorphic {
 
 	[[nodiscard]] static auto replace_extension(std::string_view uri, std::string_view extension) -> std::string;
 	[[nodiscard]] auto truncate_to_uri(std::string_view path) const -> std::string;
-	void resize_framebuffer(glm::ivec2 size, glm::ivec2 pad);
 	[[nodiscard]] auto dialog_open_file(CString title) const -> std::string;
 	[[nodiscard]] auto dialog_save_file(CString title, std::string_view uri) const -> std::string;
 	[[nodiscard]] auto save_json(dj::Json const& json, std::string_view uri) const -> bool;

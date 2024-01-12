@@ -2,18 +2,6 @@
 #include <bave/graphics/sprite.hpp>
 
 namespace bave {
-namespace {
-auto make_animation(std::shared_ptr<TextureAtlas> const& atlas, Seconds const duration) {
-	if (atlas) {
-		auto const blocks = atlas->get_blocks();
-		auto tile_ids = std::vector<std::string>{};
-		for (auto const& block : blocks) { tile_ids.push_back(block.id); }
-		return SpriteAnimation{std::move(tile_ids), duration};
-	}
-	return SpriteAnimation{std::vector<std::string>{}, {}};
-}
-} // namespace
-
 void Sprite::set_size(glm::vec2 const size) {
 	if (size != get_size()) {
 		auto shape = get_shape();
@@ -41,7 +29,7 @@ void Sprite::set_tile(TextureAtlas::Tile const& tile) {
 	if (m_max_size) { set_size(ExtentScaler{.source = tile.size}.fit_space(*m_max_size)); }
 }
 
-void SlicedSprite::set_texture_9slice(std::shared_ptr<Texture9Slice const> texture) {
+void Sprite9Slice::set_texture_9slice(std::shared_ptr<Texture9Slice const> texture) {
 	if (texture) {
 		auto quad = get_shape();
 		quad.slice = texture->get_slice();
@@ -51,39 +39,11 @@ void SlicedSprite::set_texture_9slice(std::shared_ptr<Texture9Slice const> textu
 	set_texture(std::move(texture));
 }
 
-void SlicedSprite::set_size(glm::vec2 const size) {
+void Sprite9Slice::set_size(glm::vec2 const size) {
 	if (size != get_size()) {
 		auto shape = get_shape();
 		shape.size.current = size;
 		set_shape(shape);
-	}
-}
-
-AnimatedSprite::AnimatedSprite(NotNull<RenderDevice*> render_device, std::shared_ptr<TextureAtlas> atlas, Seconds const duration)
-	: Sprite(render_device), atlas(std::move(atlas)), animation(make_animation(this->atlas, duration)) {
-	m_current_tile_id = animation.get_tile_at({});
-	if (this->atlas) {
-		set_texture(this->atlas);
-		if (auto tile = this->atlas->find_tile(m_current_tile_id)) { set_tile(*tile); }
-	}
-}
-
-void AnimatedSprite::tick(Seconds dt) {
-	if (!atlas) { animate = false; }
-	set_texture(atlas);
-	if (!animate) {
-		elapsed = {};
-		return;
-	}
-	elapsed += dt;
-	auto const tile_id = animation.get_tile_at(elapsed);
-	if (tile_id != m_current_tile_id) {
-		if (auto tile = atlas->find_tile(tile_id)) { set_tile(*tile); }
-		m_current_tile_id = tile_id;
-	}
-	if (elapsed > animation.duration) {
-		elapsed = {};
-		if (!repeat) { animate = false; }
 	}
 }
 } // namespace bave

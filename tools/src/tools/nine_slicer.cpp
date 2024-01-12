@@ -34,7 +34,7 @@ void NineSlicer::tick() {
 		if (ImGui::CollapsingHeader("Metadata", ImGuiTreeNodeFlags_DefaultOpen)) { metadata_control(); }
 
 		if (ImGui::CollapsingHeader("Misc")) {
-			zoom_control();
+			zoom_control("Zoom", zoom);
 			wireframe_control();
 		}
 	}
@@ -146,10 +146,11 @@ auto NineSlicer::load_image_at(std::string_view const uri) -> bool {
 	glm::vec2 const image_size = texture->get_size();
 	m_image_quad->set_texture(std::move(texture));
 	m_image_quad->set_shape(NineQuad{.size = image_size});
-	resize_framebuffer(image_size, {500, 200});
 
 	m_image_uri = uri;
 	m_json_uri.clear();
+
+	auto_zoom(image_size);
 	set_title();
 
 	m_log.info("loaded '{}'", m_image_uri);
@@ -164,7 +165,7 @@ void NineSlicer::new_slice() {
 	m_json_uri.clear();
 	m_unsaved = false;
 
-	resize_framebuffer(m_image_quad->get_shape().size.current, {500, 200});
+	auto_zoom(m_image_quad->get_shape().size.current);
 	set_title();
 }
 

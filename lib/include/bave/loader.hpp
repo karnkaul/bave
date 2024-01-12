@@ -4,7 +4,7 @@
 #include <bave/font/font.hpp>
 #include <bave/graphics/image_file.hpp>
 #include <bave/graphics/render_device.hpp>
-#include <bave/graphics/sprite_animation.hpp>
+#include <bave/graphics/sprite_anim.hpp>
 #include <bave/graphics/texture.hpp>
 #include <bave/graphics/texture_9slice.hpp>
 #include <bave/graphics/texture_atlas.hpp>
@@ -26,7 +26,7 @@ class Loader {
 	[[nodiscard]] auto load_font(std::string_view uri) const -> std::shared_ptr<Font>;
 	[[nodiscard]] auto load_audio_clip(std::string_view uri) const -> std::shared_ptr<AudioClip>;
 
-	[[nodiscard]] auto load_sprite_animation(std::string_view uri) const -> std::optional<SpriteAnimation>;
+	[[nodiscard]] auto load_sprite_animation(std::string_view uri) const -> std::optional<SpriteAnim::Animation>;
 
   private:
 	Logger m_log{"Loader"};

@@ -1,3 +1,4 @@
+#include <tools/animator.hpp>
 #include <tools/nine_slicer.hpp>
 #include <tools/runner.hpp>
 #include <tools/tiler.hpp>
@@ -23,6 +24,7 @@ Runner::Runner(App& app) : Driver(app), m_state(load_or_create_state()) {
 	m_map = {
 		{"Tiler", [&] { return std::make_unique<Tiler>(get_app(), m_state); }},
 		{"NineSlicer", [&] { return std::make_unique<NineSlicer>(get_app(), m_state); }},
+		{"Animator", [&] { return std::make_unique<Animator>(get_app(), m_state); }},
 	};
 
 	m_active = load_active();

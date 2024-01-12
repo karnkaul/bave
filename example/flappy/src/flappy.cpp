@@ -6,7 +6,6 @@
 #include <thread>
 
 using bave::Action;
-using bave::AnimatedSprite;
 using bave::App;
 using bave::Driver;
 using bave::FocusChange;
@@ -17,6 +16,7 @@ using bave::PointerId;
 using bave::PointerTap;
 using bave::Rect;
 using bave::Seconds;
+using bave::SpriteAnim;
 using bave::Texture;
 
 // bave will reset delta time after using game factory, so time spent in this constructor will not bloat up the first tick's dt.
@@ -197,7 +197,7 @@ void Flappy::create_entities() {
 	auto& render_device = get_app().get_render_device();
 
 	// explode animation.
-	m_explode = AnimatedSprite{&render_device, m_config.explode_atlas};
+	m_explode = SpriteAnim{&render_device, m_config.explode_atlas};
 	if (m_config.explode_animation) { m_explode->animation = *m_config.explode_animation; }
 	m_explode->repeat = false;
 

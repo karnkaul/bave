@@ -5,15 +5,6 @@
 namespace bave::tools {
 namespace fs = std::filesystem;
 
-auto Applet::drag_ivec2(CString label, glm::ivec2& out, InclusiveRange<glm::ivec2> range, float width) -> bool {
-	ImGui::SetNextItemWidth(width);
-	auto ret = ImGui::DragInt(FixedString{"##{}", label.as_view()}.c_str(), &out.x, 1.0f, range.lo.x, range.hi.x);
-	ImGui::SameLine();
-	ImGui::SetNextItemWidth(width);
-	ret |= ImGui::DragInt(label.c_str(), &out.y, 1.0f, range.lo.y, range.hi.y);
-	return ret;
-}
-
 Applet::Applet(App& app, NotNull<std::shared_ptr<State>> const& state) : m_app(&app), state(state) { app.set_title("Bave Tools"); }
 
 void Applet::render() const {
@@ -34,12 +25,13 @@ void Applet::on_scroll(MouseScroll const& scroll) {
 	zoom = std::clamp(zoom + scroll.delta.y * zoom_scroll_rate, f_range.lo, f_range.hi);
 }
 
-void Applet::render(Shader& shader) const {
-	if (wireframe) {
-		shader.polygon_mode = vk::PolygonMode::eLine;
-		shader.line_width = 3.0f;
+void Applet::file_menu_items() {
+	if (ImGui::MenuItem("Change mount point...")) {
+		auto result = pfd::select_folder("Select mount point").result();
+		if (!result.empty()) { get_app().change_mount_point(result); }
 	}
-	for (auto const& drawable : drawables) { drawable->draw(shader); }
+	ImGui::Separator();
+	if (ImGui::MenuItem("Quit")) { get_app().shutdown(); }
 }
 
 void Applet::save_state() {
@@ -50,11 +42,55 @@ void Applet::save_state() {
 	}
 }
 
-void Applet::zoom_control() {
-	auto i_zoom = static_cast<int>(zoom);
-	if (ImGui::SliderInt("Zoom", &i_zoom, zoom_range_v.lo, zoom_range_v.hi)) { zoom = static_cast<float>(i_zoom); }
+void Applet::render(Shader& shader) const {
+	if (wireframe) {
+		shader.polygon_mode = vk::PolygonMode::eLine;
+		shader.line_width = 3.0f;
+	}
+	for (auto const& drawable : drawables) { drawable->draw(shader); }
+}
+
+void Applet::auto_zoom(glm::vec2 const content_area, glm::vec2 const pad) {
+	auto const total_area = content_area + pad;
+	if (!is_positive(total_area)) { return; }
+	auto const scaled_content_area = ExtentScaler{.source = total_area}.fit_space(get_app().get_framebuffer_size());
+	zoom = 100.0f * scaled_content_area.x / total_area.x;
+}
+
+void Applet::begin_lt_window(CString label, bool resizeable) {
+	ImGui::SetNextWindowPos({0.0f, y_top_v}, ImGuiCond_Always);
+	auto flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
+	if (!resizeable) { flags |= ImGuiWindowFlags_NoResize; }
+	ImGui::Begin(label.c_str(), nullptr, flags);
+}
+
+void Applet::begin_fullscreen_window(CString const label) const {
+	glm::vec2 const fb_size = get_app().get_framebuffer_size();
+	ImGui::SetNextWindowSize({fb_size.x, fb_size.y - y_top_v}, ImGuiCond_Always);
+	begin_lt_window(label, false);
+}
+
+void Applet::begin_sidepanel_window(CString const label, float const min_width) {
+	glm::vec2 const fb_size = get_app().get_framebuffer_size();
+	ImGui::SetNextWindowSizeConstraints({min_width, fb_size.y - y_top_v}, {fb_size.x, fb_size.y - y_top_v});
+	begin_lt_window(label, true);
+	m_sidepanel_width = ImGui::GetWindowWidth();
+}
+
+auto Applet::drag_ivec2(CString label, glm::ivec2& out, InclusiveRange<glm::ivec2> range, float width) -> bool {
+	ImGui::SetNextItemWidth(width);
+	auto ret = ImGui::DragInt(FixedString{"##{}", label.as_view()}.c_str(), &out.x, 1.0f, range.lo.x, range.hi.x);
 	ImGui::SameLine();
-	if (ImGui::SmallButton("Reset")) { zoom = 100.0f; }
+	ImGui::SetNextItemWidth(width);
+	ret |= ImGui::DragInt(label.c_str(), &out.y, 1.0f, range.lo.y, range.hi.y);
+	return ret;
+}
+
+void Applet::zoom_control(CString label, float& out_zoom) {
+	auto i_zoom = static_cast<int>(out_zoom);
+	if (ImGui::SliderInt(label.c_str(), &i_zoom, zoom_range_v.lo, zoom_range_v.hi)) { out_zoom = static_cast<float>(i_zoom); }
+	ImGui::SameLine();
+	if (ImGui::SmallButton("Reset")) { out_zoom = 100.0f; }
 }
 
 void Applet::wireframe_control() { ImGui::Checkbox("Wireframe", &wireframe); }
@@ -65,15 +101,6 @@ void Applet::image_meta_control(std::string_view const image_uri, glm::ivec2 con
 	auto const pot_x = is_power_of_2(size.x);
 	auto const pot_y = is_power_of_2(size.y);
 	im_text("POT: {} ({} x {})", (pot_x && pot_y), pot_x, pot_y);
-}
-
-void Applet::file_menu_items() {
-	if (ImGui::MenuItem("Change mount point...")) {
-		auto result = pfd::select_folder("Select mount point").result();
-		if (!result.empty()) { get_app().change_mount_point(result); }
-	}
-	ImGui::Separator();
-	if (ImGui::MenuItem("Quit")) { get_app().shutdown(); }
 }
 
 auto Applet::replace_extension(std::string_view uri, std::string_view extension) -> std::string {
@@ -90,8 +117,6 @@ auto Applet::truncate_to_uri(std::string_view const path) const -> std::string {
 	}
 	return uri;
 }
-
-void Applet::resize_framebuffer(glm::ivec2 const size, glm::ivec2 const pad) { get_app().set_framebuffer_size(size + pad); }
 
 auto Applet::dialog_open_file(CString const title) const -> std::string {
 	auto const mount_point = get_app().get_data_store().get_mount_point();
@@ -116,25 +141,5 @@ auto Applet::format_title(std::string_view name, std::string_view uri, bool unsa
 	auto ret = fmt::format("{}{}", unsaved ? "*" : "", name);
 	if (!uri.empty()) { fmt::format_to(std::back_inserter(ret), " - {}", uri); }
 	return ret;
-}
-
-void Applet::begin_lt_window(CString name, bool resizeable) {
-	ImGui::SetNextWindowPos({0.0f, y_top_v}, ImGuiCond_Always);
-	auto flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
-	if (!resizeable) { flags |= ImGuiWindowFlags_NoResize; }
-	ImGui::Begin(name.c_str(), nullptr, flags);
-}
-
-void Applet::begin_fullscreen_window(CString const name) const {
-	glm::vec2 const fb_size = get_app().get_framebuffer_size();
-	ImGui::SetNextWindowSize({fb_size.x, fb_size.y - y_top_v}, ImGuiCond_Always);
-	begin_lt_window(name, false);
-}
-
-void Applet::begin_sidepanel_window(CString const name, float const min_width) {
-	glm::vec2 const fb_size = get_app().get_framebuffer_size();
-	ImGui::SetNextWindowSizeConstraints({min_width, fb_size.y - y_top_v}, {fb_size.x, fb_size.y - y_top_v});
-	begin_lt_window(name, true);
-	m_sidepanel_width = ImGui::GetWindowWidth();
 }
 } // namespace bave::tools

@@ -8,7 +8,7 @@ namespace bave::tools {
 class Tiler : public Applet {
 	struct Block {
 		CustomShape rect;
-		TiledTexture::Block block{};
+		TextureAtlas::Block block{};
 		ImInputText id{};
 	};
 
@@ -27,13 +27,13 @@ class Tiler : public Applet {
 
 	auto load_image_at(std::string_view uri) -> bool;
 
-	void new_sheet();
-	auto load_sheet(std::string_view uri) -> bool;
-	void save_sheet();
+	void new_atlas();
+	auto load_atlas(std::string_view uri) -> bool;
+	void save_atlas();
 	void generate_blocks();
 
 	[[nodiscard]] auto make_block(int id, Rect<int> const& rect = rect_v) const -> Block;
-	[[nodiscard]] auto make_block(TiledTexture::Block in) const -> Block;
+	[[nodiscard]] auto make_block(TextureAtlas::Block in) const -> Block;
 
 	void set_title();
 
