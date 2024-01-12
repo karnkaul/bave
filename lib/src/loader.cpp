@@ -72,7 +72,7 @@ auto Loader::load_texture(std::string_view const uri, bool const mip_map) const 
 	return ret;
 }
 
-auto Loader::load_sliced_texture(std::string_view const uri) const -> std::shared_ptr<SlicedTexture> {
+auto Loader::load_texture_9slice(std::string_view const uri) const -> std::shared_ptr<Texture9Slice> {
 	auto json = load_json(uri);
 	if (!json || !json.contains("image")) { return {}; }
 
@@ -82,27 +82,27 @@ auto Loader::load_sliced_texture(std::string_view const uri) const -> std::share
 	auto slice = NineSlice{};
 	from_json(json["nine_slice"], slice);
 
-	auto ret = std::make_shared<SlicedTexture>(m_render_device, image->get_bitmap_view(), slice);
+	auto ret = std::make_shared<Texture9Slice>(m_render_device, image->get_bitmap_view(), slice);
 	m_log.info("loaded SlicedTexture: '{}'", uri);
 	return ret;
 }
 
-auto Loader::load_tiled_texture(std::string_view uri, bool mip_map) const -> std::shared_ptr<TiledTexture> {
+auto Loader::load_texture_atlas(std::string_view uri, bool mip_map) const -> std::shared_ptr<TextureAtlas> {
 	auto json = load_json(uri);
 	if (!json || !json.contains("image")) { return {}; }
 
 	auto image = load_image_file(json["image"].as_string());
 	if (!image) { return {}; }
 
-	auto blocks = std::vector<TiledTexture::Block>{};
+	auto blocks = std::vector<TextureAtlas::Block>{};
 	for (auto const& in_block : json["blocks"].array_view()) {
-		auto block = TiledTexture::Block{.id = std::string{in_block["id"].as_string()}};
+		auto block = TextureAtlas::Block{.id = std::string{in_block["id"].as_string()}};
 		if (block.id.empty()) { continue; }
 		from_json(in_block["rect"], block.rect);
 		blocks.push_back(std::move(block));
 	}
 
-	auto ret = std::make_shared<TiledTexture>(TiledTexture(m_render_device, image->get_bitmap_view(), std::move(blocks), mip_map));
+	auto ret = std::make_shared<TextureAtlas>(TextureAtlas(m_render_device, image->get_bitmap_view(), std::move(blocks), mip_map));
 	m_log.info("loaded TiledTexture: '{}'", uri);
 	return ret;
 }

@@ -3,9 +3,9 @@
 #include <bave/graphics/texture.hpp>
 
 namespace bave {
-class SlicedTexture : public Texture {
+class Texture9Slice : public Texture {
   public:
-	explicit SlicedTexture(NotNull<RenderDevice*> render_device, BitmapView bitmap, NineSlice slice) : Texture(render_device, bitmap, false), m_slice(slice) {}
+	explicit Texture9Slice(NotNull<RenderDevice*> render_device, BitmapView bitmap, NineSlice slice) : Texture(render_device, bitmap, false), m_slice(slice) {}
 
 	[[nodiscard]] auto get_slice() const -> NineSlice const& { return m_slice; }
 

@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 namespace bave {
-class TiledTexture : public Texture {
+class TextureAtlas : public Texture {
   public:
 	struct Block {
 		std::string id{};
@@ -24,7 +24,7 @@ class TiledTexture : public Texture {
 
 	[[nodiscard]] static auto make_rects(glm::ivec2 size, glm::ivec2 tile_count) -> std::vector<Rect<int>>;
 
-	explicit TiledTexture(NotNull<RenderDevice*> render_device, BitmapView bitmap, std::vector<Block> blocks, bool mip_map = false);
+	explicit TextureAtlas(NotNull<RenderDevice*> render_device, BitmapView bitmap, std::vector<Block> blocks, bool mip_map = false);
 
 	[[nodiscard]] auto find_tile(std::string_view id) const -> std::optional<Tile>;
 

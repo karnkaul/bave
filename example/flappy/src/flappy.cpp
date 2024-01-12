@@ -182,7 +182,7 @@ void Flappy::load_assets() {
 	m_config.player_texture = loader.load_texture("images/bird_256x256.png");
 	m_config.jump_sfx = loader.load_audio_clip("audio_clips/beep.wav");
 
-	m_config.explode_sheet = loader.load_tiled_texture("images/explode_sheet.json");
+	m_config.explode_atlas = loader.load_texture_atlas("images/explode_atlas.json");
 	m_config.explode_animation = loader.load_sprite_animation("animations/explode_anim.json");
 	m_config.explode_sfx = loader.load_audio_clip("audio_clips/explode.wav");
 
@@ -197,7 +197,7 @@ void Flappy::create_entities() {
 	auto& render_device = get_app().get_render_device();
 
 	// explode animation.
-	m_explode = AnimatedSprite{&render_device, m_config.explode_sheet};
+	m_explode = AnimatedSprite{&render_device, m_config.explode_atlas};
 	if (m_config.explode_animation) { m_explode->animation = *m_config.explode_animation; }
 	m_explode->repeat = false;
 

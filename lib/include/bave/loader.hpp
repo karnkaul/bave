@@ -4,10 +4,10 @@
 #include <bave/font/font.hpp>
 #include <bave/graphics/image_file.hpp>
 #include <bave/graphics/render_device.hpp>
-#include <bave/graphics/sliced_texture.hpp>
 #include <bave/graphics/sprite_animation.hpp>
 #include <bave/graphics/texture.hpp>
-#include <bave/graphics/tiled_texture.hpp>
+#include <bave/graphics/texture_9slice.hpp>
+#include <bave/graphics/texture_atlas.hpp>
 #include <djson/json.hpp>
 #include <memory>
 
@@ -21,8 +21,8 @@ class Loader {
 
 	[[nodiscard]] auto load_image_file(std::string_view uri) const -> std::shared_ptr<ImageFile>;
 	[[nodiscard]] auto load_texture(std::string_view uri, bool mip_map = false) const -> std::shared_ptr<Texture>;
-	[[nodiscard]] auto load_sliced_texture(std::string_view uri) const -> std::shared_ptr<SlicedTexture>;
-	[[nodiscard]] auto load_tiled_texture(std::string_view uri, bool mip_map = false) const -> std::shared_ptr<TiledTexture>;
+	[[nodiscard]] auto load_texture_9slice(std::string_view uri) const -> std::shared_ptr<Texture9Slice>;
+	[[nodiscard]] auto load_texture_atlas(std::string_view uri, bool mip_map = false) const -> std::shared_ptr<TextureAtlas>;
 	[[nodiscard]] auto load_font(std::string_view uri) const -> std::shared_ptr<Font>;
 	[[nodiscard]] auto load_audio_clip(std::string_view uri) const -> std::shared_ptr<AudioClip>;
 

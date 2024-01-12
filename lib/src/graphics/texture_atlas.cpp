@@ -1,20 +1,20 @@
 #include <bave/core/is_positive.hpp>
 #include <bave/data_store.hpp>
 #include <bave/graphics/image_file.hpp>
-#include <bave/graphics/tiled_texture.hpp>
+#include <bave/graphics/texture_atlas.hpp>
 #include <bave/json_io.hpp>
 
 namespace bave {
 namespace {
 constexpr auto make_tile(Rect<int> const& rect, glm::vec2 const size) {
-	auto ret = TiledTexture::Tile{.size = {rect.rb.x - rect.lt.x, rect.rb.y - rect.lt.y}};
+	auto ret = TextureAtlas::Tile{.size = {rect.rb.x - rect.lt.x, rect.rb.y - rect.lt.y}};
 	ret.uv = Rect<>{.lt = glm::vec2{rect.lt} / size, .rb = glm::vec2{rect.rb} / size};
 	ret.top_left = rect.lt;
 	return ret;
 }
 } // namespace
 
-auto TiledTexture::make_rects(glm::ivec2 size, glm::ivec2 tile_count) -> std::vector<Rect<int>> {
+auto TextureAtlas::make_rects(glm::ivec2 size, glm::ivec2 tile_count) -> std::vector<Rect<int>> {
 	if (!is_positive(size) || !is_positive(tile_count)) { return {}; }
 
 	auto const tile_size = size / tile_count;
@@ -35,7 +35,7 @@ auto TiledTexture::make_rects(glm::ivec2 size, glm::ivec2 tile_count) -> std::ve
 	return ret;
 }
 
-TiledTexture::TiledTexture(NotNull<RenderDevice*> render_device, BitmapView bitmap, std::vector<Block> blocks, bool mip_map)
+TextureAtlas::TextureAtlas(NotNull<RenderDevice*> render_device, BitmapView bitmap, std::vector<Block> blocks, bool mip_map)
 	: Texture(render_device, bitmap, mip_map), m_blocks(std::move(blocks)) {
 	for (auto const& block : m_blocks) {
 		if (block.id.empty()) { continue; }
@@ -43,7 +43,7 @@ TiledTexture::TiledTexture(NotNull<RenderDevice*> render_device, BitmapView bitm
 	}
 }
 
-auto TiledTexture::find_tile(std::string_view const id) const -> std::optional<Tile> {
+auto TextureAtlas::find_tile(std::string_view const id) const -> std::optional<Tile> {
 	if (id.empty()) { return {}; }
 
 	auto const it = m_rects.find(id);

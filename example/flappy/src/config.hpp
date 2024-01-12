@@ -5,8 +5,7 @@
 #include <bave/font/text_height.hpp>
 #include <bave/graphics/rgba.hpp>
 #include <bave/graphics/sprite_animation.hpp>
-#include <bave/graphics/texture.hpp>
-#include <bave/graphics/tiled_texture.hpp>
+#include <bave/graphics/texture_atlas.hpp>
 #include <glm/vec2.hpp>
 #include <memory>
 
@@ -21,7 +20,7 @@ struct Config {
 	std::shared_ptr<bave::Texture> player_texture{};
 	std::shared_ptr<bave::AudioClip> jump_sfx{};
 
-	std::shared_ptr<bave::TiledTexture> explode_sheet{};
+	std::shared_ptr<bave::TextureAtlas> explode_atlas{};
 	std::optional<bave::SpriteAnimation> explode_animation{};
 	std::shared_ptr<bave::AudioClip> explode_sfx{};
 

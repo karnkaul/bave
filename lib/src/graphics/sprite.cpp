@@ -3,9 +3,9 @@
 
 namespace bave {
 namespace {
-auto make_animation(std::shared_ptr<TiledTexture> const& sheet, Seconds const duration) {
-	if (sheet) {
-		auto const blocks = sheet->get_blocks();
+auto make_animation(std::shared_ptr<TextureAtlas> const& atlas, Seconds const duration) {
+	if (atlas) {
+		auto const blocks = atlas->get_blocks();
 		auto tile_ids = std::vector<std::string>{};
 		for (auto const& block : blocks) { tile_ids.push_back(block.id); }
 		return SpriteAnimation{std::move(tile_ids), duration};
@@ -36,12 +36,12 @@ void Sprite::set_uv(UvRect const uv) {
 	}
 }
 
-void Sprite::set_tile(TiledTexture::Tile const& tile) {
+void Sprite::set_tile(TextureAtlas::Tile const& tile) {
 	set_uv(tile.uv);
 	if (m_max_size) { set_size(ExtentScaler{.source = tile.size}.fit_space(*m_max_size)); }
 }
 
-void SlicedSprite::set_sliced_texture(std::shared_ptr<SlicedTexture const> texture) {
+void SlicedSprite::set_texture_9slice(std::shared_ptr<Texture9Slice const> texture) {
 	if (texture) {
 		auto quad = get_shape();
 		quad.slice = texture->get_slice();
@@ -59,18 +59,18 @@ void SlicedSprite::set_size(glm::vec2 const size) {
 	}
 }
 
-AnimatedSprite::AnimatedSprite(NotNull<RenderDevice*> render_device, std::shared_ptr<TiledTexture> sheet, Seconds const duration)
-	: Sprite(render_device), sheet(std::move(sheet)), animation(make_animation(this->sheet, duration)) {
+AnimatedSprite::AnimatedSprite(NotNull<RenderDevice*> render_device, std::shared_ptr<TextureAtlas> atlas, Seconds const duration)
+	: Sprite(render_device), atlas(std::move(atlas)), animation(make_animation(this->atlas, duration)) {
 	m_current_tile_id = animation.get_tile_at({});
-	if (this->sheet) {
-		set_texture(this->sheet);
-		if (auto tile = this->sheet->find_tile(m_current_tile_id)) { set_tile(*tile); }
+	if (this->atlas) {
+		set_texture(this->atlas);
+		if (auto tile = this->atlas->find_tile(m_current_tile_id)) { set_tile(*tile); }
 	}
 }
 
 void AnimatedSprite::tick(Seconds dt) {
-	if (!sheet) { animate = false; }
-	set_texture(sheet);
+	if (!atlas) { animate = false; }
+	set_texture(atlas);
 	if (!animate) {
 		elapsed = {};
 		return;
@@ -78,7 +78,7 @@ void AnimatedSprite::tick(Seconds dt) {
 	elapsed += dt;
 	auto const tile_id = animation.get_tile_at(elapsed);
 	if (tile_id != m_current_tile_id) {
-		if (auto tile = sheet->find_tile(tile_id)) { set_tile(*tile); }
+		if (auto tile = atlas->find_tile(tile_id)) { set_tile(*tile); }
 		m_current_tile_id = tile_id;
 	}
 	if (elapsed > animation.duration) {
