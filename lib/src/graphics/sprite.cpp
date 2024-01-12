@@ -1,3 +1,4 @@
+#include <bave/graphics/extent_scaler.hpp>
 #include <bave/graphics/sprite.hpp>
 
 namespace bave {
@@ -19,6 +20,12 @@ void Sprite::set_size(glm::vec2 const size) {
 		shape.size = size;
 		set_shape(shape);
 	}
+	m_max_size.reset();
+}
+
+void Sprite::set_auto_size(glm::vec2 const max_size) {
+	m_max_size = max_size;
+	set_size(*m_max_size);
 }
 
 void Sprite::set_uv(UvRect const uv) {
@@ -29,9 +36,9 @@ void Sprite::set_uv(UvRect const uv) {
 	}
 }
 
-void Sprite::set_tile(TiledTexture::Tile const& tile, bool resize) {
+void Sprite::set_tile(TiledTexture::Tile const& tile) {
 	set_uv(tile.uv);
-	if (resize) { set_size(tile.size); }
+	if (m_max_size) { set_size(ExtentScaler{.source = tile.size}.fit_space(*m_max_size)); }
 }
 
 void SlicedSprite::set_sliced_texture(std::shared_ptr<SlicedTexture const> texture) {

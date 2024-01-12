@@ -10,13 +10,18 @@ class Sprite : public QuadShape {
 	explicit Sprite(NotNull<RenderDevice*> render_device) : QuadShape(render_device) {}
 
 	void set_size(glm::vec2 size);
+	void set_auto_size(glm::vec2 max_size);
+
 	void set_uv(UvRect uv);
 	void reset_uv() { set_uv(uv_rect_v); }
 
 	[[nodiscard]] auto get_size() const -> glm::vec2 { return get_shape().size; }
 	[[nodiscard]] auto get_uv() const -> UvRect const& { return get_shape().uv; }
 
-	void set_tile(TiledTexture::Tile const& tile, bool resize = false);
+	void set_tile(TiledTexture::Tile const& tile);
+
+  protected:
+	std::optional<glm::vec2> m_max_size{};
 };
 
 class SlicedSprite : public NineQuadShape {

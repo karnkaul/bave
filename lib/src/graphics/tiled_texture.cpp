@@ -9,6 +9,7 @@ namespace {
 constexpr auto make_tile(Rect<int> const& rect, glm::vec2 const size) {
 	auto ret = TiledTexture::Tile{.size = {rect.rb.x - rect.lt.x, rect.rb.y - rect.lt.y}};
 	ret.uv = Rect<>{.lt = glm::vec2{rect.lt} / size, .rb = glm::vec2{rect.rb} / size};
+	ret.top_left = rect.lt;
 	return ret;
 }
 } // namespace

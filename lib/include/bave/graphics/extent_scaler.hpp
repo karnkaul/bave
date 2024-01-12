@@ -36,5 +36,12 @@ struct ExtentScaler {
 		if (of.x > source.x) { return match_width(of); }
 		return match_height(of);
 	}
+
+	[[nodiscard]] constexpr auto fit_space(glm::vec2 const in) const -> glm::vec2 {
+		auto const source_ar = aspect_ratio(source);
+		auto const dest_ar = aspect_ratio(in);
+		if (source_ar > dest_ar) { return match_width(in); }
+		return match_height(in);
+	}
 };
 } // namespace bave

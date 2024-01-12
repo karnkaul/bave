@@ -19,6 +19,7 @@ class TiledTexture : public Texture {
 	struct Tile {
 		glm::ivec2 size{};
 		UvRect uv{};
+		glm::ivec2 top_left{};
 	};
 
 	[[nodiscard]] static auto make_rects(glm::ivec2 size, glm::ivec2 tile_count) -> std::vector<Rect<int>>;
