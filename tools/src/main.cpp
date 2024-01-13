@@ -8,7 +8,7 @@ auto main(int argc, char** argv) -> int {
 	auto const daci = bave::DesktopApp::CreateInfo{
 		.args = bave::make_args(argc, argv),
 		.title = "Bave Tools",
-		.extent = {600, 600},
+		.extent = Applet::window_size_v,
 		.lock_aspect_ratio = false,
 		.assets_patterns = "assets,example/assets",
 	};

@@ -33,19 +33,20 @@ class Applet : public Polymorphic {
 
   protected:
 	static constexpr float y_top_v{20.0f};
-	static constexpr auto zoom_range_v = InclusiveRange<int>{1, 500};
+	static constexpr auto zoom_scale_range_v = InclusiveRange<glm::vec2>{.lo = glm::vec2{0.01f}, .hi = glm::vec2{5.0f}};
 
 	[[nodiscard]] auto get_app() const -> App& { return *m_app; }
 	virtual void render(Shader& default_shader) const;
+	virtual void change_zoom(float delta, glm::vec2 cursor_position);
 
-	void auto_zoom(glm::vec2 content_area, glm::vec2 pad = {500.0f, 200.0f});
+	[[nodiscard]] auto auto_zoom(glm::vec2 content_area, glm::vec2 pad = {500.0f, 200.0f}) const -> glm::vec2;
 
 	static void begin_lt_window(CString label, bool resizeable);
 	void begin_fullscreen_window(CString label) const;
 	void begin_sidepanel_window(CString label, float min_width = 300.0f);
 
 	static auto drag_ivec2(CString label, glm::ivec2& out, InclusiveRange<glm::ivec2> range = {}, float width = 50.0f) -> bool;
-	static void zoom_control(CString label, float& out_zoom);
+	static void zoom_control(CString label, glm::vec2& out_scale);
 	void wireframe_control();
 	static void image_meta_control(std::string_view image_uri, glm::ivec2 size);
 
@@ -70,9 +71,8 @@ class Applet : public Polymorphic {
 	NotNull<std::shared_ptr<State>> state;
 
 	std::vector<std::unique_ptr<Drawable>> drawables{};
-	float zoom{100.0f};
-	float zoom_scroll_rate{10.0f};
-	glm::vec2 view_position{};
+	float zoom_scroll_rate{0.1f};
+	Transform main_view{};
 	bool wireframe{};
 
   private:

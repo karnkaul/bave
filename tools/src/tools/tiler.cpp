@@ -11,8 +11,6 @@ Tiler::Tiler(App& app, NotNull<std::shared_ptr<State>> const& state)
 	m_sprite = push(std::make_unique<Sprite>(&app.get_render_device()));
 
 	if (!load_uri(state->tiler.last_loaded)) { new_atlas(); }
-
-	view_position.x = -150.0f;
 }
 
 void Tiler::tick() {
@@ -24,7 +22,7 @@ void Tiler::tick() {
 
 	if (ImGui::CollapsingHeader("Metadata", ImGuiTreeNodeFlags_DefaultOpen)) { metadata_control(); }
 
-	if (ImGui::CollapsingHeader("Misc")) { zoom_control("Zoom", zoom); }
+	if (ImGui::CollapsingHeader("Misc")) { zoom_control("Zoom", main_view.scale); }
 
 	ImGui::End();
 }
@@ -172,7 +170,7 @@ auto Tiler::load_image_at(std::string_view const uri) -> bool {
 	m_image_uri = uri;
 	m_json_uri.clear();
 
-	auto_zoom(image_size);
+	main_view.scale = auto_zoom(image_size);
 	set_title();
 
 	m_log.info("loaded '{}'", uri);
@@ -187,7 +185,7 @@ void Tiler::new_atlas() {
 	m_json_uri.clear();
 	m_unsaved = false;
 
-	auto_zoom(m_sprite->get_size());
+	main_view.scale = auto_zoom(m_sprite->get_size());
 	set_title();
 }
 

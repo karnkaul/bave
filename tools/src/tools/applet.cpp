@@ -5,12 +5,14 @@
 namespace bave::tools {
 namespace fs = std::filesystem;
 
-Applet::Applet(App& app, NotNull<std::shared_ptr<State>> const& state) : m_app(&app), state(state) { app.set_title("Bave Tools"); }
+Applet::Applet(App& app, NotNull<std::shared_ptr<State>> const& state) : m_app(&app), state(state) {
+	app.set_title("Bave Tools");
+	main_view.position.x = -150.0f;
+}
 
 void Applet::render() const {
 	auto render_view = get_app().get_render_device().get_default_view();
-	render_view.transform.position = view_position;
-	render_view.transform.scale = glm::vec2{static_cast<float>(zoom) / 100.0f};
+	render_view.transform = main_view;
 	get_app().get_render_device().render_view = render_view;
 
 	if (auto shader = get_app().load_shader("shaders/default.vert", "shaders/default.frag")) { render(*shader); }
@@ -20,10 +22,7 @@ void Applet::on_key(KeyInput const& key_input) {
 	if (key_input.action == Action::ePress && key_input.key == Key::eW && key_input.mods == make_key_mods(mod::ctrl)) { get_app().shutdown(); }
 }
 
-void Applet::on_scroll(MouseScroll const& scroll) {
-	auto f_range = static_cast<InclusiveRange<float>>(zoom_range_v);
-	zoom = std::clamp(zoom + scroll.delta.y * zoom_scroll_rate, f_range.lo, f_range.hi);
-}
+void Applet::on_scroll(MouseScroll const& scroll) { change_zoom(scroll.delta.y * zoom_scroll_rate, get_app().get_active_pointers().front().position); }
 
 void Applet::file_menu_items() {
 	if (ImGui::MenuItem("Change mount point...")) {
@@ -50,11 +49,13 @@ void Applet::render(Shader& shader) const {
 	for (auto const& drawable : drawables) { drawable->draw(shader); }
 }
 
-void Applet::auto_zoom(glm::vec2 const content_area, glm::vec2 const pad) {
+void Applet::change_zoom(float delta, glm::vec2 /*cursor_position*/) { main_view.scale = zoom_scale_range_v.clamp(main_view.scale + delta); }
+
+auto Applet::auto_zoom(glm::vec2 const content_area, glm::vec2 const pad) const -> glm::vec2 {
 	auto const total_area = content_area + pad;
-	if (!is_positive(total_area)) { return; }
+	if (!is_positive(total_area)) { return glm::vec2{1.0f}; }
 	auto const scaled_content_area = ExtentScaler{.source = total_area}.fit_space(get_app().get_framebuffer_size());
-	zoom = 100.0f * scaled_content_area.x / total_area.x;
+	return glm::vec2{scaled_content_area.x / total_area.x};
 }
 
 void Applet::begin_lt_window(CString label, bool resizeable) {
@@ -86,11 +87,13 @@ auto Applet::drag_ivec2(CString label, glm::ivec2& out, InclusiveRange<glm::ivec
 	return ret;
 }
 
-void Applet::zoom_control(CString label, float& out_zoom) {
-	auto i_zoom = static_cast<int>(out_zoom);
-	if (ImGui::SliderInt(label.c_str(), &i_zoom, zoom_range_v.lo, zoom_range_v.hi)) { out_zoom = static_cast<float>(i_zoom); }
+void Applet::zoom_control(CString label, glm::vec2& out_scale) {
+	static constexpr auto zoom_range_f = InclusiveRange<glm::vec2>{.lo = zoom_scale_range_v.lo * 100.0f, .hi = zoom_scale_range_v.hi * 100.0f};
+	static constexpr auto zoom_range_i = InclusiveRange<int>{static_cast<int>(zoom_range_f.lo.x), static_cast<int>(zoom_range_f.hi.x)};
+	auto i_zoom = static_cast<int>(out_scale.x * 100.0f);
+	if (ImGui::SliderInt(label.c_str(), &i_zoom, zoom_range_i.lo, zoom_range_i.hi)) { out_scale = glm::vec2{static_cast<float>(i_zoom) / 100.0f}; }
 	ImGui::SameLine();
-	if (ImGui::SmallButton("Reset")) { out_zoom = 100.0f; }
+	if (ImGui::SmallButton("Reset")) { out_scale = glm::vec2{1.0f}; }
 }
 
 void Applet::wireframe_control() { ImGui::Checkbox("Wireframe", &wireframe); }

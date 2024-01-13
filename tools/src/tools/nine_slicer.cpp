@@ -17,8 +17,6 @@ NineSlicer::NineSlicer(App& app, NotNull<std::shared_ptr<State>> const& state)
 	m_top->tint = m_bottom->tint = m_left->tint = m_right->tint = red_v;
 
 	if (!load_uri(state->nine_slicer.last_loaded)) { new_slice(); }
-
-	view_position.x = -150.0f;
 }
 
 void NineSlicer::tick() {
@@ -34,7 +32,7 @@ void NineSlicer::tick() {
 		if (ImGui::CollapsingHeader("Metadata", ImGuiTreeNodeFlags_DefaultOpen)) { metadata_control(); }
 
 		if (ImGui::CollapsingHeader("Misc")) {
-			zoom_control("Zoom", zoom);
+			zoom_control("Zoom", main_view.scale);
 			wireframe_control();
 		}
 	}
@@ -150,7 +148,7 @@ auto NineSlicer::load_image_at(std::string_view const uri) -> bool {
 	m_image_uri = uri;
 	m_json_uri.clear();
 
-	auto_zoom(image_size);
+	main_view.scale = auto_zoom(image_size);
 	set_title();
 
 	m_log.info("loaded '{}'", m_image_uri);
@@ -165,7 +163,7 @@ void NineSlicer::new_slice() {
 	m_json_uri.clear();
 	m_unsaved = false;
 
-	auto_zoom(m_image_quad->get_shape().size.current);
+	main_view.scale = auto_zoom(m_image_quad->get_shape().size.current);
 	set_title();
 }
 
