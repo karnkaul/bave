@@ -10,7 +10,7 @@ Tiler::Tiler(App& app, NotNull<std::shared_ptr<State>> const& state)
 	: Applet(app, state), m_loader(&get_app().get_data_store(), &get_app().get_render_device()) {
 	m_sprite = push(std::make_unique<Sprite>(&app.get_render_device()));
 
-	if (!load_uri(state->tiler.last_loaded)) { new_atlas(); }
+	load_previous();
 }
 
 void Tiler::tick() {
@@ -40,7 +40,7 @@ void Tiler::render(Shader& shader) const {
 void Tiler::file_menu_items() {
 	if (ImGui::MenuItem("New")) { new_atlas(); }
 	if (ImGui::MenuItem("Open...")) {
-		if (auto uri = dialog_open_file("Open"); !uri.empty()) { load_uri(uri); }
+		if (auto uri = dialog_open_file("Open Image / TextureAtlas"); !uri.empty()) { load_new_uri(uri); }
 	}
 	if (ImGui::MenuItem("Save", nullptr, false, !m_json_uri.empty())) { save_atlas(); }
 	if (ImGui::MenuItem("Save As...", nullptr, false, !m_image_uri.empty())) {
@@ -54,6 +54,19 @@ void Tiler::file_menu_items() {
 
 	ImGui::Separator();
 	Applet::file_menu_items();
+}
+
+auto Tiler::load_new_uri(std::string_view const uri) -> bool {
+	if (!load_uri(uri)) {
+		m_log.warn("failed to open '{}'", uri);
+		return false;
+	}
+
+	state->tiler.last_loaded = uri;
+	save_state();
+
+	m_log.info("loaded '{}'", uri);
+	return true;
 }
 
 void Tiler::tiles_control() {
@@ -139,23 +152,17 @@ void Tiler::metadata_control() {
 
 auto Tiler::load_uri(std::string_view const uri) -> bool {
 	if (!get_app().get_data_store().exists(uri)) { return false; }
+
 	auto const extension = fs::path{uri}.extension().string();
+	if (extension == ".json") { return load_atlas(uri); }
+	return load_image_at(uri);
+}
 
-	auto ret = false;
-	if (extension == ".json") {
-		ret = load_atlas(uri);
-	} else if (load_image_at(uri)) {
-		ret = true;
-	}
-
-	if (ret) {
-		state->tiler.last_loaded = uri;
-		save_state();
-		return true;
-	}
-
-	m_log.warn("failed to open '{}'", uri);
-	return false;
+void Tiler::load_previous() {
+	if (load_uri(state->tiler.last_loaded)) { return; }
+	state->tiler.last_loaded.clear();
+	save_state();
+	new_atlas();
 }
 
 auto Tiler::load_image_at(std::string_view const uri) -> bool {

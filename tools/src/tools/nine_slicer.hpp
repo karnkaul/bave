@@ -7,9 +7,8 @@ namespace bave::tools {
 class NineSlicer : public Applet {
 	void tick() final;
 
-	void on_drop(std::span<std::string const> paths) final;
-
 	void file_menu_items() final;
+	auto load_new_uri(std::string_view uri) -> bool final;
 
 	void slice_control(NineSlice& out);
 	void metadata_control();
@@ -18,6 +17,7 @@ class NineSlicer : public Applet {
 	void position_guides();
 
 	auto load_uri(std::string_view uri) -> bool;
+	void load_previous();
 
 	auto load_image_at(std::string_view uri) -> bool;
 

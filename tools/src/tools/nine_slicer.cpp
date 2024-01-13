@@ -16,7 +16,7 @@ NineSlicer::NineSlicer(App& app, NotNull<std::shared_ptr<State>> const& state)
 
 	m_top->tint = m_bottom->tint = m_left->tint = m_right->tint = red_v;
 
-	if (!load_uri(state->nine_slicer.last_loaded)) { new_slice(); }
+	load_previous();
 }
 
 void NineSlicer::tick() {
@@ -44,18 +44,10 @@ void NineSlicer::tick() {
 	position_guides();
 }
 
-void NineSlicer::on_drop(std::span<std::string const> paths) {
-	for (auto const& path : paths) {
-		auto const uri = truncate_to_uri(path);
-		if (uri.empty()) { continue; }
-		if (load_uri(uri)) { return; }
-	}
-}
-
 void NineSlicer::file_menu_items() {
 	if (ImGui::MenuItem("New")) { new_slice(); }
 	if (ImGui::MenuItem("Open...")) {
-		if (auto uri = dialog_open_file("Open"); !uri.empty()) { load_uri(uri); }
+		if (auto uri = dialog_open_file("Open Image / NineSlice"); !uri.empty()) { load_new_uri(uri); }
 	}
 	if (ImGui::MenuItem("Save", nullptr, false, !m_json_uri.empty())) { save_slice(); }
 	if (ImGui::MenuItem("Save As...", nullptr, false, !m_image_uri.empty())) {
@@ -69,6 +61,19 @@ void NineSlicer::file_menu_items() {
 
 	ImGui::Separator();
 	Applet::file_menu_items();
+}
+
+auto NineSlicer::load_new_uri(std::string_view const uri) -> bool {
+	if (!load_uri(uri)) {
+		m_log.warn("failed to open '{}'", uri);
+		return false;
+	}
+
+	state->nine_slicer.last_loaded = uri;
+	save_state();
+
+	m_log.info("loaded '{}'", uri);
+	return true;
 }
 
 void NineSlicer::slice_control(NineSlice& out) {
@@ -119,22 +124,15 @@ void NineSlicer::position_guides() {
 auto NineSlicer::load_uri(std::string_view const uri) -> bool {
 	if (!get_app().get_data_store().exists(uri)) { return false; }
 	auto const extension = fs::path{uri}.extension().string();
+	if (extension == ".json") { return load_slice(uri); }
+	return load_image_at(uri);
+}
 
-	auto ret = false;
-	if (extension == ".json") {
-		ret = load_slice(uri);
-	} else if (load_image_at(uri)) {
-		ret = true;
-	}
-
-	if (ret) {
-		state->nine_slicer.last_loaded = uri;
-		save_state();
-		return true;
-	}
-
-	m_log.warn("failed to open '{}'", uri);
-	return false;
+void NineSlicer::load_previous() {
+	if (load_uri(state->nine_slicer.last_loaded)) { return; }
+	state->nine_slicer.last_loaded.clear();
+	save_state();
+	new_slice();
 }
 
 auto NineSlicer::load_image_at(std::string_view const uri) -> bool {

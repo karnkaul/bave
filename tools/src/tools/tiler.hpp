@@ -18,12 +18,14 @@ class Tiler : public Applet {
 	void render(Shader& shader) const final;
 
 	void file_menu_items() final;
+	auto load_new_uri(std::string_view uri) -> bool final;
 
 	void tiles_control();
 	void block_control(Block& out, std::size_t index) const;
 	void metadata_control();
 
 	auto load_uri(std::string_view uri) -> bool;
+	void load_previous();
 
 	auto load_image_at(std::string_view uri) -> bool;
 

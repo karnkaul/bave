@@ -27,6 +27,10 @@ Runner::Runner(App& app) : Driver(app), m_state(load_or_create_state()) {
 		{"Animator", [&] { return std::make_unique<Animator>(get_app(), m_state); }},
 	};
 
+	for (auto const& [name, _] : m_map) { m_applet_names.push_back(name); }
+	std::sort(m_applet_names.begin(), m_applet_names.end());
+
+	if (m_state->active_applet.empty()) { m_state->active_applet = "Tiler"; }
 	m_active = load_active();
 }
 
@@ -43,8 +47,15 @@ void Runner::on_key(KeyInput const& key_input) {
 
 void Runner::on_scroll(MouseScroll const& scroll) { m_active->on_scroll(scroll); }
 
-auto Runner::load_active() const -> std::unique_ptr<Applet> {
+void Runner::on_drop(std::span<std::string const> paths) { m_active->on_drop(paths); }
+
+auto Runner::load_active() -> std::unique_ptr<Applet> {
 	if (auto const it = m_map.find(m_state->active_applet); it != m_map.end()) { return it->second(); }
+
+	static constexpr std::string_view default_applet_v = "Tiler";
+	m_log.warn("active Applet not found: '{}', reverting to '{}'", m_state->active_applet, default_applet_v);
+	m_state->active_applet = default_applet_v;
+	m_state->save();
 	return std::make_unique<Tiler>(get_app(), m_state);
 }
 
@@ -64,12 +75,14 @@ void Runner::main_menu_bar() {
 
 void Runner::applet_menu() {
 	if (ImGui::BeginMenu("Applets")) {
-		for (auto const& [name, factory] : m_map) {
-			if (ImGui::MenuItem(name.data())) {
+		for (auto const name : m_applet_names) {
+			if (ImGui::MenuItem(name.data(), nullptr, false, name != m_state->active_applet)) {
+				auto const it = m_map.find(name);
+				assert(it != m_map.end());
 				m_log.info("loading '{}'", name);
 				m_state->active_applet = name;
 				m_active->save_state();
-				m_active = factory();
+				m_active = it->second();
 			}
 		}
 		ImGui::EndMenu();

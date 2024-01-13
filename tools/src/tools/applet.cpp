@@ -24,6 +24,14 @@ void Applet::on_key(KeyInput const& key_input) {
 
 void Applet::on_scroll(MouseScroll const& scroll) { change_zoom(scroll.delta.y * zoom_scroll_rate, get_app().get_active_pointers().front().position); }
 
+void Applet::on_drop(std::span<std::string const> paths) {
+	for (auto const& path : paths) {
+		auto const uri = truncate_to_uri(path);
+		if (uri.empty()) { continue; }
+		if (load_new_uri(uri)) { return; }
+	}
+}
+
 void Applet::file_menu_items() {
 	if (ImGui::MenuItem("Change mount point...")) {
 		auto result = pfd::select_folder("Select mount point").result();

@@ -24,10 +24,12 @@ class Applet : public Polymorphic {
 
 	virtual void on_key(KeyInput const& key_input);
 	virtual void on_scroll(MouseScroll const& scroll);
-	virtual void on_drop(std::span<std::string const> /*paths*/) {}
+	virtual void on_drop(std::span<std::string const> paths);
 
 	virtual void file_menu_items();
 	virtual void main_menu() {}
+
+	virtual auto load_new_uri(std::string_view /*uri*/) -> bool { return false; }
 
 	void save_state();
 
