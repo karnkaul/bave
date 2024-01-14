@@ -46,7 +46,7 @@ void Tiler::file_menu_items() {
 	if (ImGui::MenuItem("Save As...", nullptr, false, !m_image_uri.empty())) {
 		auto json_uri = fs::path{m_json_uri};
 		if (json_uri.empty()) { json_uri = replace_extension(m_image_uri, ".atlas.json"); }
-		if (auto uri = dialog_save_file("Save SpriteSheet", json_uri.generic_string()); !uri.empty()) {
+		if (auto uri = dialog_save_file("Save TextureAtlas", json_uri.generic_string()); !uri.empty()) {
 			m_json_uri = uri;
 			save_atlas();
 		}
@@ -230,12 +230,15 @@ void Tiler::save_atlas() {
 		to_json(out_block["rect"], in_block.block.rect);
 		out_blocks.push_back(std::move(out_block));
 	}
-	if (save_json(json, m_json_uri)) {
-		m_log.info("saved SpriteSheet to '{}'", m_json_uri);
-		set_title();
+
+	if (!save_json(json, m_json_uri)) {
+		m_log.error("failed to save TextureAtlas to '{}'", m_json_uri);
 		return;
 	}
-	m_log.error("failed to save JSON to '{}'", m_json_uri);
+
+	m_log.info("saved TextureAtlas to '{}'", m_json_uri);
+	m_unsaved = false;
+	set_title();
 }
 
 void Tiler::generate_blocks() {

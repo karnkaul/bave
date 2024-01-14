@@ -142,9 +142,9 @@ auto Loader::load_sprite_animation(std::string_view const uri) const -> std::opt
 
 	auto ret = SpriteAnim::Animation{};
 	ret.duration = Seconds{json["duration"].as<float>()};
-	auto const& in_key_frames = json["key_frames"];
-	ret.tile_ids.reserve(in_key_frames.array_view().size());
-	for (auto const& in_tile_id : in_key_frames.array_view()) { ret.tile_ids.emplace_back(in_tile_id.as_string()); }
+	auto const& in_tiles = json["tiles"];
+	ret.tiles.reserve(in_tiles.array_view().size());
+	for (auto const& tile_id : in_tiles.array_view()) { ret.tiles.emplace_back(tile_id.as_string()); }
 
 	m_log.info("loaded SpriteAnimation: '{}'", uri);
 	return ret;

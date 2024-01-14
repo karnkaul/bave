@@ -7,7 +7,7 @@ namespace bave {
 class SpriteAnim : public Sprite {
   public:
 	struct Animation {
-		std::vector<std::string> tile_ids{};
+		std::vector<std::string> tiles{};
 		Seconds duration{};
 
 		[[nodiscard]] auto get_tile_at(Seconds timestamp) const -> std::string_view;

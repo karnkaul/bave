@@ -15,12 +15,12 @@ auto make_animation(std::shared_ptr<TextureAtlas> const& atlas, Seconds const du
 } // namespace
 
 auto SpriteAnim::Animation::get_tile_at(Seconds const timestamp) const -> std::string_view {
-	if (tile_ids.empty()) { return {}; }
-	if (duration <= 0s) { return tile_ids.back(); }
+	if (tiles.empty()) { return {}; }
+	if (duration <= 0s) { return tiles.back(); }
 	auto const ratio = std::clamp(timestamp / duration, 0.0f, 1.0f);
-	auto const index = static_cast<std::size_t>(ratio * static_cast<float>(tile_ids.size()));
-	if (index >= tile_ids.size()) { return tile_ids.back(); }
-	return tile_ids.at(index);
+	auto const index = static_cast<std::size_t>(ratio * static_cast<float>(tiles.size()));
+	if (index >= tiles.size()) { return tiles.back(); }
+	return tiles.at(index);
 }
 
 SpriteAnim::SpriteAnim(NotNull<RenderDevice*> render_device, std::shared_ptr<TextureAtlas> atlas, Seconds const duration)

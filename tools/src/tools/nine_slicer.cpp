@@ -188,12 +188,15 @@ void NineSlicer::save_slice() {
 	auto json = dj::Json{};
 	json["image"] = m_image_uri;
 	to_json(json["nine_slice"], m_image_quad->get_shape().slice);
-	if (save_json(json, m_json_uri)) {
-		m_log.info("saved NineSlice to '{}'", m_json_uri);
-		set_title();
+
+	if (!save_json(json, m_json_uri)) {
+		m_log.error("failed to save NineSlice to '{}'", m_json_uri);
 		return;
 	}
-	m_log.error("failed to save JSON to '{}'", m_json_uri);
+
+	m_log.info("saved NineSlice to '{}'", m_json_uri);
+	m_unsaved = false;
+	set_title();
 }
 
 void NineSlicer::set_title() { get_app().set_title(format_title("NineSlicer", m_json_uri, m_unsaved).c_str()); }
