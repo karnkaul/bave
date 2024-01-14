@@ -1,4 +1,5 @@
 #pragma once
+#include <bave/graphics/rect.hpp>
 #include <bave/graphics/transform.hpp>
 
 namespace bave {
@@ -13,6 +14,7 @@ struct RenderView {
 	Transform transform{};
 	glm::vec2 viewport{};
 	ZPlane z_plane{};
+	Rect<> n_scissor{uv_rect_v};
 
 	[[nodiscard]] auto unproject(glm::vec2 ndc) const -> glm::vec2;
 };

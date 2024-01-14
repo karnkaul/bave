@@ -124,7 +124,7 @@ auto make_buffer_bindings(detail::ScratchBufferCache& scratch_buffer_cache, Ptr<
 } // namespace
 
 Shader::Shader(NotNull<Renderer const*> renderer, vk::ShaderModule vertex, vk::ShaderModule fragment) : m_renderer(renderer), m_vert(vertex), m_frag(fragment) {
-	set_viewport_scissor();
+	set_viewport();
 }
 
 auto Shader::update_texture(CombinedImageSampler const cis, std::uint32_t binding) -> bool {
@@ -165,7 +165,7 @@ void Shader::draw(Mesh const& mesh, std::span<RenderInstance::Baked const> insta
 
 	command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
 	command_buffer.setViewport(0, m_viewport);
-	command_buffer.setScissor(0, m_scissor);
+	command_buffer.setScissor(0, get_scissor(m_renderer->get_render_device().render_view.n_scissor));
 	command_buffer.setLineWidth(m_renderer->get_render_device().get_line_width_limits().clamp(line_width));
 	mesh.draw(command_buffer, static_cast<std::uint32_t>(instances.size()));
 
@@ -176,10 +176,20 @@ auto Shader::allocate_scratch(vk::BufferUsageFlagBits const usage) const -> deta
 	return m_renderer->get_render_device().get_scratch_buffer_cache().allocate(usage);
 }
 
-void Shader::set_viewport_scissor() {
-	m_scissor.extent = m_renderer->get_backbuffer_extent();
-	glm::vec2 const viewport = glm::uvec2{m_scissor.extent.width, m_scissor.extent.height};
+void Shader::set_viewport() {
+	auto const fb_extent = m_renderer->get_backbuffer_extent();
+	glm::vec2 const viewport = glm::uvec2{fb_extent.width, fb_extent.height};
 	m_viewport = vk::Viewport{0.0f, viewport.y, viewport.x, -viewport.y};
+}
+
+auto Shader::get_scissor(Rect<> n_rect) const -> vk::Rect2D {
+	n_rect.lt = glm::clamp(n_rect.lt, glm::vec2{}, glm::vec2{1.0f});
+	n_rect.rb = glm::clamp(n_rect.rb, n_rect.lt, glm::vec2{1.0f});
+	auto const fb_extent = m_renderer->get_backbuffer_extent();
+	auto const fb_size = glm::vec2{fb_extent.width, fb_extent.height};
+	glm::ivec2 const offset = n_rect.lt * fb_size;
+	glm::uvec2 const extent = (n_rect.rb - n_rect.lt) * fb_size;
+	return vk::Rect2D{vk::Offset2D{offset.x, offset.y}, vk::Extent2D{extent.x, extent.y}};
 }
 
 void Shader::update_and_bind_sets(vk::CommandBuffer command_buffer, std::span<RenderInstance::Baked const> instances) const {
