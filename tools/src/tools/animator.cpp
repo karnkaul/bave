@@ -185,10 +185,10 @@ auto Animator::tiles_control() -> bool {
 	return ret;
 }
 
-void Animator::metadata_control() { ImGui::Text("Atlas: %s", or_none(state->animator.last_atlas).data()); }
+void Animator::metadata_control() { im_text<128>("Atlas: {}", or_none(state->animator.last_atlas)); }
 
 void Animator::misc_control() {
-	ImGui::Text("Zoom");
+	im_text("Zoom");
 	zoom_control("Top", m_top_view.scale);
 	zoom_control("Bottom", m_bottom_view.scale);
 }

@@ -1,13 +1,7 @@
-#include <bave/core/error.hpp>
 #include <bave/core/visitor.hpp>
 #include <bave/driver.hpp>
 
 namespace bave {
-void Driver::replace_next_frame(std::unique_ptr<Driver> new_driver) const {
-	if (!new_driver) { return; }
-	get_app().set_new_driver(std::move(new_driver));
-}
-
 void Driver::handle_events(std::span<Event const> events) {
 	auto const visitor = Visitor{
 		[this](FocusChange const t) { on_focus(t); }, [this](WindowResize const t) { on_resize(t); }, [this](FramebufferResize const t) { on_resize(t); },

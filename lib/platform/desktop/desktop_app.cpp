@@ -168,7 +168,6 @@ auto DesktopApp::setup() -> std::optional<ErrCode> {
 
 void DesktopApp::poll_events() {
 	glfwPollEvents();
-	swap_driver(m_new_driver, m_driver);
 	m_driver->handle_events(get_events());
 	if (auto const drops = get_file_drops(); !drops.empty()) { m_driver->on_drop(drops); }
 }
@@ -189,11 +188,6 @@ void DesktopApp::render() {
 }
 
 void DesktopApp::do_shutdown() { glfwSetWindowShouldClose(m_window.get(), GLFW_TRUE); }
-
-auto DesktopApp::set_new_driver(std::unique_ptr<Driver> new_driver) -> bool {
-	m_new_driver = std::move(new_driver);
-	return true;
-}
 
 auto DesktopApp::do_get_window_size() const -> glm::ivec2 {
 	auto ret = glm::ivec2{};

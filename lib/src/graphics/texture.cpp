@@ -26,7 +26,7 @@ auto Texture::combined_image_sampler() const -> CombinedImageSampler {
 	return {.image_view = m_image->get_image_view(), .sampler = m_render_device->get_sampler_cache().get(sampler)};
 }
 
-auto DynamicTexture::load_from_bytes(std::span<std::byte const> compressed) -> bool {
+auto TextureWriteable::load_from_bytes(std::span<std::byte const> compressed) -> bool {
 	auto image_file = ImageFile{};
 	if (!image_file.load_from_bytes(compressed)) { return false; }
 
@@ -34,7 +34,7 @@ auto DynamicTexture::load_from_bytes(std::span<std::byte const> compressed) -> b
 	return true;
 }
 
-void DynamicTexture::write(BitmapView bitmap) {
+void TextureWriteable::write(BitmapView bitmap) {
 	if (!is_positive(bitmap.extent) || !m_image) { return; }
 	m_image->recreate(detail::to_vk_extent(bitmap.extent));
 	m_image->overwrite(bitmap, {});

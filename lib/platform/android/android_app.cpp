@@ -161,7 +161,6 @@ void AndroidApp::poll_events() {
 	if (ALooper_pollAll(0, nullptr, &events, reinterpret_cast<void**>(&source)) >= 0) { // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 		if (source) { source->process(&m_app, source); }
 	}
-	swap_driver(m_new_driver, m_driver);
 	if (m_driver) { m_driver->handle_events(get_events()); }
 }
 
@@ -175,12 +174,6 @@ void AndroidApp::render() {
 
 	if (m_renderer->start_render(m_driver->clear_colour)) { m_driver->render(); }
 	m_renderer->finish_render();
-}
-
-auto AndroidApp::set_new_driver(std::unique_ptr<Driver> new_driver) -> bool {
-	if (!m_render_device) { return false; }
-	m_new_driver = std::move(new_driver);
-	return true;
 }
 
 void AndroidApp::do_shutdown() { ANativeActivity_finish(m_app.activity); }

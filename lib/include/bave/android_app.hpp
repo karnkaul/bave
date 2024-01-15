@@ -27,7 +27,6 @@ class AndroidApp : public App, public detail::IWsi {
 	void tick() final;
 	void render() final;
 
-	auto set_new_driver(std::unique_ptr<Driver> new_driver) -> bool final;
 	void do_shutdown() final;
 
 	[[nodiscard]] auto do_get_framebuffer_size() const -> glm::ivec2 final;
@@ -64,7 +63,6 @@ class AndroidApp : public App, public detail::IWsi {
 	vk::UniqueSurfaceKHR m_surface{};
 	std::unique_ptr<Renderer> m_renderer{};
 	std::unique_ptr<Driver> m_driver{};
-	std::unique_ptr<Driver> m_new_driver{};
 	bool m_can_render{};
 
 	std::optional<AudioStreamer::Pause> m_stream_pause{};

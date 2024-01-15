@@ -121,13 +121,6 @@ auto App::boot_driver() -> std::unique_ptr<Driver> {
 	return ret;
 }
 
-void App::swap_driver(std::unique_ptr<Driver>& new_driver, std::unique_ptr<Driver>& current_driver) const {
-	if (!new_driver) { return; }
-
-	get_audio_streamer().stop();
-	current_driver = std::move(new_driver);
-}
-
 auto App::screen_to_framebuffer(glm::vec2 const position) const -> glm::vec2 {
 	glm::vec2 const window_size = get_window_size();
 	if (window_size.x <= 0.0f || window_size.y <= 0.0f) { return position; }

@@ -68,7 +68,6 @@ class App : public PolyPinned {
 	void push_event(Event event);
 	void push_drop(std::string path);
 	[[nodiscard]] auto boot_driver() -> std::unique_ptr<Driver>;
-	void swap_driver(std::unique_ptr<Driver>& new_driver, std::unique_ptr<Driver>& current_driver) const;
 
 	[[nodiscard]] auto screen_to_framebuffer(glm::vec2 position) const -> glm::vec2;
 
@@ -83,7 +82,6 @@ class App : public PolyPinned {
 	virtual void render() = 0;
 
 	virtual void do_shutdown() = 0;
-	virtual auto set_new_driver(std::unique_ptr<Driver> new_driver) -> bool = 0;
 
 	[[nodiscard]] virtual auto do_get_window_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
 	[[nodiscard]] virtual auto do_get_framebuffer_size() const -> glm::ivec2 = 0;
@@ -108,7 +106,5 @@ class App : public PolyPinned {
 	Timer m_timer{};
 
 	bool m_shutting_down{};
-
-	friend class Driver;
 };
 } // namespace bave

@@ -46,9 +46,9 @@ class Texture {
 	std::shared_ptr<detail::RenderImage> m_image{};
 };
 
-class DynamicTexture : public Texture {
+class TextureWriteable : public Texture {
   public:
-	explicit DynamicTexture(NotNull<RenderDevice*> render_device, BitmapView bitmap = {}, bool mip_map = false) : Texture(render_device, bitmap, mip_map) {}
+	explicit TextureWriteable(NotNull<RenderDevice*> render_device, BitmapView bitmap = {}, bool mip_map = false) : Texture(render_device, bitmap, mip_map) {}
 
 	auto load_from_bytes(std::span<std::byte const> compressed) -> bool;
 	void write(BitmapView bitmap);

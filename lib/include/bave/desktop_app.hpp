@@ -57,7 +57,6 @@ class DesktopApp : public App, public detail::IWsi {
 	void render() final;
 
 	void do_shutdown() final;
-	auto set_new_driver(std::unique_ptr<Driver> new_driver) -> bool final;
 
 	[[nodiscard]] auto do_get_window_size() const -> glm::ivec2 final;
 	[[nodiscard]] auto do_get_framebuffer_size() const -> glm::ivec2 final;
@@ -87,6 +86,5 @@ class DesktopApp : public App, public detail::IWsi {
 	std::unique_ptr<Renderer> m_renderer{};
 	std::unique_ptr<detail::DearImGui> m_dear_imgui{};
 	std::unique_ptr<Driver> m_driver{};
-	std::unique_ptr<Driver> m_new_driver{};
 };
 } // namespace bave

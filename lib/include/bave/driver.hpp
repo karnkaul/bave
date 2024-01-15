@@ -12,8 +12,6 @@ class Driver : public PolyPinned {
 
 	[[nodiscard]] auto get_app() const -> App& { return m_app; }
 
-	void replace_next_frame(std::unique_ptr<Driver> new_driver) const;
-
 	virtual void tick() {}
 	virtual void render() const {}
 
