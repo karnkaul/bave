@@ -31,6 +31,8 @@ add_subdirectory(src/capo-lite)
 
 add_subdirectory(src/djson)
 
+add_subdirectory(src/portable-file-dialogs)
+
 target_compile_definitions(glm INTERFACE
   GLM_FORCE_XYZW_ONLY
   GLM_FORCE_DEPTH_ZERO_TO_ONE

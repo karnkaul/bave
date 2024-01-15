@@ -32,7 +32,8 @@ class Shader {
 
 	[[nodiscard]] auto allocate_scratch(vk::BufferUsageFlagBits usage) const -> detail::RenderBuffer&;
 
-	void set_viewport_scissor();
+	void set_viewport();
+	[[nodiscard]] auto get_scissor(Rect<> n_rect) const -> vk::Rect2D;
 	void update_and_bind_sets(vk::CommandBuffer command_buffer, std::span<RenderInstance::Baked const> instances) const;
 
 	NotNull<Renderer const*> m_renderer;
@@ -40,7 +41,6 @@ class Shader {
 	vk::ShaderModule m_frag{};
 
 	vk::Viewport m_viewport{};
-	vk::Rect2D m_scissor{};
 	Sets m_sets{};
 };
 } // namespace bave

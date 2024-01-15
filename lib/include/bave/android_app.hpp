@@ -1,7 +1,7 @@
 #pragma once
 #include <bave/app.hpp>
 #include <bave/core/ptr.hpp>
-#include <bave/game.hpp>
+#include <bave/driver.hpp>
 #include <bave/logger.hpp>
 #include <bave/platform.hpp>
 
@@ -27,14 +27,13 @@ class AndroidApp : public App, public detail::IWsi {
 	void tick() final;
 	void render() final;
 
-	auto set_new_game(std::unique_ptr<Game> new_game) -> bool final;
 	void do_shutdown() final;
 
 	[[nodiscard]] auto do_get_framebuffer_size() const -> glm::ivec2 final;
 
 	[[nodiscard]] auto do_get_render_device() const -> RenderDevice& final;
 	[[nodiscard]] auto do_get_renderer() const -> Renderer& final;
-	[[nodiscard]] auto do_get_game() const -> Ptr<Game> final { return m_game.get(); }
+	[[nodiscard]] auto do_get_driver() const -> Ptr<Driver> final { return m_driver.get(); }
 
 	[[nodiscard]] auto get_instance_extensions() const -> std::span<char const* const> final;
 	[[nodiscard]] auto make_surface(vk::Instance instance) const -> vk::SurfaceKHR final;
@@ -63,8 +62,7 @@ class AndroidApp : public App, public detail::IWsi {
 	std::unique_ptr<RenderDevice> m_render_device{};
 	vk::UniqueSurfaceKHR m_surface{};
 	std::unique_ptr<Renderer> m_renderer{};
-	std::unique_ptr<Game> m_game{};
-	std::unique_ptr<Game> m_new_game{};
+	std::unique_ptr<Driver> m_driver{};
 	bool m_can_render{};
 
 	std::optional<AudioStreamer::Pause> m_stream_pause{};

@@ -30,13 +30,9 @@ class Texture {
 	Texture(Texture&&) = default;
 	auto operator=(Texture&&) -> Texture& = default;
 
-	explicit Texture(NotNull<RenderDevice*> render_device, bool mip_map = false);
 	explicit Texture(NotNull<RenderDevice*> render_device, BitmapView bitmap, bool mip_map = false);
 
 	~Texture();
-
-	auto load_from_bytes(std::span<std::byte const> compressed) -> bool;
-	void write(BitmapView bitmap);
 
 	[[nodiscard]] auto get_size() const -> glm::ivec2;
 	[[nodiscard]] auto combined_image_sampler() const -> CombinedImageSampler;
@@ -45,8 +41,16 @@ class Texture {
 
 	Sampler sampler{};
 
-  private:
+  protected:
 	NotNull<RenderDevice*> m_render_device;
 	std::shared_ptr<detail::RenderImage> m_image{};
+};
+
+class TextureWriteable : public Texture {
+  public:
+	explicit TextureWriteable(NotNull<RenderDevice*> render_device, BitmapView bitmap = {}, bool mip_map = false) : Texture(render_device, bitmap, mip_map) {}
+
+	auto load_from_bytes(std::span<std::byte const> compressed) -> bool;
+	void write(BitmapView bitmap);
 };
 } // namespace bave

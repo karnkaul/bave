@@ -13,36 +13,6 @@ constexpr auto get_compression(std::string_view const extension) {
 	if (extension == ".flac") { return Compression::eFlac; }
 	return Compression::eUnknown;
 }
-
-auto make_sprite_blocks(glm::ivec2 const size, dj::Json const& json) {
-	auto ret = std::vector<SpriteSheet::Block>{};
-	if (auto const& map = json["map"]) {
-		for (auto const& [id, rect] : map.object_view()) {
-			if (id.empty()) { continue; }
-			auto block = SpriteSheet::Block{.id = std::string{id}};
-			from_json(rect, block.rect);
-			ret.push_back(std::move(block));
-		}
-	} else if (auto const& id_table = json["id_table"]) {
-		auto tile_count = glm::ivec2{};
-		tile_count.x = static_cast<int>(id_table[0].array_view().size());
-		tile_count.y = static_cast<int>(id_table.array_view().size());
-		auto const rects = SpriteSheet::make_rects(size, tile_count);
-		if (!rects.empty()) {
-			auto index = std::size_t{};
-			for (auto const& id_row : id_table.array_view()) {
-				for (auto const& id : id_row.array_view()) {
-					auto tile = SpriteSheet::Block{.id = std::string{id.as_string()}};
-					if (tile.id.empty()) { continue; }
-					tile.rect = rects.at(index);
-					ret.push_back(std::move(tile));
-					++index;
-				}
-			}
-		}
-	}
-	return ret;
-}
 } // namespace
 
 Loader::Loader(NotNull<DataStore const*> data_store, NotNull<RenderDevice*> render_device) : m_data_store(data_store), m_render_device(render_device) {}
@@ -73,14 +43,6 @@ auto Loader::load_json(std::string_view const uri) const -> dj::Json {
 	return ret;
 }
 
-auto Loader::load_nine_slice(std::string_view uri) const -> NineSlice {
-	auto const json = load_json(uri);
-	if (!json) { return {}; }
-	auto ret = NineSlice{};
-	from_json(json, ret);
-	return ret;
-}
-
 auto Loader::load_image_file(std::string_view uri) const -> std::shared_ptr<ImageFile> {
 	auto const bytes = load_bytes(uri);
 	if (bytes.empty()) { return {}; }
@@ -105,10 +67,43 @@ auto Loader::load_texture(std::string_view const uri, bool const mip_map) const 
 		return {};
 	}
 
-	auto ret = std::make_shared<Texture>(m_render_device, mip_map);
-	ret->write(image_file.get_bitmap_view());
-
+	auto ret = std::make_shared<Texture>(m_render_device, image_file.get_bitmap_view(), mip_map);
 	m_log.info("loaded Texture: '{}'", uri);
+	return ret;
+}
+
+auto Loader::load_texture_9slice(std::string_view const uri) const -> std::shared_ptr<Texture9Slice> {
+	auto json = load_json(uri);
+	if (!json || !json.contains("image")) { return {}; }
+
+	auto image = load_image_file(json["image"].as_string());
+	if (!image) { return {}; }
+
+	auto slice = NineSlice{};
+	from_json(json["nine_slice"], slice);
+
+	auto ret = std::make_shared<Texture9Slice>(m_render_device, image->get_bitmap_view(), slice);
+	m_log.info("loaded SlicedTexture: '{}'", uri);
+	return ret;
+}
+
+auto Loader::load_texture_atlas(std::string_view uri, bool mip_map) const -> std::shared_ptr<TextureAtlas> {
+	auto json = load_json(uri);
+	if (!json || !json.contains("image")) { return {}; }
+
+	auto image = load_image_file(json["image"].as_string());
+	if (!image) { return {}; }
+
+	auto blocks = std::vector<TextureAtlas::Block>{};
+	for (auto const& in_block : json["blocks"].array_view()) {
+		auto block = TextureAtlas::Block{.id = std::string{in_block["id"].as_string()}};
+		if (block.id.empty()) { continue; }
+		from_json(in_block["rect"], block.rect);
+		blocks.push_back(std::move(block));
+	}
+
+	auto ret = std::make_shared<TextureAtlas>(TextureAtlas(m_render_device, image->get_bitmap_view(), std::move(blocks), mip_map));
+	m_log.info("loaded TiledTexture: '{}'", uri);
 	return ret;
 }
 
@@ -141,43 +136,15 @@ auto Loader::load_audio_clip(std::string_view const uri) const -> std::shared_pt
 	return ret;
 }
 
-auto Loader::load_sprite_sheet(std::string_view const uri) const -> std::shared_ptr<SpriteSheet> {
+auto Loader::load_sprite_animation(std::string_view const uri) const -> std::optional<SpriteAnim::Animation> {
 	auto const json = load_json(uri);
 	if (!json) { return {}; }
 
-	auto texture = load_texture(json["image"].as_string());
-	if (!texture) { return {}; }
-
-	auto blocks = make_sprite_blocks(texture->get_size(), json);
-
-	auto ret = std::make_shared<SpriteSheet>(std::move(texture), std::move(blocks));
-	m_log.info("loaded SpriteSheet: '{}'", uri);
-	return ret;
-}
-
-auto Loader::load_sprite_animation(std::string_view const uri) const -> std::shared_ptr<SpriteAnimation> {
-	auto const json = load_json(uri);
-	if (!json) { return {}; }
-
-	auto const duration = Seconds{json["duration"].as<float>()};
-	auto const& in_key_frames = json["key_frames"];
-	auto ret = std::shared_ptr<SpriteAnimation>{};
-	if (!in_key_frames.array_view().empty()) {
-		if (in_key_frames[0].is_object()) {
-			auto key_frames = std::vector<SpriteAnimation::KeyFrame>{};
-			for (auto const& in_kf : in_key_frames.array_view()) {
-				auto out_kf = SpriteAnimation::KeyFrame{};
-				out_kf.tile_id = std::string{in_kf["tile_id"].as_string()};
-				out_kf.timestamp = Seconds{in_kf["timestamp"].as<float>()};
-				if (!out_kf.tile_id.empty()) { key_frames.push_back(std::move(out_kf)); }
-			}
-			ret = std::make_shared<SpriteAnimation>(std::move(key_frames), duration);
-		} else {
-			auto tile_ids = std::vector<std::string>{};
-			for (auto const& in_tile_id : in_key_frames.array_view()) { tile_ids.emplace_back(in_tile_id.as_string()); }
-			ret = std::make_shared<SpriteAnimation>(std::move(tile_ids), duration);
-		}
-	}
+	auto ret = SpriteAnim::Animation{};
+	ret.duration = Seconds{json["duration"].as<float>()};
+	auto const& in_tiles = json["tiles"];
+	ret.tiles.reserve(in_tiles.array_view().size());
+	for (auto const& tile_id : in_tiles.array_view()) { ret.tiles.emplace_back(tile_id.as_string()); }
 
 	m_log.info("loaded SpriteAnimation: '{}'", uri);
 	return ret;

@@ -24,7 +24,7 @@ enum struct ErrCode : int { eSuccess = 0, eFailure = 1 };
 
 class App : public PolyPinned {
   public:
-	using Bootloader = std::function<std::unique_ptr<class Game>(App&)>;
+	using Bootloader = std::function<std::unique_ptr<class Driver>(App&)>;
 
 	explicit App(std::string tag = "App");
 
@@ -56,16 +56,18 @@ class App : public PolyPinned {
 	[[nodiscard]] auto get_pipeline_cache() const -> detail::PipelineCache& { return do_get_renderer().get_pipeline_cache(); }
 
 	[[nodiscard]] auto get_timer() -> Timer& { return m_timer; }
-	[[nodiscard]] auto get_game() const -> Ptr<Game> { return do_get_game(); }
+	[[nodiscard]] auto get_driver() const -> Ptr<Driver> { return do_get_driver(); }
 
 	[[nodiscard]] auto load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader>;
+
+	auto change_mount_point(std::string_view directory) -> bool;
+	auto set_title(CString title) -> bool { return do_set_title(title); }
 
   protected:
 	void start_next_frame();
 	void push_event(Event event);
 	void push_drop(std::string path);
-	[[nodiscard]] auto boot_game() -> std::unique_ptr<Game>;
-	void swap_game(std::unique_ptr<Game>& new_game, std::unique_ptr<Game>& current_game) const;
+	[[nodiscard]] auto boot_driver() -> std::unique_ptr<Driver>;
 
 	[[nodiscard]] auto screen_to_framebuffer(glm::vec2 position) const -> glm::vec2;
 
@@ -80,20 +82,20 @@ class App : public PolyPinned {
 	virtual void render() = 0;
 
 	virtual void do_shutdown() = 0;
-	virtual auto set_new_game(std::unique_ptr<Game> new_game) -> bool = 0;
 
 	[[nodiscard]] virtual auto do_get_window_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
 	[[nodiscard]] virtual auto do_get_framebuffer_size() const -> glm::ivec2 = 0;
 
 	[[nodiscard]] virtual auto do_get_render_device() const -> RenderDevice& = 0;
 	[[nodiscard]] virtual auto do_get_renderer() const -> Renderer& = 0;
-	[[nodiscard]] virtual auto do_get_game() const -> Ptr<Game> = 0;
+	[[nodiscard]] virtual auto do_get_driver() const -> Ptr<Driver> = 0;
 
 	virtual auto do_set_window_size(glm::ivec2 size) -> bool = 0;
+	virtual auto do_set_title(CString /*title*/) -> bool { return false; }
 
 	void pre_tick();
 
-	std::function<std::unique_ptr<Game>(App&)> m_bootloader{};
+	std::function<std::unique_ptr<Driver>(App&)> m_bootloader{};
 	std::unique_ptr<DataStore> m_data_store{std::make_unique<DataStore>()};
 	std::unique_ptr<AudioDevice> m_audio_device{};
 	std::unique_ptr<AudioStreamer> m_audio_streamer{};
@@ -104,7 +106,5 @@ class App : public PolyPinned {
 	Timer m_timer{};
 
 	bool m_shutting_down{};
-
-	friend class Game;
 };
 } // namespace bave

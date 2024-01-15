@@ -32,6 +32,11 @@ struct Rect {
 		return contains(other.top_left()) || contains(other.top_right()) || contains(other.bottom_left()) || contains(other.bottom_right());
 	}
 
+	template <typename T>
+	constexpr operator Rect<T>() const {
+		return {lt, rb};
+	}
+
 	constexpr auto operator*=(float const scale) -> Rect& {
 		lt *= scale;
 		rb *= scale;

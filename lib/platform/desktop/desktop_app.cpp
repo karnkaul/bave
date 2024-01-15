@@ -161,39 +161,33 @@ auto DesktopApp::setup() -> std::optional<ErrCode> {
 	m_log.debug("init_graphics");
 	init_graphics();
 
-	m_game = boot_game();
+	m_driver = boot_driver();
 
 	return {};
 }
 
 void DesktopApp::poll_events() {
 	glfwPollEvents();
-	swap_game(m_new_game, m_game);
-	m_game->handle_events(get_events());
-	if (auto const drops = get_file_drops(); !drops.empty()) { m_game->on_drop(drops); }
+	m_driver->handle_events(get_events());
+	if (auto const drops = get_file_drops(); !drops.empty()) { m_driver->on_drop(drops); }
 }
 
 void DesktopApp::tick() {
 	m_dear_imgui->new_frame();
 	if (is_shutting_down()) { return; }
-	m_game->tick();
+	m_driver->tick();
 }
 
 void DesktopApp::render() {
 	m_dear_imgui->end_frame();
-	if (m_renderer->start_render(m_game->clear_colour)) {
-		m_game->render();
+	if (m_renderer->start_render(m_driver->clear_colour)) {
+		m_driver->render();
 		m_dear_imgui->render(m_renderer->get_command_buffer());
 	}
 	m_renderer->finish_render();
 }
 
 void DesktopApp::do_shutdown() { glfwSetWindowShouldClose(m_window.get(), GLFW_TRUE); }
-
-auto DesktopApp::set_new_game(std::unique_ptr<Game> new_game) -> bool {
-	m_new_game = std::move(new_game);
-	return true;
-}
 
 auto DesktopApp::do_get_window_size() const -> glm::ivec2 {
 	auto ret = glm::ivec2{};
@@ -242,6 +236,11 @@ auto DesktopApp::select_gpu(std::span<Gpu const> gpus) const -> Gpu {
 auto DesktopApp::do_set_window_size(glm::ivec2 const size) -> bool {
 	if (!is_positive(size)) { return false; }
 	glfwSetWindowSize(m_window.get(), size.x, size.y);
+	return true;
+}
+
+auto DesktopApp::do_set_title(CString title) -> bool {
+	glfwSetWindowTitle(m_window.get(), title.c_str());
 	return true;
 }
 

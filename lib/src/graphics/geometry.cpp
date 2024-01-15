@@ -1,3 +1,4 @@
+#include <bave/core/is_positive.hpp>
 #include <bave/graphics/geometry.hpp>
 #include <algorithm>
 #include <array>
@@ -46,6 +47,42 @@ auto append_sector(Geometry& out, Sector const& sector) -> void {
 	}
 	add_tri(prev, get_dir(sector.arc.finish));
 }
+
+struct QuadWriter {
+	Geometry& out; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+
+	void append_quad(Quad const& quad) const {
+		if (!is_positive(quad.size)) { return; }
+		auto const vertices = make_vertices(quad);
+		// NOLINTNEXTLINE
+		std::uint32_t const indices[] = {
+			0, 1, 2, 2, 3, 0,
+		};
+		out.append(vertices, indices);
+	}
+
+	void append_line_rect(LineRect const& rect) {
+		if (!is_positive(rect.size)) { return; }
+		auto const vertices = make_vertices(rect);
+		// NOLINTNEXTLINE
+		std::uint32_t const indices[] = {
+			0, 1, 2, 3, 0,
+		};
+		out.append(vertices, indices);
+	}
+
+	[[nodiscard]] static auto make_vertices(Quad const& quad) -> std::array<Vertex, 4> {
+		auto const half_size = 0.5f * quad.size;
+		auto const& o = quad.origin;
+		auto const rgba = quad.rgba.to_vec4();
+		return std::array{
+			Vertex{{o.x - half_size.x, o.y + half_size.y}, quad.uv.top_left(), rgba},
+			Vertex{{o.x + half_size.x, o.y + half_size.y}, quad.uv.top_right(), rgba},
+			Vertex{{o.x + half_size.x, o.y - half_size.y}, quad.uv.bottom_right(), rgba},
+			Vertex{{o.x - half_size.x, o.y - half_size.y}, quad.uv.bottom_left(), rgba},
+		};
+	}
+};
 
 /*
 	cells and their addresses:
@@ -236,22 +273,8 @@ auto Geometry::append(std::span<Vertex const> vs, std::span<std::uint32_t const>
 }
 
 auto Geometry::append(Quad const& quad) -> Geometry& {
-	if (quad.size.x <= 0.0f || quad.size.y <= 0.0f) { return *this; }
-	auto const h = 0.5f * quad.size;
-	auto const& o = quad.origin;
-	auto const rgba = quad.rgba.to_vec4();
-	// NOLINTNEXTLINE
-	Vertex const vs[] = {
-		{{o.x - h.x, o.y + h.y}, quad.uv.top_left(), rgba},
-		{{o.x + h.x, o.y + h.y}, quad.uv.top_right(), rgba},
-		{{o.x + h.x, o.y - h.y}, quad.uv.bottom_right(), rgba},
-		{{o.x - h.x, o.y - h.y}, quad.uv.bottom_left(), rgba},
-	};
-	// NOLINTNEXTLINE
-	std::uint32_t const is[] = {
-		0, 1, 2, 2, 3, 0,
-	};
-	return append(vs, is);
+	QuadWriter{*this}.append_quad(quad);
+	return *this;
 }
 
 auto Geometry::append(Circle const& circle) -> Geometry& {
@@ -283,6 +306,11 @@ auto Geometry::append(RoundedQuad const& rounded_quad) -> Geometry& {
 auto Geometry::append(NineQuad const& nine_quad) -> Geometry& {
 	if (nine_quad.size.current.x <= 0.0f || nine_quad.size.current.y <= 0.0f) { return *this; }
 	QuadSlicer{nine_quad}.append_nine_quad(*this);
+	return *this;
+}
+
+auto Geometry::append(LineRect const& rect) -> Geometry& {
+	QuadWriter{*this}.append_line_rect(rect);
 	return *this;
 }
 } // namespace bave

@@ -19,6 +19,7 @@ struct Quad;
 struct Circle;
 struct RoundedQuad;
 struct NineQuad;
+struct LineRect;
 
 struct Geometry {
 	std::vector<Vertex> vertices{};
@@ -30,6 +31,7 @@ struct Geometry {
 	auto append(Circle const& circle) -> Geometry&;
 	auto append(RoundedQuad const& rounded_quad) -> Geometry&;
 	auto append(NineQuad const& nine_quad) -> Geometry&;
+	auto append(LineRect const& rect) -> Geometry&;
 
 	template <typename ShapeT>
 	static auto from(ShapeT const& shape) -> Geometry {
@@ -106,4 +108,6 @@ struct NineQuad {
 
 	auto operator==(NineQuad const&) const -> bool = default;
 };
+
+struct LineRect : Quad {};
 } // namespace bave

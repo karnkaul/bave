@@ -24,7 +24,7 @@ class Shape : public BasicShape {
 
 	void set_shape(ShapeT const& shape) {
 		m_shape = shape;
-		set_geometry(shape.to_geometry());
+		set_geometry(m_shape.to_geometry());
 	}
 
 	[[nodiscard]] auto get_shape() const -> ShapeT const& { return m_shape; }

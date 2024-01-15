@@ -13,3 +13,4 @@ compile_commands.json
 
 imgui.ini
 bave.*log
+bave-tools*.json

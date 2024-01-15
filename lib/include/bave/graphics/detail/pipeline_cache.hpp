@@ -33,6 +33,8 @@ class PipelineCache {
 	[[nodiscard]] auto shader_count() const -> std::size_t { return m_shader_cache.shader_count(); }
 	[[nodiscard]] auto pipeline_count() const -> std::size_t { return m_pipelines.size(); }
 
+	void clear_loaded();
+
   private:
 	struct Key {
 	  public:
