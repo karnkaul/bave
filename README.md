@@ -47,3 +47,10 @@ https://github.com/karnkaul/bave/assets/16272243/86539229-0640-42c5-baac-ca74eb3
 ## Example
 
 See [example](example) for an app that's designed to target Android while being developed on the desktop. 
+
+## Tools
+
+https://github.com/karnkaul/bave/assets/16272243/58a515b6-c6f0-40da-b433-f753bba38a29
+
+`bave-tools` (desktop only) includes some utilities to edit texture atlases, nine slices, and sprite animations.
+
