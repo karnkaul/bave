@@ -5,7 +5,7 @@ using bave::NotNull;
 using bave::Rect;
 using bave::Seconds;
 using bave::Shader;
-using bave::Sprite;
+using bave::Sprite9Slice;
 
 namespace {
 constexpr auto is_oob_left(Rect<> const& rect, glm::vec2 const world_space) -> bool { return rect.top_right().x < -0.5f * world_space.x; }
@@ -27,7 +27,7 @@ auto Pipes::tick(Seconds dt) -> bool {
 	}
 
 	auto ret = false;
-	auto const active_size = 0.5f * (m_config->pipe_size.x + m_config->player_size.x);
+	auto const active_size = 0.5f * (m_config->pipe_width + m_config->player_size.x);
 	for (auto& pipe : m_pipes) {
 		pipe.translate(-m_config->pipe_speed * dt.count());
 		auto const was_active = pipe.active;
@@ -59,14 +59,12 @@ void Pipes::restart() {
 
 auto Pipes::make_pipe() const -> Pipe {
 	auto ret = Pipe{
-		.top = Sprite{m_render_device},
-		.bottom = Sprite{m_render_device},
+		.top = Sprite9Slice{m_render_device},
+		.bottom = Sprite9Slice{m_render_device},
 	};
 	ret.top.transform.scale.y = -1.0f;
-	ret.top.set_size(m_config->pipe_size);
-	ret.bottom.set_size(m_config->pipe_size);
-	ret.top.set_texture(m_config->pipe_texture);
-	ret.bottom.set_texture(m_config->pipe_texture);
+	ret.top.set_texture_9slice(m_config->pipe_texture);
+	ret.bottom.set_texture_9slice(m_config->pipe_texture);
 	return ret;
 }
 
@@ -81,9 +79,11 @@ auto Pipes::get_next_pipe() -> Pipe& {
 
 void Pipes::spawn_pipe() {
 	auto& pipe = get_next_pipe();
-	auto const y_pos = m_random.in_range(-0.25f * m_config->world_space.y, 0.25f * m_config->world_space.y);
-	auto const y_spacing = 0.5f * m_config->pipe_size.y + m_config->pipe_gap;
-	pipe.top.transform.position.y = y_pos + y_spacing;
-	pipe.bottom.transform.position.y = y_pos - y_spacing;
-	pipe.top.transform.position.x = pipe.bottom.transform.position.x = 0.5f * (m_config->world_space.x + m_config->pipe_size.x);
+	auto const top_size = glm::vec2{m_config->pipe_width, m_random.in_range(100.0f, m_config->pipe_n_max_height * m_config->world_space.y)};
+	pipe.top.set_size(top_size);
+	pipe.top.transform.position.y = 0.5f * (m_config->world_space.y - top_size.y);
+	auto const bottom_size = glm::vec2{top_size.x, m_config->world_space.y - top_size.y - 2.0f * m_config->pipe_gap};
+	pipe.bottom.set_size(bottom_size);
+	pipe.bottom.transform.position.y = -0.5f * (m_config->world_space.y - bottom_size.y);
+	pipe.top.transform.position.x = pipe.bottom.transform.position.x = 0.5f * (m_config->world_space.x + m_config->pipe_width);
 }

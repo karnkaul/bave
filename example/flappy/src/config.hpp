@@ -32,11 +32,12 @@ struct Config {
 	float cloud_speed_max{80.0f};
 	std::shared_ptr<bave::Texture> cloud_texture{};
 
-	glm::vec2 pipe_size{150.0f, 1200.0f};
+	float pipe_width{150.0f};
+	float pipe_n_max_height{0.66f};
 	float pipe_speed{400.0f};
 	float pipe_gap{200.0f};
 	bave::Seconds pipe_period{1.4s};
-	std::shared_ptr<bave::Texture> pipe_texture{};
+	std::shared_ptr<bave::Texture9Slice> pipe_texture{};
 
 	float score_text_y{500.0f};
 	bave::Rgba score_text_rgba{bave::Rgba::from(0xffffffff)};

@@ -1,0 +1,13 @@
+{
+  "image": "images/pipe_128x128.png",
+  "nine_slice": {
+    "n_left_top": [
+      0.000000,
+      0.478000
+    ],
+    "n_right_bottom": [
+      1.000000,
+      1.000000
+    ]
+  }
+}

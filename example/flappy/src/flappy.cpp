@@ -187,7 +187,7 @@ void Flappy::load_assets() {
 	m_config.explode_sfx = loader.load_audio_clip("audio_clips/explode.wav");
 
 	m_config.cloud_texture = loader.load_texture("images/cloud_256x128.png");
-	m_config.pipe_texture = loader.load_texture("images/pipe_128x1024.png");
+	m_config.pipe_texture = loader.load_texture_9slice("images/pipe_128x128.9slice.json");
 	m_config.hud_font = loader.load_font("fonts/Vera.ttf");
 
 	if (m_config.player_texture) { m_config.player_texture->sampler.min = m_config.player_texture->sampler.mag = Texture::Filter::eNearest; }

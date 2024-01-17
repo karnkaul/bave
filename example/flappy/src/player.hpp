@@ -5,7 +5,7 @@
 
 class Player {
   public:
-	Player(bave::NotNull<bave::App const*> app, bave::NotNull<Config const*> config);
+	explicit Player(bave::NotNull<bave::App const*> app, bave::NotNull<Config const*> config);
 
 	void tick(bave::Seconds dt);
 	void draw(bave::Shader& shader) const;

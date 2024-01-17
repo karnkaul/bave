@@ -31,7 +31,7 @@ class Shape : public BasicShape {
 
 	[[nodiscard]] auto get_bounds() const -> Rect<> {
 		auto const bounds = m_shape.get_bounds();
-		return Rect<>::from_extent(bounds.extent() * transform.scale, bounds.centre() + transform.position);
+		return Rect<>::from_extent(bounds.extent() * glm::abs(transform.scale), bounds.centre() + transform.position);
 	}
 
   private:

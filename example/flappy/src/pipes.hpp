@@ -16,8 +16,8 @@ class Pipes {
 
   private:
 	struct Pipe {
-		bave::Sprite top;
-		bave::Sprite bottom;
+		bave::Sprite9Slice top;
+		bave::Sprite9Slice bottom;
 		bool active{};
 
 		void translate(float distance);

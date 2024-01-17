@@ -196,6 +196,10 @@ void NineSlicer::save_slice() {
 
 	m_log.info("saved NineSlice to '{}'", m_json_uri);
 	m_unsaved = false;
+
+	state->nine_slicer.last_loaded = m_json_uri;
+	save_state();
+
 	set_title();
 }
 

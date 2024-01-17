@@ -236,6 +236,9 @@ void Tiler::save_atlas() {
 		return;
 	}
 
+	state->tiler.last_loaded = m_json_uri;
+	save_state();
+
 	m_log.info("saved TextureAtlas to '{}'", m_json_uri);
 	m_unsaved = false;
 	set_title();
