@@ -93,9 +93,9 @@ auto make_vpi_bindings(RenderDevice const& render_device, std::span<RenderInstan
 		.view = view.matrix(),
 		.projection = glm::ortho(-proj_xy.x, proj_xy.x, -proj_xy.y, proj_xy.y, proj_z.near, proj_z.far),
 	};
-	auto& vp_buf = render_device.get_scratch_buffer_cache().allocate(vk::BufferUsageFlagBits::eUniformBuffer);
+	auto& vp_buf = render_device.get_buffer_cache().allocate(vk::BufferUsageFlagBits::eUniformBuffer);
 	vp_buf.write(&view_projection, sizeof(view_projection));
-	auto& instances_buf = render_device.get_scratch_buffer_cache().allocate(vk::BufferUsageFlagBits::eStorageBuffer);
+	auto& instances_buf = render_device.get_buffer_cache().allocate(vk::BufferUsageFlagBits::eStorageBuffer);
 	instances_buf.write(instances.data(), instances.size_bytes());
 	return std::array{
 		BufferBinding{.resource = vp_buf, .binding = 0},
@@ -113,9 +113,9 @@ auto make_texture_bindings(std::span<CombinedImageSampler const, SetLayout::max_
 	return ret;
 }
 
-auto make_buffer_bindings(detail::ScratchBufferCache& scratch_buffer_cache, Ptr<detail::RenderBuffer const> ubo, Ptr<detail::RenderBuffer const> ssbo) {
-	auto const& custom_ubo = ubo == nullptr ? scratch_buffer_cache.get_empty(vk::BufferUsageFlagBits::eUniformBuffer) : *ubo;
-	auto const& custom_ssbo = ssbo == nullptr ? scratch_buffer_cache.get_empty(vk::BufferUsageFlagBits::eStorageBuffer) : *ssbo;
+auto make_buffer_bindings(detail::BufferCache& scratch_buffer_cache, Ptr<detail::RenderBuffer const> ubo, Ptr<detail::RenderBuffer const> ssbo) {
+	auto const& custom_ubo = scratch_buffer_cache.or_empty(ubo, vk::BufferUsageFlagBits::eUniformBuffer);
+	auto const& custom_ssbo = scratch_buffer_cache.or_empty(ssbo, vk::BufferUsageFlagBits::eStorageBuffer);
 	return std::array{
 		BufferBinding{.resource = custom_ubo, .binding = 0},
 		BufferBinding{.resource = custom_ssbo, .binding = 1},
@@ -154,7 +154,7 @@ auto Shader::write_ssbo(void const* data, vk::DeviceSize const size) -> bool {
 
 void Shader::draw(Mesh const& mesh, std::span<RenderInstance::Baked const> instances) {
 	auto const command_buffer = m_renderer->get_command_buffer();
-	if (!command_buffer || mesh.get_vertex_count() == 0 || instances.empty()) { return; }
+	if (!command_buffer || mesh.is_empty() || instances.empty()) { return; }
 
 	auto& pipeline_cache = m_renderer->get_pipeline_cache();
 	auto const pipeline_state = detail::PipelineCache::State{.line_width = line_width, .topology = topology, .polygon_mode = polygon_mode};
@@ -163,17 +163,29 @@ void Shader::draw(Mesh const& mesh, std::span<RenderInstance::Baked const> insta
 
 	update_and_bind_sets(command_buffer, instances);
 
+	auto& vbo = allocate_scratch(vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndexBuffer);
+	auto const data = mesh.get_data();
+	vbo.write(data.bytes.data(), data.bytes.size());
+
 	command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
 	command_buffer.setViewport(0, m_viewport);
 	command_buffer.setScissor(0, get_scissor(m_renderer->get_render_device().render_view.n_scissor));
 	command_buffer.setLineWidth(m_renderer->get_render_device().get_line_width_limits().clamp(line_width));
-	mesh.draw(command_buffer, static_cast<std::uint32_t>(instances.size()));
+
+	auto const instance_count = static_cast<std::uint32_t>(instances.size());
+	command_buffer.bindVertexBuffers(0, vbo.get_buffer(), vk::DeviceSize{});
+	if (data.ibo_offset > 0) {
+		command_buffer.bindIndexBuffer(vbo.get_buffer(), data.ibo_offset, vk::IndexType::eUint32);
+		command_buffer.drawIndexed(mesh.get_index_count(), instance_count, 0, 0, 0);
+	} else {
+		command_buffer.draw(mesh.get_vertex_count(), instance_count, 0, 0);
+	}
 
 	m_sets = {}; // clear for next draw
 }
 
-auto Shader::allocate_scratch(vk::BufferUsageFlagBits const usage) const -> detail::RenderBuffer& {
-	return m_renderer->get_render_device().get_scratch_buffer_cache().allocate(usage);
+auto Shader::allocate_scratch(vk::BufferUsageFlags const usage) const -> detail::RenderBuffer& {
+	return m_renderer->get_render_device().get_buffer_cache().allocate(usage);
 }
 
 void Shader::set_viewport() {
@@ -212,7 +224,7 @@ void Shader::update_and_bind_sets(vk::CommandBuffer command_buffer, std::span<Re
 	auto texture_write = ImageWrite<texture_bindings.size()>{};
 	make_image_write(texture_write, texture_bindings, descriptor_sets[1]);
 
-	auto const buffer_bindings = make_buffer_bindings(m_renderer->get_render_device().get_scratch_buffer_cache(), m_sets.ubo, m_sets.ssbo);
+	auto const buffer_bindings = make_buffer_bindings(m_renderer->get_render_device().get_buffer_cache(), m_sets.ubo, m_sets.ssbo);
 	auto buffer_write = BufferWrite<buffer_bindings.size()>{};
 	make_buffer_write(buffer_write, buffer_bindings, descriptor_sets[2]);
 

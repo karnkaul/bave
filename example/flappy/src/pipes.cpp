@@ -16,8 +16,7 @@ void Pipes::Pipe::translate(float const distance) {
 	bottom.transform.position.x += distance;
 }
 
-Pipes::Pipes(NotNull<bave::RenderDevice*> render_device, NotNull<Config const*> config)
-	: m_render_device(render_device), m_config(config), m_next_spawn(m_config->pipe_period) {}
+Pipes::Pipes(NotNull<Config const*> config) : m_config(config), m_next_spawn(m_config->pipe_period) {}
 
 auto Pipes::tick(Seconds dt) -> bool {
 	m_next_spawn -= dt;
@@ -58,10 +57,7 @@ void Pipes::restart() {
 }
 
 auto Pipes::make_pipe() const -> Pipe {
-	auto ret = Pipe{
-		.top = Sprite9Slice{m_render_device},
-		.bottom = Sprite9Slice{m_render_device},
-	};
+	auto ret = Pipe{};
 	ret.top.transform.scale.y = -1.0f;
 	ret.top.set_texture_9slice(m_config->pipe_texture);
 	ret.bottom.set_texture_9slice(m_config->pipe_texture);

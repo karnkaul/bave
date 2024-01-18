@@ -5,9 +5,7 @@
 namespace bave::tools {
 namespace fs = std::filesystem;
 
-Animator::Animator(App& app, NotNull<std::shared_ptr<State>> const& state)
-	: Applet(app, state), m_loader(&app.get_data_store(), &app.get_render_device()), m_rect(&app.get_render_device()), m_separator(&app.get_render_device()),
-	  m_image_quad(&app.get_render_device()), m_sprite(&app.get_render_device()) {
+Animator::Animator(App& app, NotNull<std::shared_ptr<State>> const& state) : Applet(app, state), m_loader(&app.get_data_store(), &app.get_render_device()) {
 	setup_scene();
 	if (!load_previous()) { new_animation(); }
 }

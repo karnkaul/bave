@@ -5,7 +5,7 @@
 
 class Pipes {
   public:
-	explicit Pipes(bave::NotNull<bave::RenderDevice*> render_device, bave::NotNull<Config const*> config);
+	explicit Pipes(bave::NotNull<Config const*> config);
 
 	auto tick(bave::Seconds dt) -> bool;
 	void draw(bave::Shader& shader) const;
@@ -16,8 +16,8 @@ class Pipes {
 
   private:
 	struct Pipe {
-		bave::Sprite9Slice top;
-		bave::Sprite9Slice bottom;
+		bave::Sprite9Slice top{};
+		bave::Sprite9Slice bottom{};
 		bool active{};
 
 		void translate(float distance);
@@ -27,7 +27,6 @@ class Pipes {
 	auto get_next_pipe() -> Pipe&;
 	void spawn_pipe();
 
-	bave::NotNull<bave::RenderDevice*> m_render_device;
 	bave::NotNull<Config const*> m_config;
 	std::vector<Pipe> m_pipes{};
 	bave::Seconds m_next_spawn{};

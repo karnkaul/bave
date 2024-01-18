@@ -19,8 +19,6 @@ namespace {
 }
 } // namespace
 
-Drawable::Drawable(NotNull<RenderDevice*> render_device) : m_mesh(render_device) {}
-
 void Drawable::draw(Shader& shader) const {
 	bake_instances();
 	update_textures(shader);

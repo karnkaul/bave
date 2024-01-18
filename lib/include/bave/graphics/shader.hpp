@@ -30,7 +30,7 @@ class Shader {
 		Ptr<detail::RenderBuffer> ssbo{};
 	};
 
-	[[nodiscard]] auto allocate_scratch(vk::BufferUsageFlagBits usage) const -> detail::RenderBuffer&;
+	[[nodiscard]] auto allocate_scratch(vk::BufferUsageFlags usage) const -> detail::RenderBuffer&;
 
 	void set_viewport();
 	[[nodiscard]] auto get_scissor(Rect<> n_rect) const -> vk::Rect2D;

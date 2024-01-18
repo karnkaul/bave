@@ -23,8 +23,8 @@ auto SpriteAnim::Animation::get_tile_at(Seconds const timestamp) const -> std::s
 	return tiles.at(index);
 }
 
-SpriteAnim::SpriteAnim(NotNull<RenderDevice*> render_device, std::shared_ptr<TextureAtlas> atlas, Seconds const duration)
-	: Sprite(render_device), atlas(std::move(atlas)), animation(make_animation(this->atlas, duration)) {
+SpriteAnim::SpriteAnim(std::shared_ptr<TextureAtlas> atlas, Seconds const duration)
+	: atlas(std::move(atlas)), animation(make_animation(this->atlas, duration)) {
 	m_current_tile_id = animation.get_tile_at({});
 	if (this->atlas) {
 		set_texture(this->atlas);

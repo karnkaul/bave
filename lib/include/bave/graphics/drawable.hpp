@@ -8,8 +8,6 @@
 namespace bave {
 class Drawable : public Polymorphic {
   public:
-	explicit Drawable(NotNull<RenderDevice*> render_device);
-
 	void draw(Shader& shader) const;
 
 	[[nodiscard]] auto get_bounds() const -> Rect<>;

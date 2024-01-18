@@ -8,11 +8,11 @@ namespace fs = std::filesystem;
 
 NineSlicer::NineSlicer(App& app, NotNull<std::shared_ptr<State>> const& state)
 	: Applet(app, state), m_loader(&get_app().get_data_store(), &get_app().get_render_device()) {
-	m_image_quad = push(std::make_unique<NineQuadShape>(&app.get_render_device()));
-	m_top = push(std::make_unique<QuadShape>(&app.get_render_device()));
-	m_bottom = push(std::make_unique<QuadShape>(&app.get_render_device()));
-	m_left = push(std::make_unique<QuadShape>(&app.get_render_device()));
-	m_right = push(std::make_unique<QuadShape>(&app.get_render_device()));
+	m_image_quad = push(std::make_unique<NineQuadShape>());
+	m_top = push(std::make_unique<QuadShape>());
+	m_bottom = push(std::make_unique<QuadShape>());
+	m_left = push(std::make_unique<QuadShape>());
+	m_right = push(std::make_unique<QuadShape>());
 
 	m_top->tint = m_bottom->tint = m_left->tint = m_right->tint = red_v;
 

@@ -6,8 +6,7 @@ using bave::random_in_range;
 using bave::Seconds;
 using bave::Shader;
 
-Background::Background(NotNull<bave::RenderDevice*> render_device, NotNull<Config const*> config)
-	: quad(render_device), cloud(render_device), m_config(config), m_top(config->background_rgba_top), m_bottom(config->background_rgba_bottom) {
+Background::Background(NotNull<Config const*> config) : m_config(config), m_top(config->background_rgba_top), m_bottom(config->background_rgba_bottom) {
 	create_quad();
 	create_clouds();
 }
