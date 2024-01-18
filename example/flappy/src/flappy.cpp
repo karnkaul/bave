@@ -49,7 +49,7 @@ void Flappy::tick() {
 		if (m_pipes->tick(dt)) { ++m_score; }
 
 		// check for player collision with pipes.
-		auto const hitbox = Rect<>::from_extent(m_config.player_hitbox, m_player->sprite.transform.position);
+		auto const hitbox = Rect<>::from_size(m_config.player_hitbox, m_player->sprite.transform.position);
 		if (m_pipes->is_colliding(hitbox)) { game_over(); }
 
 		// also check for player crossing the top/bottom edges of the game world / screen.
@@ -226,7 +226,7 @@ void Flappy::setup_hud() {
 	m_score_text.set_height(m_config.score_text_height);
 
 	auto const score_bounds = m_score_text.get_bounds();
-	m_score_bg.set_shape(bave::Quad{.size = {m_config.world_space.x, 1.5f * score_bounds.extent().y}});
+	m_score_bg.set_shape(bave::Quad{.size = {m_config.world_space.x, 1.5f * score_bounds.size().y}});
 	m_score_bg.tint = m_config.score_bg_rgba;
 	m_score_bg.transform.position = score_bounds.centre();
 

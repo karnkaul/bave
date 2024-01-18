@@ -55,7 +55,7 @@ auto Text::get_bounds() const -> Rect<> {
 		}
 	}();
 	origin.y += 0.5f * m_extent.y;
-	return Rect<>::from_extent(m_extent, origin);
+	return Rect<>::from_size(m_extent, origin);
 }
 
 void Text::refresh() {

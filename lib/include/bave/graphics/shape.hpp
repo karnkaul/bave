@@ -14,7 +14,7 @@ class CustomShape : public BasicShape {
   public:
 	using BasicShape::BasicShape;
 
-	void set_geometry(Geometry const& geometry) { Drawable::set_geometry(geometry); }
+	void set_geometry(Geometry geometry) { Drawable::set_geometry(std::move(geometry)); }
 };
 
 template <typename ShapeT>
@@ -27,12 +27,12 @@ class Shape : public BasicShape {
 		set_geometry(m_shape.to_geometry());
 	}
 
-	[[nodiscard]] auto get_shape() const -> ShapeT const& { return m_shape; }
-
-	[[nodiscard]] auto get_bounds() const -> Rect<> {
-		auto const bounds = m_shape.get_bounds();
-		return Rect<>::from_extent(bounds.extent() * glm::abs(transform.scale), bounds.centre() + transform.position);
+	void set_origin(glm::vec2 const origin) {
+		m_shape.origin = origin;
+		set_geometry(m_shape.to_geometry());
 	}
+
+	[[nodiscard]] auto get_shape() const -> ShapeT const& { return m_shape; }
 
   private:
 	ShapeT m_shape{};
