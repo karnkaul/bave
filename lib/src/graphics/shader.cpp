@@ -152,9 +152,9 @@ auto Shader::write_ssbo(void const* data, vk::DeviceSize const size) -> bool {
 	return true;
 }
 
-void Shader::draw(Mesh const& mesh, std::span<RenderInstance::Baked const> instances) {
+void Shader::draw(RenderPrimitive const& primitive, std::span<RenderInstance::Baked const> instances) {
 	auto const command_buffer = m_renderer->get_command_buffer();
-	if (!command_buffer || mesh.is_empty() || instances.empty()) { return; }
+	if (!command_buffer || primitive.bytes.empty() || instances.empty()) { return; }
 
 	auto& pipeline_cache = m_renderer->get_pipeline_cache();
 	auto const pipeline_state = detail::PipelineCache::State{.line_width = line_width, .topology = topology, .polygon_mode = polygon_mode};
@@ -164,8 +164,7 @@ void Shader::draw(Mesh const& mesh, std::span<RenderInstance::Baked const> insta
 	update_and_bind_sets(command_buffer, instances);
 
 	auto& vbo = allocate_scratch(vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndexBuffer);
-	auto const data = mesh.get_data();
-	vbo.write(data.bytes.data(), data.bytes.size());
+	vbo.write(primitive.bytes.data(), primitive.bytes.size());
 
 	command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
 	command_buffer.setViewport(0, m_viewport);
@@ -174,11 +173,11 @@ void Shader::draw(Mesh const& mesh, std::span<RenderInstance::Baked const> insta
 
 	auto const instance_count = static_cast<std::uint32_t>(instances.size());
 	command_buffer.bindVertexBuffers(0, vbo.get_buffer(), vk::DeviceSize{});
-	if (data.ibo_offset > 0) {
-		command_buffer.bindIndexBuffer(vbo.get_buffer(), data.ibo_offset, vk::IndexType::eUint32);
-		command_buffer.drawIndexed(mesh.get_index_count(), instance_count, 0, 0, 0);
+	if (primitive.ibo_offset > 0) {
+		command_buffer.bindIndexBuffer(vbo.get_buffer(), primitive.ibo_offset, vk::IndexType::eUint32);
+		command_buffer.drawIndexed(primitive.indices, instance_count, 0, 0, 0);
 	} else {
-		command_buffer.draw(mesh.get_vertex_count(), instance_count, 0, 0);
+		command_buffer.draw(primitive.vertices, instance_count, 0, 0);
 	}
 
 	m_sets = {}; // clear for next draw

@@ -9,8 +9,8 @@ class Background {
 	void tick(bave::Seconds dt);
 	void draw(bave::Shader& shader) const;
 
-	bave::CustomShape quad;
-	bave::Sprite cloud;
+	bave::CustomShape quad{};
+	bave::Sprite cloud{};
 
   private:
 	struct CloudInstance {

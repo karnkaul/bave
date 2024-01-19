@@ -19,17 +19,45 @@ namespace {
 }
 } // namespace
 
+void Drawable::Primitive::write(Geometry const& geometry) {
+	if (geometry.vertices.empty()) {
+		clear();
+		return;
+	}
+
+	ibo_offset = std::span{geometry.vertices}.size_bytes();
+	auto const ibo_size = std::span{geometry.indices}.size_bytes();
+	bytes.resize(ibo_offset + ibo_size);
+	std::memcpy(bytes.data(), geometry.vertices.data(), ibo_offset);
+	if (ibo_size > 0) {
+		std::memcpy(bytes.data() + ibo_offset, geometry.indices.data(), ibo_size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+	}
+
+	verts = static_cast<std::uint32_t>(geometry.vertices.size());
+	indices = static_cast<std::uint32_t>(geometry.indices.size());
+}
+
+void Drawable::Primitive::clear() {
+	bytes.clear();
+	ibo_offset = 0;
+	verts = indices = 0;
+}
+
+Drawable::Primitive::operator RenderPrimitive() const {
+	return RenderPrimitive{.bytes = bytes, .ibo_offset = ibo_offset, .vertices = verts, .indices = indices};
+}
+
 void Drawable::draw(Shader& shader) const {
 	bake_instances();
 	update_textures(shader);
-	shader.draw(m_mesh, m_baked_instances);
+	shader.draw(m_primitive, m_baked_instances);
 }
 
 auto Drawable::get_bounds() const -> Rect<> { return make_bounds(m_geometry.vertices, transform); }
 
 void Drawable::set_geometry(Geometry geometry) {
 	m_geometry = std::move(geometry);
-	m_mesh.write(m_geometry);
+	m_primitive.write(m_geometry);
 }
 
 void Drawable::bake_instances() const {

@@ -1,5 +1,6 @@
 #pragma once
 #include <bave/core/polymorphic.hpp>
+#include <bave/graphics/geometry.hpp>
 #include <bave/graphics/shader.hpp>
 #include <bave/graphics/texture.hpp>
 #include <memory>
@@ -24,11 +25,24 @@ class Drawable : public Polymorphic {
 	void set_texture(std::shared_ptr<Texture const> texture) { textures.front() = std::move(texture); }
 
   private:
+	struct Primitive {
+		std::vector<std::byte> bytes{};
+		std::uint32_t verts{};
+		std::uint32_t indices{};
+		std::size_t ibo_offset{};
+
+		void write(Geometry const& geometry);
+		void clear();
+
+		[[nodiscard]] operator RenderPrimitive() const;
+	};
+
 	void bake_instances() const;
 	void update_textures(Shader& out_shader) const;
 
-	Mesh m_mesh;
 	Geometry m_geometry{};
+	Primitive m_primitive{};
+
 	mutable std::vector<RenderInstance::Baked> m_baked_instances{};
 };
 } // namespace bave

@@ -14,7 +14,7 @@ class Player {
 	void stop_jump();
 	void restart();
 
-	bave::Sprite sprite;
+	bave::Sprite sprite{};
 
   private:
 	std::optional<bave::Seconds> m_jump_elapsed{};

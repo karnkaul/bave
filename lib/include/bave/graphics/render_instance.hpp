@@ -17,5 +17,12 @@ struct RenderInstance::Baked {
 	glm::vec4 rgba;
 };
 
+struct RenderPrimitive {
+	std::span<std::byte const> bytes{};
+	std::size_t ibo_offset{};
+	std::uint32_t vertices{};
+	std::uint32_t indices{};
+};
+
 inline auto RenderInstance::bake() const -> Baked { return Baked{.transform = transform.matrix(), .rgba = Rgba::to_linear(tint.to_vec4())}; }
 } // namespace bave
