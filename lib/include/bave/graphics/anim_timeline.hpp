@@ -6,7 +6,7 @@
 namespace bave {
 struct AnimTimeline {
 	std::vector<std::string> tiles{};
-	Seconds duration{};
+	Seconds duration{1s};
 
 	[[nodiscard]] auto get_tile_at(Seconds timestamp) const -> std::string_view;
 };

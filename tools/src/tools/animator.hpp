@@ -22,7 +22,7 @@ class Animator : public Applet {
 	[[nodiscard]] auto get_next_tile_id() const -> std::string;
 	void metadata_control();
 	void misc_control();
-	auto tiles_control() -> bool;
+	auto tiles_control(AnimTimeline& out) -> bool;
 
 	auto load_previous() -> bool;
 
