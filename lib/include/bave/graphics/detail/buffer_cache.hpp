@@ -1,19 +1,23 @@
 #pragma once
+#include <bave/graphics/detail/buffer_type.hpp>
 #include <bave/graphics/detail/buffering.hpp>
 #include <bave/graphics/detail/render_resource.hpp>
 #include <bave/logger.hpp>
-#include <vulkan/vulkan_hash.hpp>
-#include <unordered_map>
+#include <array>
 #include <vector>
 
 namespace bave::detail {
 class BufferCache {
   public:
-	explicit BufferCache(NotNull<RenderDevice*> render_device) : m_render_device(render_device) {}
+	explicit BufferCache(NotNull<RenderDevice*> render_device);
 
-	auto allocate(vk::BufferUsageFlags usage) -> RenderBuffer&;
-	auto get_empty(vk::BufferUsageFlags usage) -> RenderBuffer const&;
-	auto or_empty(Ptr<RenderBuffer const> buffer, vk::BufferUsageFlags usage) -> RenderBuffer const& { return buffer == nullptr ? get_empty(usage) : *buffer; }
+	auto allocate(BufferType type) -> RenderBuffer&;
+
+	[[nodiscard]] auto get_empty(BufferType type) const -> RenderBuffer const& { return m_empty_buffers.at(static_cast<std::size_t>(type)); }
+
+	[[nodiscard]] auto or_empty(Ptr<RenderBuffer const> buffer, BufferType type) const -> RenderBuffer const& {
+		return buffer == nullptr ? get_empty(type) : *buffer;
+	}
 
 	auto next_frame() -> void;
 	auto clear() -> void;
@@ -24,11 +28,13 @@ class BufferCache {
 		std::size_t next{};
 	};
 
-	using Map = std::unordered_map<vk::BufferUsageFlags, Pool>;
+	static constexpr auto types_count_v = static_cast<std::size_t>(BufferType::eCOUNT_);
+
+	using Map = std::array<Pool, types_count_v>;
 
 	Logger m_log{"BufferCache"};
 	NotNull<RenderDevice*> m_render_device;
-	std::unordered_map<vk::BufferUsageFlags, RenderBuffer> m_empty_buffers{};
+	std::array<RenderBuffer, types_count_v> m_empty_buffers;
 	Buffered<Map> m_maps{};
 };
 } // namespace bave::detail

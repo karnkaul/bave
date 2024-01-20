@@ -93,9 +93,9 @@ auto make_vpi_bindings(RenderDevice const& render_device, std::span<RenderInstan
 		.view = view.matrix(),
 		.projection = glm::ortho(-proj_xy.x, proj_xy.x, -proj_xy.y, proj_xy.y, proj_z.near, proj_z.far),
 	};
-	auto& vp_buf = render_device.get_buffer_cache().allocate(vk::BufferUsageFlagBits::eUniformBuffer);
+	auto& vp_buf = render_device.get_buffer_cache().allocate(detail::BufferType::eUniform);
 	vp_buf.write(&view_projection, sizeof(view_projection));
-	auto& instances_buf = render_device.get_buffer_cache().allocate(vk::BufferUsageFlagBits::eStorageBuffer);
+	auto& instances_buf = render_device.get_buffer_cache().allocate(detail::BufferType::eStorage);
 	instances_buf.write(instances.data(), instances.size_bytes());
 	return std::array{
 		BufferBinding{.resource = vp_buf, .binding = 0},
@@ -114,8 +114,8 @@ auto make_texture_bindings(std::span<CombinedImageSampler const, SetLayout::max_
 }
 
 auto make_buffer_bindings(detail::BufferCache& scratch_buffer_cache, Ptr<detail::RenderBuffer const> ubo, Ptr<detail::RenderBuffer const> ssbo) {
-	auto const& custom_ubo = scratch_buffer_cache.or_empty(ubo, vk::BufferUsageFlagBits::eUniformBuffer);
-	auto const& custom_ssbo = scratch_buffer_cache.or_empty(ssbo, vk::BufferUsageFlagBits::eStorageBuffer);
+	auto const& custom_ubo = scratch_buffer_cache.or_empty(ubo, detail::BufferType::eUniform);
+	auto const& custom_ssbo = scratch_buffer_cache.or_empty(ssbo, detail::BufferType::eStorage);
 	return std::array{
 		BufferBinding{.resource = custom_ubo, .binding = 0},
 		BufferBinding{.resource = custom_ssbo, .binding = 1},
@@ -139,7 +139,7 @@ void Shader::update_textures(std::span<CombinedImageSampler const, SetLayout::ma
 auto Shader::write_ubo(void const* data, vk::DeviceSize const size) -> bool {
 	if (data == nullptr || size == 0) { return false; }
 
-	if (m_sets.ubo == nullptr) { m_sets.ubo = &allocate_scratch(vk::BufferUsageFlagBits::eUniformBuffer); }
+	if (m_sets.ubo == nullptr) { m_sets.ubo = &allocate_scratch(detail::BufferType::eUniform); }
 	m_sets.ubo->write(data, size);
 	return true;
 }
@@ -147,7 +147,7 @@ auto Shader::write_ubo(void const* data, vk::DeviceSize const size) -> bool {
 auto Shader::write_ssbo(void const* data, vk::DeviceSize const size) -> bool {
 	if (data == nullptr || size == 0) { return false; }
 
-	if (m_sets.ssbo == nullptr) { m_sets.ssbo = &allocate_scratch(vk::BufferUsageFlagBits::eStorageBuffer); }
+	if (m_sets.ssbo == nullptr) { m_sets.ssbo = &allocate_scratch(detail::BufferType::eStorage); }
 	m_sets.ssbo->write(data, size);
 	return true;
 }
@@ -163,7 +163,7 @@ void Shader::draw(RenderPrimitive const& primitive, std::span<RenderInstance::Ba
 
 	update_and_bind_sets(command_buffer, instances);
 
-	auto& vbo = allocate_scratch(vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndexBuffer);
+	auto& vbo = allocate_scratch(detail::BufferType::eVertexIndex);
 	vbo.write(primitive.bytes.data(), primitive.bytes.size());
 
 	command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
@@ -183,8 +183,8 @@ void Shader::draw(RenderPrimitive const& primitive, std::span<RenderInstance::Ba
 	m_sets = {}; // clear for next draw
 }
 
-auto Shader::allocate_scratch(vk::BufferUsageFlags const usage) const -> detail::RenderBuffer& {
-	return m_renderer->get_render_device().get_buffer_cache().allocate(usage);
+auto Shader::allocate_scratch(detail::BufferType const type) const -> detail::RenderBuffer& {
+	return m_renderer->get_render_device().get_buffer_cache().allocate(type);
 }
 
 void Shader::set_viewport() {

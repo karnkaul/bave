@@ -1,4 +1,3 @@
-#include <bave/core/fixed_string.hpp>
 #include <bave/graphics/detail/buffer_cache.hpp>
 #include <bave/graphics/render_device.hpp>
 
@@ -6,56 +5,53 @@ namespace bave::detail {
 namespace {
 constexpr auto zero_v = std::byte{};
 
-constexpr auto usage_str(vk::BufferUsageFlagBits const bit) -> std::string_view {
-	switch (bit) {
-	case vk::BufferUsageFlagBits::eVertexBuffer: return "vertex";
-	case vk::BufferUsageFlagBits::eIndexBuffer: return "index";
-	case vk::BufferUsageFlagBits::eUniformBuffer: return "uniform";
-	case vk::BufferUsageFlagBits::eStorageBuffer: return "storage";
-	default: return "other";
+constexpr auto to_usage(BufferType const type) -> vk::BufferUsageFlags {
+	switch (type) {
+	case BufferType::eVertexIndex: return vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eIndexBuffer;
+	case BufferType::eStorage: return vk::BufferUsageFlagBits::eStorageBuffer;
+	default: return vk::BufferUsageFlagBits::eUniformBuffer;
 	}
 }
 
-auto make_usage_str(vk::BufferUsageFlags const usage) -> FixedString<64> {
-	static constexpr auto bits_v = std::array{
-		vk::BufferUsageFlagBits::eVertexBuffer,
-		vk::BufferUsageFlagBits::eIndexBuffer,
-		vk::BufferUsageFlagBits::eUniformBuffer,
-		vk::BufferUsageFlagBits::eStorageBuffer,
-	};
-
-	auto str = FixedString<64>{};
-	for (auto const bit : bits_v) {
-		if (bit & usage) {
-			if (!str.empty()) { str.append(FixedString{" | "}); }
-			str.append(FixedString{"{}", usage_str(bit)});
-		}
+constexpr auto to_str(BufferType const type) -> std::string_view {
+	switch (type) {
+	case BufferType::eVertexIndex: return "Vertex";
+	case BufferType::eUniform: return "Uniform";
+	case BufferType::eStorage: return "Storage";
+	default: return "unknown";
 	}
-	return str;
+}
+
+auto make_empty(RenderDevice& render_device) {
+	auto ret = std::array{
+		RenderBuffer{&render_device, to_usage(BufferType::eVertexIndex)},
+		RenderBuffer{&render_device, to_usage(BufferType::eUniform)},
+		RenderBuffer{&render_device, to_usage(BufferType::eStorage)},
+	};
+	for (auto& buffer : ret) { buffer.write(&zero_v, 1); }
+	return ret;
 }
 } // namespace
 
-auto BufferCache::allocate(vk::BufferUsageFlags const usage) -> RenderBuffer& {
-	auto& pool = m_maps.at(m_render_device->get_frame_index())[usage];
+BufferCache::BufferCache(NotNull<RenderDevice*> render_device) : m_render_device(render_device), m_empty_buffers(make_empty(*render_device)) {}
+
+auto BufferCache::allocate(BufferType const type) -> RenderBuffer& {
+	auto const index = static_cast<std::size_t>(type);
+	auto& pool = m_maps.at(m_render_device->get_frame_index()).at(index);
 	if (pool.next >= pool.buffers.size()) {
-		pool.buffers.emplace_back(m_render_device, usage);
-		m_log.info("new Vulkan Buffer created '{}'", make_usage_str(usage).view());
+		pool.buffers.emplace_back(m_render_device, to_usage(type));
+		auto const total = [&] {
+			auto ret = std::size_t{};
+			for (auto const& pool : m_maps) { ret += pool.at(index).buffers.size(); }
+			return ret;
+		}();
+		m_log.debug("new Vulkan {} Buffer created (total: {})", to_str(type), total);
 	}
 	return pool.buffers[pool.next++];
 }
 
-auto BufferCache::get_empty(vk::BufferUsageFlags const usage) -> RenderBuffer const& {
-	auto it = m_empty_buffers.find(usage);
-	if (it == m_empty_buffers.end()) {
-		auto [i, _] = m_empty_buffers.insert_or_assign(usage, RenderBuffer{m_render_device, usage});
-		i->second.write(&zero_v, 1);
-		it = i;
-	}
-	return it->second;
-}
-
 auto BufferCache::next_frame() -> void {
-	for (auto& [_, pool] : m_maps.at(m_render_device->get_frame_index())) { pool.next = {}; }
+	for (auto& pool : m_maps.at(m_render_device->get_frame_index())) { pool.next = {}; }
 }
 
 auto BufferCache::clear() -> void { m_maps = {}; }

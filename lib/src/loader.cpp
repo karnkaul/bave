@@ -103,7 +103,7 @@ auto Loader::load_texture_atlas(std::string_view uri, bool mip_map) const -> std
 	}
 
 	auto ret = std::make_shared<TextureAtlas>(TextureAtlas(m_render_device, image->get_bitmap_view(), std::move(blocks), mip_map));
-	m_log.info("loaded TiledTexture: '{}'", uri);
+	m_log.info("loaded TextureAtlas: '{}'", uri);
 	return ret;
 }
 
