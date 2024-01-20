@@ -282,6 +282,7 @@ void Animator::load_new_timeline(std::string_view const uri) {
 void Animator::save_timeline() {
 	if (state->animator.last_timeline.empty()) { return; }
 	auto json = dj::Json{};
+	json["asset_type"] = get_asset_type<AnimTimeline>();
 	json["duration"] = m_sprite.timeline.duration.count();
 	if (!m_sprite.timeline.tiles.empty()) {
 		auto& out_tile_ids = json["tiles"];

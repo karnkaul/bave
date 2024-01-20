@@ -197,8 +197,8 @@ void Tiler::new_atlas() {
 }
 
 auto Tiler::load_atlas(std::string_view const uri) -> bool {
-	auto json = m_loader.load_json(uri);
-	if (!json || !json.contains("image") || !json.contains("blocks")) { return false; }
+	auto json = m_loader.load_json_asset<TextureAtlas>(uri);
+	if (!json) { return false; }
 
 	if (!load_image_at(json["image"].as_string())) { return false; }
 
@@ -222,6 +222,7 @@ auto Tiler::load_atlas(std::string_view const uri) -> bool {
 void Tiler::save_atlas() {
 	if (m_json_uri.empty()) { return; }
 	auto json = dj::Json{};
+	json["asset_type"] = get_asset_type<TextureAtlas>();
 	json["image"] = m_image_uri;
 	auto& out_blocks = json["blocks"];
 	for (auto const& in_block : m_blocks) {

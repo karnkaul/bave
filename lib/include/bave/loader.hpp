@@ -1,4 +1,5 @@
 #pragma once
+#include <bave/asset_type.hpp>
 #include <bave/audio/audio_clip.hpp>
 #include <bave/data_store.hpp>
 #include <bave/font/font.hpp>
@@ -19,6 +20,11 @@ class Loader {
 	[[nodiscard]] auto load_bytes(std::string_view uri) const -> std::vector<std::byte>;
 	[[nodiscard]] auto load_json(std::string_view uri) const -> dj::Json;
 	[[nodiscard]] auto load_json_asset(std::string_view uri, std::string_view asset_type) const -> dj::Json;
+
+	template <typename Type>
+	[[nodiscard]] auto load_json_asset(std::string_view const uri) const -> dj::Json {
+		return load_json_asset(uri, get_asset_type<Type>());
+	}
 
 	[[nodiscard]] auto load_image_file(std::string_view uri) const -> std::optional<ImageFile>;
 	[[nodiscard]] auto load_anim_timeline(std::string_view uri) const -> std::optional<AnimTimeline>;

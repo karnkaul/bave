@@ -1,4 +1,5 @@
 {
+  "asset_type": "TextureAtlas",
   "image": "images/explode_512x512.png",
   "blocks": [
     {

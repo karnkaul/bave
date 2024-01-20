@@ -44,6 +44,11 @@ auto Loader::load_json(std::string_view const uri) const -> dj::Json {
 }
 
 auto Loader::load_json_asset(std::string_view const uri, std::string_view const asset_type) const -> dj::Json {
+	if (asset_type.empty()) {
+		m_log.warn("cannot load unknown asset type");
+		return {};
+	}
+
 	auto ret = load_json(uri);
 	if (!ret) { return {}; }
 
@@ -76,7 +81,7 @@ auto Loader::load_image_file(std::string_view uri) const -> std::optional<ImageF
 }
 
 auto Loader::load_anim_timeline(std::string_view const uri) const -> std::optional<AnimTimeline> {
-	auto const json = load_json(uri);
+	auto const json = load_json_asset<AnimTimeline>(uri);
 	if (!json) { return {}; }
 
 	auto ret = AnimTimeline{};
@@ -105,7 +110,7 @@ auto Loader::load_texture(std::string_view const uri, bool const mip_map) const 
 }
 
 auto Loader::load_texture_9slice(std::string_view const uri) const -> std::shared_ptr<Texture9Slice> {
-	auto json = load_json(uri);
+	auto json = load_json_asset<Texture9Slice>(uri);
 	if (!json || !json.contains("image")) { return {}; }
 
 	auto image = load_image_file(json["image"].as_string());
@@ -120,7 +125,7 @@ auto Loader::load_texture_9slice(std::string_view const uri) const -> std::share
 }
 
 auto Loader::load_texture_atlas(std::string_view uri, bool mip_map) const -> std::shared_ptr<TextureAtlas> {
-	auto json = load_json(uri);
+	auto json = load_json_asset<TextureAtlas>(uri);
 	if (!json || !json.contains("image")) { return {}; }
 
 	auto image = load_image_file(json["image"].as_string());
