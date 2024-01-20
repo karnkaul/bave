@@ -43,17 +43,49 @@ auto Loader::load_json(std::string_view const uri) const -> dj::Json {
 	return ret;
 }
 
-auto Loader::load_image_file(std::string_view uri) const -> std::shared_ptr<ImageFile> {
+auto Loader::load_json_asset(std::string_view const uri, std::string_view const asset_type) const -> dj::Json {
+	auto ret = load_json(uri);
+	if (!ret) { return {}; }
+
+	if (!ret.contains("asset_type")) {
+		m_log.warn("JSON missing 'asset_type' field: '{}'", uri);
+		return {};
+	}
+
+	auto const in_asset_type = ret["asset_type"].as_string();
+	if (in_asset_type != asset_type) {
+		m_log.warn("JSON asset_type mismatch, expected: '{}', obtained: '{}'", asset_type, in_asset_type);
+		return {};
+	}
+
+	return ret;
+}
+
+auto Loader::load_image_file(std::string_view uri) const -> std::optional<ImageFile> {
 	auto const bytes = load_bytes(uri);
 	if (bytes.empty()) { return {}; }
 
-	auto ret = std::make_shared<ImageFile>();
-	if (!ret->load_from_bytes(bytes)) {
+	auto ret = ImageFile{};
+	if (!ret.load_from_bytes(bytes)) {
 		m_log.warn("failed to load ImageFile: '{}'", uri);
 		return {};
 	}
 
 	m_log.info("loaded ImageFile: '{}'", uri);
+	return ret;
+}
+
+auto Loader::load_anim_timeline(std::string_view const uri) const -> std::optional<AnimTimeline> {
+	auto const json = load_json(uri);
+	if (!json) { return {}; }
+
+	auto ret = AnimTimeline{};
+	ret.duration = Seconds{json["duration"].as<float>()};
+	auto const& in_tiles = json["tiles"];
+	ret.tiles.reserve(in_tiles.array_view().size());
+	for (auto const& tile_id : in_tiles.array_view()) { ret.tiles.emplace_back(tile_id.as_string()); }
+
+	m_log.info("loaded AnimTimeline: '{}'", uri);
 	return ret;
 }
 
@@ -102,7 +134,7 @@ auto Loader::load_texture_atlas(std::string_view uri, bool mip_map) const -> std
 		blocks.push_back(std::move(block));
 	}
 
-	auto ret = std::make_shared<TextureAtlas>(TextureAtlas(m_render_device, image->get_bitmap_view(), std::move(blocks), mip_map));
+	auto ret = std::make_shared<TextureAtlas>(m_render_device, image->get_bitmap_view(), std::move(blocks), mip_map);
 	m_log.info("loaded TextureAtlas: '{}'", uri);
 	return ret;
 }
@@ -133,20 +165,6 @@ auto Loader::load_audio_clip(std::string_view const uri) const -> std::shared_pt
 	}
 
 	m_log.info("loaded AudioClip: '{}'", uri);
-	return ret;
-}
-
-auto Loader::load_sprite_animation(std::string_view const uri) const -> std::optional<SpriteAnim::Animation> {
-	auto const json = load_json(uri);
-	if (!json) { return {}; }
-
-	auto ret = SpriteAnim::Animation{};
-	ret.duration = Seconds{json["duration"].as<float>()};
-	auto const& in_tiles = json["tiles"];
-	ret.tiles.reserve(in_tiles.array_view().size());
-	for (auto const& tile_id : in_tiles.array_view()) { ret.tiles.emplace_back(tile_id.as_string()); }
-
-	m_log.info("loaded SpriteAnimation: '{}'", uri);
 	return ret;
 }
 } // namespace bave

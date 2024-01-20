@@ -7,7 +7,6 @@
 
 using bave::Action;
 using bave::App;
-using bave::Driver;
 using bave::FocusChange;
 using bave::Key;
 using bave::KeyInput;
@@ -181,7 +180,7 @@ void Flappy::load_assets() {
 	m_config.jump_sfx = loader.load_audio_clip("audio_clips/beep.wav");
 
 	m_config.explode_atlas = loader.load_texture_atlas("images/explode_atlas.json");
-	m_config.explode_animation = loader.load_sprite_animation("animations/explode_anim.json");
+	m_config.explode_timeline = loader.load_anim_timeline("animations/explode_anim.json");
 	m_config.explode_sfx = loader.load_audio_clip("audio_clips/explode.wav");
 
 	m_config.cloud_texture = loader.load_texture("images/cloud_256x128.png");
@@ -194,7 +193,7 @@ void Flappy::load_assets() {
 void Flappy::create_entities() {
 	// explode animation.
 	m_explode = SpriteAnim{m_config.explode_atlas};
-	if (m_config.explode_animation) { m_explode->animation = *m_config.explode_animation; }
+	if (m_config.explode_timeline) { m_explode->timeline = *m_config.explode_timeline; }
 	m_explode->repeat = false;
 
 	// player sprite.

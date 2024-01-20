@@ -1,5 +1,6 @@
 #pragma once
 #include <bave/graphics/sprite.hpp>
+#include <bave/graphics/sprite_anim.hpp>
 #include <bave/imgui/im_input_text.hpp>
 #include <bave/loader.hpp>
 #include <tools/applet.hpp>
@@ -17,7 +18,7 @@ class Animator : public Applet {
 
 	[[nodiscard]] auto can_load_anim() const -> bool { return m_texture != nullptr; }
 
-	void animation_control();
+	void timeline_control();
 	[[nodiscard]] auto get_next_tile_id() const -> std::string;
 	void metadata_control();
 	void misc_control();
@@ -28,10 +29,10 @@ class Animator : public Applet {
 	auto load_atlas(std::string_view uri) -> bool;
 	void load_new_atlas(std::string_view uri);
 
-	void new_animation();
-	auto load_animation(std::string_view uri) -> bool;
-	void load_new_animation(std::string_view uri);
-	void save_animation();
+	void new_timeline();
+	auto load_timeline(std::string_view uri) -> bool;
+	void load_new_timeline(std::string_view uri);
+	void save_timeline();
 
 	void setup_scene();
 	void set_title();

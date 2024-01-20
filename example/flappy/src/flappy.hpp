@@ -1,6 +1,7 @@
 #pragma once
 #include <bave/driver.hpp>
 #include <bave/graphics/sprite.hpp>
+#include <bave/graphics/sprite_anim.hpp>
 #include <bave/graphics/text.hpp>
 #include <bave/imgui/im_texture.hpp>
 #include <src/background.hpp>

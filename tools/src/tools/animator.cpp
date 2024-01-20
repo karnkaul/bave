@@ -7,7 +7,7 @@ namespace fs = std::filesystem;
 
 Animator::Animator(App& app, NotNull<std::shared_ptr<State>> const& state) : Applet(app, state), m_loader(&app.get_data_store(), &app.get_render_device()) {
 	setup_scene();
-	if (!load_previous()) { new_animation(); }
+	if (!load_previous()) { new_timeline(); }
 }
 
 void Animator::tick() {
@@ -15,7 +15,7 @@ void Animator::tick() {
 
 	begin_sidepanel_window("Sprite Animation");
 
-	if (ImGui::CollapsingHeader("Animation", ImGuiTreeNodeFlags_DefaultOpen)) { animation_control(); }
+	if (ImGui::CollapsingHeader("Animation", ImGuiTreeNodeFlags_DefaultOpen)) { timeline_control(); }
 
 	if (ImGui::CollapsingHeader("Metadata", ImGuiTreeNodeFlags_DefaultOpen)) { metadata_control(); }
 
@@ -78,9 +78,9 @@ auto Animator::load_new_uri(std::string_view const uri) -> bool {
 		return false;
 	}
 
-	if (can_load_anim() && load_animation(uri)) {
+	if (can_load_anim() && load_timeline(uri)) {
 		m_log.info("loaded SpriteAnimation: '{}'", uri);
-		state->animator.last_animation = uri;
+		state->animator.last_timeline = uri;
 		save_state();
 		return true;
 	}
@@ -88,7 +88,7 @@ auto Animator::load_new_uri(std::string_view const uri) -> bool {
 	if (load_atlas(uri)) {
 		m_log.info("loaded TextureAtlas: '{}'", uri);
 		state->animator.last_atlas = uri;
-		state->animator.last_animation.clear();
+		state->animator.last_timeline.clear();
 		save_state();
 		return true;
 	}
@@ -98,23 +98,23 @@ auto Animator::load_new_uri(std::string_view const uri) -> bool {
 }
 
 void Animator::file_menu_items() {
-	if (ImGui::MenuItem("New")) { new_animation(); }
+	if (ImGui::MenuItem("New")) { new_timeline(); }
 	if (ImGui::BeginMenu("Open")) {
 		if (ImGui::MenuItem("Atlas...")) {
 			if (auto uri = dialog_open_file("Open Atlas"); !uri.empty()) { load_new_atlas(uri); }
 		}
 		if (ImGui::MenuItem("Animation...", nullptr, false, can_load_anim())) {
-			if (auto uri = dialog_open_file("Open Animation"); !uri.empty()) { load_new_animation(uri); }
+			if (auto uri = dialog_open_file("Open Animation"); !uri.empty()) { load_new_timeline(uri); }
 		}
 		ImGui::EndMenu();
 	}
-	if (ImGui::MenuItem("Save", nullptr, false, !state->animator.last_animation.empty())) { save_animation(); }
+	if (ImGui::MenuItem("Save", nullptr, false, !state->animator.last_timeline.empty())) { save_timeline(); }
 	if (ImGui::MenuItem("Save As...", nullptr, false, !state->animator.last_atlas.empty())) {
-		auto json_uri = fs::path{state->animator.last_animation};
+		auto json_uri = fs::path{state->animator.last_timeline};
 		if (json_uri.empty()) { json_uri = replace_extension(state->animator.last_atlas, ".anim.json"); }
 		if (auto uri = dialog_save_file("Save Animation", json_uri.generic_string()); !uri.empty()) {
-			state->animator.last_animation = uri;
-			save_animation();
+			state->animator.last_timeline = uri;
+			save_timeline();
 		}
 	}
 
@@ -122,8 +122,8 @@ void Animator::file_menu_items() {
 	Applet::file_menu_items();
 }
 
-void Animator::animation_control() {
-	auto duration = m_sprite.animation.duration.count();
+void Animator::timeline_control() {
+	auto duration = m_sprite.timeline.duration.count();
 
 	ImGui::BeginDisabled(!m_texture);
 	ImGui::Checkbox("animate", &m_sprite.animate);
@@ -133,24 +133,24 @@ void Animator::animation_control() {
 
 	auto modified = false;
 	if (ImGui::DragFloat("duration", &duration, 0.05f, 0.0f, 500.0f)) {
-		m_sprite.animation.duration = Seconds{duration};
+		m_sprite.timeline.duration = Seconds{duration};
 		modified = true;
 	}
 
 	if (ImGui::Button("Push")) {
-		m_sprite.animation.tiles.push_back(get_next_tile_id());
+		m_sprite.timeline.tiles.push_back(get_next_tile_id());
 		modified = true;
 	}
 	if (ImGui::TreeNode("tiles")) {
 		modified |= tiles_control();
 		ImGui::TreePop();
 	}
-	if (!m_sprite.animation.tiles.empty() && ImGui::Button("Pop")) {
-		m_sprite.animation.tiles.pop_back();
+	if (!m_sprite.timeline.tiles.empty() && ImGui::Button("Pop")) {
+		m_sprite.timeline.tiles.pop_back();
 		modified = true;
 	}
 
-	if (modified && !m_unsaved && !state->animator.last_animation.empty()) {
+	if (modified && !m_unsaved && !state->animator.last_timeline.empty()) {
 		m_unsaved = true;
 		set_title();
 	}
@@ -158,8 +158,8 @@ void Animator::animation_control() {
 
 auto Animator::get_next_tile_id() const -> std::string {
 	if (m_tile_ids.empty()) { return std::string{"?"}; }
-	if (m_sprite.animation.tiles.empty()) { return m_tile_ids.front(); }
-	auto const& previous = m_sprite.animation.tiles.back();
+	if (m_sprite.timeline.tiles.empty()) { return m_tile_ids.front(); }
+	auto const& previous = m_sprite.timeline.tiles.back();
 	auto const it = std::find(m_tile_ids.begin(), m_tile_ids.end(), previous);
 	if (it == m_tile_ids.end()) { return m_tile_ids.front(); }
 	auto const index = static_cast<std::size_t>(it - m_tile_ids.begin());
@@ -168,8 +168,8 @@ auto Animator::get_next_tile_id() const -> std::string {
 
 auto Animator::tiles_control() -> bool {
 	auto ret = false;
-	for (std::size_t i = 0; i < m_sprite.animation.tiles.size(); ++i) {
-		auto& tile_id = m_sprite.animation.tiles.at(i);
+	for (std::size_t i = 0; i < m_sprite.timeline.tiles.size(); ++i) {
+		auto& tile_id = m_sprite.timeline.tiles.at(i);
 		if (ImGui::BeginCombo(FixedString{"[{}]", i}.c_str(), tile_id.c_str())) {
 			for (auto const& id : m_tile_ids) {
 				if (ImGui::Selectable(id.c_str(), id == tile_id)) {
@@ -196,12 +196,12 @@ auto Animator::load_previous() -> bool {
 
 	if (!state->animator.last_atlas.empty() && !(ret = load_atlas(state->animator.last_atlas))) {
 		state->animator.last_atlas.clear();
-		state->animator.last_animation.clear();
+		state->animator.last_timeline.clear();
 		ret = false;
 	}
 
-	if (ret && !state->animator.last_animation.empty() && !(ret = load_animation(state->animator.last_animation))) {
-		state->animator.last_animation.clear();
+	if (ret && !state->animator.last_timeline.empty() && !(ret = load_timeline(state->animator.last_timeline))) {
+		state->animator.last_timeline.clear();
 		ret = false;
 	}
 
@@ -242,15 +242,15 @@ auto Animator::load_atlas(std::string_view uri) -> bool {
 void Animator::load_new_atlas(std::string_view uri) {
 	if (!load_atlas(uri)) { return; }
 
-	new_animation();
-	state->animator.last_animation.clear();
+	new_timeline();
+	state->animator.last_timeline.clear();
 	state->animator.last_atlas = uri;
 	save_state();
 }
 
-void Animator::new_animation() {
-	m_sprite.animation.tiles.clear();
-	m_sprite.animation.duration = 1s;
+void Animator::new_timeline() {
+	m_sprite.timeline.tiles.clear();
+	m_sprite.timeline.duration = 1s;
 	m_sprite.set_uv(uv_rect_v);
 
 	m_rect.set_geometry({});
@@ -260,11 +260,11 @@ void Animator::new_animation() {
 	set_title();
 }
 
-auto Animator::load_animation(std::string_view uri) -> bool {
-	auto animation = m_loader.load_sprite_animation(uri);
-	if (!animation) { return false; }
+auto Animator::load_timeline(std::string_view uri) -> bool {
+	auto timeline = m_loader.load_anim_timeline(uri);
+	if (!timeline) { return false; }
 
-	m_sprite.animation = std::move(*animation);
+	m_sprite.timeline = std::move(*timeline);
 	m_unsaved = false;
 
 	set_title();
@@ -272,28 +272,28 @@ auto Animator::load_animation(std::string_view uri) -> bool {
 	return true;
 }
 
-void Animator::load_new_animation(std::string_view const uri) {
-	if (!load_animation(uri)) { return; }
+void Animator::load_new_timeline(std::string_view const uri) {
+	if (!load_timeline(uri)) { return; }
 
-	state->animator.last_animation = uri;
+	state->animator.last_timeline = uri;
 	save_state();
 }
 
-void Animator::save_animation() {
-	if (state->animator.last_animation.empty()) { return; }
+void Animator::save_timeline() {
+	if (state->animator.last_timeline.empty()) { return; }
 	auto json = dj::Json{};
-	json["duration"] = m_sprite.animation.duration.count();
-	if (!m_sprite.animation.tiles.empty()) {
+	json["duration"] = m_sprite.timeline.duration.count();
+	if (!m_sprite.timeline.tiles.empty()) {
 		auto& out_tile_ids = json["tiles"];
-		for (auto const& tile_id : m_sprite.animation.tiles) { out_tile_ids.push_back(tile_id); }
+		for (auto const& tile_id : m_sprite.timeline.tiles) { out_tile_ids.push_back(tile_id); }
 	}
 
-	if (!save_json(json, state->animator.last_animation)) {
-		m_log.error("failed to save SpriteAnimation to '{}'", state->animator.last_animation);
+	if (!save_json(json, state->animator.last_timeline)) {
+		m_log.error("failed to save SpriteAnimation to '{}'", state->animator.last_timeline);
 		return;
 	}
 
-	m_log.info("saved SpriteAnimation to '{}'", state->animator.last_animation);
+	m_log.info("saved SpriteAnimation to '{}'", state->animator.last_timeline);
 	m_unsaved = false;
 	set_title();
 }
@@ -315,5 +315,5 @@ void Animator::setup_scene() {
 	main_view.position.x = -150.0f;
 }
 
-void Animator::set_title() { get_app().set_title(format_title("Animator", state->animator.last_animation, m_unsaved).c_str()); }
+void Animator::set_title() { get_app().set_title(format_title("Animator", state->animator.last_timeline, m_unsaved).c_str()); }
 } // namespace bave::tools
