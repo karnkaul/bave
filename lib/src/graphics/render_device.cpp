@@ -74,8 +74,7 @@ RenderDevice::RenderDevice(NotNull<detail::IWsi*> wsi, CreateInfo create_info) :
 
 	recreate_swapchain(wsi->get_framebuffer_extent());
 
-	m_vbo_cache = std::make_unique<detail::VertexBufferCache>(this);
-	m_sb_cache = std::make_unique<detail::ScratchBufferCache>(this);
+	m_buffer_cache = std::make_unique<detail::BufferCache>(this);
 	m_image_cache = std::make_unique<detail::ImageCache>(this);
 	m_sampler_cache = std::make_unique<detail::SamplerCache>(get_device());
 
@@ -172,7 +171,7 @@ auto RenderDevice::submit_and_present(vk::SubmitInfo const& submit_info, vk::Fen
 	m_frame_index.increment();
 
 	m_swapchain.active.image_index.reset();
-	m_sb_cache->next_frame();
+	m_buffer_cache->next_frame();
 
 	return handle_swapchain_result(result, framebuffer, "present");
 }

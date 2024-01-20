@@ -1,6 +1,6 @@
 #pragma once
 #include <bave/core/not_null.hpp>
-#include <bave/graphics/mesh.hpp>
+#include <bave/graphics/detail/buffer_type.hpp>
 #include <bave/graphics/render_instance.hpp>
 #include <bave/graphics/render_view.hpp>
 #include <bave/graphics/set_layout.hpp>
@@ -17,7 +17,7 @@ class Shader {
 	auto write_ubo(void const* data, vk::DeviceSize size) -> bool;
 	auto write_ssbo(void const* data, vk::DeviceSize size) -> bool;
 
-	void draw(Mesh const& mesh, std::span<RenderInstance::Baked const> instances);
+	void draw(RenderPrimitive const& primitive, std::span<RenderInstance::Baked const> instances);
 
 	float line_width{1.0f};
 	vk::PrimitiveTopology topology{vk::PrimitiveTopology::eTriangleList};
@@ -30,7 +30,7 @@ class Shader {
 		Ptr<detail::RenderBuffer> ssbo{};
 	};
 
-	[[nodiscard]] auto allocate_scratch(vk::BufferUsageFlagBits usage) const -> detail::RenderBuffer&;
+	[[nodiscard]] auto allocate_scratch(detail::BufferType type) const -> detail::RenderBuffer&;
 
 	void set_viewport();
 	[[nodiscard]] auto get_scissor(Rect<> n_rect) const -> vk::Rect2D;

@@ -21,9 +21,7 @@ using bave::Texture;
 
 // bave will reset delta time after using game factory, so time spent in this constructor will not bloat up the first tick's dt.
 // it will still halt the app until complete though; taking too long might trigger an ANR (App Not Responding) on Android.
-Flappy::Flappy(App& app)
-	: Driver(app), m_game_view(app.get_render_device().render_view), m_score_bg(&app.get_render_device()), m_score_text(&app.get_render_device()),
-	  m_game_over_text(&app.get_render_device()), m_restart_text(&app.get_render_device()) {
+Flappy::Flappy(App& app) : Driver(app), m_game_view(app.get_render_device().render_view) {
 	// we use a custom / fixed viewport so that the same game world is visible regardless of screen / framebuffer size.
 	setup_viewport();
 	// this example loads most assets on the main thread, but all of them can be loaded asynchronously if desired.
@@ -49,7 +47,7 @@ void Flappy::tick() {
 		if (m_pipes->tick(dt)) { ++m_score; }
 
 		// check for player collision with pipes.
-		auto const hitbox = Rect<>::from_extent(m_config.player_hitbox, m_player->sprite.transform.position);
+		auto const hitbox = Rect<>::from_size(m_config.player_hitbox, m_player->sprite.transform.position);
 		if (m_pipes->is_colliding(hitbox)) { game_over(); }
 
 		// also check for player crossing the top/bottom edges of the game world / screen.
@@ -194,19 +192,17 @@ void Flappy::load_assets() {
 }
 
 void Flappy::create_entities() {
-	auto& render_device = get_app().get_render_device();
-
 	// explode animation.
-	m_explode = SpriteAnim{&render_device, m_config.explode_atlas};
+	m_explode = SpriteAnim{m_config.explode_atlas};
 	if (m_config.explode_animation) { m_explode->animation = *m_config.explode_animation; }
 	m_explode->repeat = false;
 
 	// player sprite.
 	m_player = Player{&get_app(), &m_config};
 	// background (sky gradient, scrolling clouds).
-	m_background = Background{&render_device, &m_config};
+	m_background = Background{&m_config};
 	// pipes.
-	m_pipes = Pipes{&render_device, &m_config};
+	m_pipes = Pipes{&m_config};
 }
 
 void Flappy::setup_hud() {
@@ -226,7 +222,7 @@ void Flappy::setup_hud() {
 	m_score_text.set_height(m_config.score_text_height);
 
 	auto const score_bounds = m_score_text.get_bounds();
-	m_score_bg.set_shape(bave::Quad{.size = {m_config.world_space.x, 1.5f * score_bounds.extent().y}});
+	m_score_bg.set_shape(bave::Quad{.size = {m_config.world_space.x, 1.5f * score_bounds.size().y}});
 	m_score_bg.tint = m_config.score_bg_rgba;
 	m_score_bg.transform.position = score_bounds.centre();
 

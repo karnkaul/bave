@@ -2,12 +2,62 @@
 #include <bave/graphics/shader.hpp>
 
 namespace bave {
-Drawable::Drawable(NotNull<RenderDevice*> render_device) : m_mesh(render_device) {}
+namespace {
+[[nodiscard]] auto make_bounds(std::span<bave::Vertex const> vertices, bave::Transform const& transform) {
+	auto const matrix = transform.matrix();
+	auto ret = Rect<>{};
+	ret.lt.x = ret.rb.y = std::numeric_limits<float>::max();
+	ret.lt.y = ret.rb.x = -std::numeric_limits<float>::max();
+	for (auto const& vertex : vertices) {
+		auto const position = glm::vec2{matrix * glm::vec4{vertex.position, 0.0f, 1.0f}};
+		ret.lt.x = std::min(ret.lt.x, position.x);
+		ret.lt.y = std::max(ret.lt.y, position.y);
+		ret.rb.y = std::min(ret.rb.y, position.y);
+		ret.rb.x = std::max(ret.rb.x, position.x);
+	}
+	return ret;
+}
+} // namespace
+
+void Drawable::Primitive::write(Geometry const& geometry) {
+	if (geometry.vertices.empty()) {
+		clear();
+		return;
+	}
+
+	ibo_offset = std::span{geometry.vertices}.size_bytes();
+	auto const ibo_size = std::span{geometry.indices}.size_bytes();
+	bytes.resize(ibo_offset + ibo_size);
+	std::memcpy(bytes.data(), geometry.vertices.data(), ibo_offset);
+	if (ibo_size > 0) {
+		std::memcpy(bytes.data() + ibo_offset, geometry.indices.data(), ibo_size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+	}
+
+	verts = static_cast<std::uint32_t>(geometry.vertices.size());
+	indices = static_cast<std::uint32_t>(geometry.indices.size());
+}
+
+void Drawable::Primitive::clear() {
+	bytes.clear();
+	ibo_offset = 0;
+	verts = indices = 0;
+}
+
+Drawable::Primitive::operator RenderPrimitive() const {
+	return RenderPrimitive{.bytes = bytes, .ibo_offset = ibo_offset, .vertices = verts, .indices = indices};
+}
 
 void Drawable::draw(Shader& shader) const {
 	bake_instances();
 	update_textures(shader);
-	shader.draw(m_mesh, m_baked_instances);
+	shader.draw(m_primitive, m_baked_instances);
+}
+
+auto Drawable::get_bounds() const -> Rect<> { return make_bounds(m_geometry.vertices, transform); }
+
+void Drawable::set_geometry(Geometry geometry) {
+	m_geometry = std::move(geometry);
+	m_primitive.write(m_geometry);
 }
 
 void Drawable::bake_instances() const {

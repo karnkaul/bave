@@ -4,13 +4,13 @@
 
 class Background {
   public:
-	explicit Background(bave::NotNull<bave::RenderDevice*> render_device, bave::NotNull<Config const*> config);
+	explicit Background(bave::NotNull<Config const*> config);
 
 	void tick(bave::Seconds dt);
 	void draw(bave::Shader& shader) const;
 
-	bave::CustomShape quad;
-	bave::Sprite cloud;
+	bave::CustomShape quad{};
+	bave::Sprite cloud{};
 
   private:
 	struct CloudInstance {

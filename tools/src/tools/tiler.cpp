@@ -8,7 +8,7 @@ namespace fs = std::filesystem;
 
 Tiler::Tiler(App& app, NotNull<std::shared_ptr<State>> const& state)
 	: Applet(app, state), m_loader(&get_app().get_data_store(), &get_app().get_render_device()) {
-	m_sprite = push(std::make_unique<Sprite>(&app.get_render_device()));
+	m_sprite = push(std::make_unique<Sprite>());
 
 	load_previous();
 }
@@ -254,7 +254,7 @@ void Tiler::generate_blocks() {
 }
 
 auto Tiler::make_block(int id, Rect<int> const& rect) const -> Block {
-	auto ret = Block{.rect = CustomShape{&get_app().get_render_device()}};
+	auto ret = Block{};
 	ret.block.rect = rect;
 	ret.block.id = std::to_string(id);
 	ret.id.set_text(ret.block.id);
@@ -263,7 +263,7 @@ auto Tiler::make_block(int id, Rect<int> const& rect) const -> Block {
 }
 
 auto Tiler::make_block(TextureAtlas::Block in) const -> Block {
-	auto ret = Block{.rect = CustomShape{&get_app().get_render_device()}, .block = std::move(in)};
+	auto ret = Block{.block = std::move(in)};
 	ret.id.set_text(ret.block.id);
 	ret.rect.tint = m_block_rgba;
 	return ret;

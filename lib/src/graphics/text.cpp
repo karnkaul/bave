@@ -1,7 +1,7 @@
 #include <bave/graphics/text.hpp>
 
 namespace bave {
-Text::Text(NotNull<RenderDevice*> render_device, std::shared_ptr<Font> font) : Drawable(render_device), m_font(std::move(font)) {}
+Text::Text(std::shared_ptr<Font> font) : m_font(std::move(font)) {}
 
 auto Text::set_font(std::shared_ptr<Font> font) -> Text& {
 	if (m_font.get() != font.get()) {
@@ -55,7 +55,7 @@ auto Text::get_bounds() const -> Rect<> {
 		}
 	}();
 	origin.y += 0.5f * m_extent.y;
-	return Rect<>::from_extent(m_extent, origin);
+	return Rect<>::from_size(m_extent, origin);
 }
 
 void Text::refresh() {

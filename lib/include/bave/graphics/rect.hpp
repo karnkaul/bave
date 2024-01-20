@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <cmath>
 
 namespace bave {
 template <typename Type = float>
@@ -10,9 +11,9 @@ struct Rect {
 
 	static constexpr auto from_lbrt(glm::tvec2<Type> lb, glm::tvec2<Type> rt) -> Rect { return {.lt = {lb.x, rt.y}, .rb = {rt.x, lb.y}}; }
 
-	static constexpr auto from_extent(glm::tvec2<Type> extent, glm::tvec2<Type> centre = {}) -> Rect {
-		if (extent.x == Type{} && extent.y == Type{}) { return {.lt = centre, .rb = centre}; }
-		auto const he = extent / Type{2};
+	static constexpr auto from_size(glm::tvec2<Type> size, glm::tvec2<Type> centre = {}) -> Rect {
+		if (size.x == Type{} && size.y == Type{}) { return {.lt = centre, .rb = centre}; }
+		auto const he = size / Type{2};
 		return {.lt = {centre.x - he.x, centre.y + he.y}, .rb = {centre.x + he.x, centre.y - he.y}};
 	}
 
@@ -22,7 +23,7 @@ struct Rect {
 	[[nodiscard]] constexpr auto bottom_right() const -> glm::tvec2<Type> { return rb; }
 
 	[[nodiscard]] constexpr auto centre() const -> glm::tvec2<Type> { return {(lt.x + rb.x) / Type{2}, (lt.y + rb.y) / Type{2}}; }
-	[[nodiscard]] constexpr auto extent() const -> glm::tvec2<Type> { return {rb.x - lt.x, lt.y - rb.y}; }
+	[[nodiscard]] constexpr auto size() const -> glm::tvec2<Type> { return {std::abs(rb.x - lt.x), std::abs(lt.y - rb.y)}; }
 
 	[[nodiscard]] constexpr auto contains(glm::tvec2<Type> const point) const -> bool {
 		return lt.x <= point.x && point.x <= rb.x && rb.y <= point.y && point.y <= lt.y;

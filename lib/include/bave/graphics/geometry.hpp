@@ -49,7 +49,6 @@ struct Quad {
 	Rgba rgba{white_v};
 	glm::vec2 origin{};
 
-	[[nodiscard]] constexpr auto get_bounds() const -> Rect<> { return Rect<>::from_extent(size, origin); }
 	[[nodiscard]] auto to_geometry() const -> Geometry { return Geometry::from(*this); }
 
 	auto operator==(Quad const&) const -> bool = default;
@@ -63,8 +62,6 @@ struct Circle {
 	int resolution{resolution_v};
 	Rgba rgba{white_v};
 	glm::vec2 origin{};
-
-	[[nodiscard]] constexpr auto get_bounds() const -> Rect<> { return Rect<>::from_extent(glm::vec2{diameter}, origin); }
 
 	[[nodiscard]] auto to_geometry() const -> Geometry { return Geometry::from(*this); }
 
@@ -103,7 +100,6 @@ struct NineQuad {
 	Rgba rgba{white_v};
 	glm::vec2 origin{};
 
-	[[nodiscard]] constexpr auto get_bounds() const -> Rect<> { return Rect<>::from_extent(size.current, origin); }
 	[[nodiscard]] auto to_geometry() const -> Geometry { return Geometry::from(*this); }
 
 	auto operator==(NineQuad const&) const -> bool = default;

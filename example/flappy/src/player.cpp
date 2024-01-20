@@ -5,7 +5,7 @@ using bave::NotNull;
 using bave::Seconds;
 using bave::Shader;
 
-Player::Player(NotNull<App const*> app, NotNull<Config const*> config) : sprite(&app->get_render_device()), m_app(app), m_config(config) {
+Player::Player(NotNull<App const*> app, NotNull<Config const*> config) : m_app(app), m_config(config) {
 	sprite.set_texture(config->player_texture);
 	sprite.set_size(config->player_size);
 }

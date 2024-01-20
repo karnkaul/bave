@@ -6,8 +6,6 @@
 namespace bave {
 class Sprite : public QuadShape {
   public:
-	explicit Sprite(NotNull<RenderDevice*> render_device) : QuadShape(render_device) {}
-
 	void set_size(glm::vec2 size);
 	void set_auto_size(glm::vec2 max_size);
 
@@ -25,8 +23,6 @@ class Sprite : public QuadShape {
 
 class Sprite9Slice : public NineQuadShape {
   public:
-	explicit Sprite9Slice(NotNull<RenderDevice*> render_device) : NineQuadShape(render_device) {}
-
 	void set_texture_9slice(std::shared_ptr<Texture9Slice const> texture);
 	void set_size(glm::vec2 size);
 

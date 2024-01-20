@@ -9,7 +9,7 @@ class Text : public Drawable {
 
 	using Height = TextHeight;
 
-	explicit Text(NotNull<RenderDevice*> render_device, std::shared_ptr<Font> font = {});
+	explicit Text(std::shared_ptr<Font> font = {});
 
 	auto set_font(std::shared_ptr<Font> font) -> Text&;
 	auto set_string(std::string text) -> Text&;

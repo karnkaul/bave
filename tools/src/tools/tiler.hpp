@@ -7,7 +7,7 @@
 namespace bave::tools {
 class Tiler : public Applet {
 	struct Block {
-		CustomShape rect;
+		CustomShape rect{};
 		TextureAtlas::Block block{};
 		ImInputText id{};
 	};

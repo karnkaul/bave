@@ -22,7 +22,7 @@ struct Sector {
 auto append_sector(Geometry& out, Sector const& sector) -> void {
 	auto const& o = sector.origin;
 	auto const uvo = sector.uv.centre();
-	auto const uvhe = 0.5f * sector.uv.extent();
+	auto const uvhe = 0.5f * sector.uv.size();
 	auto const add_tri = [&](glm::vec2 const prev, glm::vec2 const curr) {
 		// NOLINTNEXTLINE
 		Vertex const vs[] = {

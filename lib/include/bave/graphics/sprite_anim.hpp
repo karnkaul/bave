@@ -13,7 +13,7 @@ class SpriteAnim : public Sprite {
 		[[nodiscard]] auto get_tile_at(Seconds timestamp) const -> std::string_view;
 	};
 
-	explicit SpriteAnim(NotNull<RenderDevice*> render_device, std::shared_ptr<TextureAtlas> atlas = {}, Seconds duration = 1s);
+	explicit SpriteAnim(std::shared_ptr<TextureAtlas> atlas = {}, Seconds duration = 1s);
 
 	void tick(Seconds dt);
 
