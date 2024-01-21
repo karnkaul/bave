@@ -86,9 +86,14 @@ auto Loader::load_anim_timeline(std::string_view const uri) const -> std::option
 
 	auto ret = AnimTimeline{};
 	ret.duration = Seconds{json["duration"].as<float>()};
-	auto const& in_tiles = json["tiles"];
-	ret.tiles.reserve(in_tiles.array_view().size());
-	for (auto const& tile_id : in_tiles.array_view()) { ret.tiles.emplace_back(tile_id.as_string()); }
+	auto const& in_keyframes = json["keyframes"];
+	ret.keyframes.reserve(in_keyframes.array_view().size());
+	for (auto const& in_keyframe : in_keyframes.array_view()) {
+		auto keyframe = AnimKeyframe{};
+		keyframe.tile = in_keyframe["tile_id"].as_string();
+		if (keyframe.tile.empty()) { continue; }
+		ret.keyframes.push_back(std::move(keyframe));
+	}
 
 	m_log.info("loaded AnimTimeline: '{}'", uri);
 	return ret;

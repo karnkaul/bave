@@ -133,26 +133,25 @@ void Animator::timeline_control() {
 
 	auto modified = false;
 	if (ImGui::DragFloat("duration", &duration, 0.05f, 0.0f, 500.0f)) {
-		m_sprite.set_duration(Seconds{duration});
+		m_timeline.duration = Seconds{duration};
 		modified = true;
 	}
 
-	auto timeline = m_sprite.get_timeline();
 	if (ImGui::Button("Push")) {
-		timeline.tiles.push_back(get_next_tile_id());
+		m_timeline.keyframes.push_back(AnimKeyframe{.tile = get_next_tile_id()});
 		modified = true;
 	}
 	if (ImGui::TreeNode("tiles")) {
-		modified |= tiles_control(timeline);
+		modified |= tiles_control();
 		ImGui::TreePop();
 	}
-	if (!timeline.tiles.empty() && ImGui::Button("Pop")) {
-		timeline.tiles.pop_back();
+	if (!m_timeline.keyframes.empty() && ImGui::Button("Pop")) {
+		m_timeline.keyframes.pop_back();
 		modified = true;
 	}
 
 	if (modified) {
-		m_sprite.set_timeline(std::move(timeline));
+		m_sprite.set_timeline(m_timeline.view());
 		if (!m_unsaved && !state->animator.last_timeline.empty()) {
 			m_unsaved = true;
 			set_title();
@@ -162,18 +161,19 @@ void Animator::timeline_control() {
 
 auto Animator::get_next_tile_id() const -> std::string {
 	if (m_tile_ids.empty()) { return std::string{"?"}; }
-	if (m_sprite.get_timeline().tiles.empty()) { return m_tile_ids.front(); }
-	auto const& previous = m_sprite.get_timeline().tiles.back();
+	if (m_sprite.get_timeline().keyframes.empty()) { return m_tile_ids.front(); }
+	auto const& previous = m_sprite.get_timeline().keyframes.back().tile;
 	auto const it = std::find(m_tile_ids.begin(), m_tile_ids.end(), previous);
 	if (it == m_tile_ids.end()) { return m_tile_ids.front(); }
 	auto const index = static_cast<std::size_t>(it - m_tile_ids.begin());
 	return m_tile_ids[(index + 1) % m_tile_ids.size()];
 }
 
-auto Animator::tiles_control(AnimTimeline& out) -> bool {
+auto Animator::tiles_control() -> bool {
 	auto ret = false;
-	for (std::size_t i = 0; i < out.tiles.size(); ++i) {
-		auto& tile_id = out.tiles.at(i);
+	for (std::size_t i = 0; i < m_timeline.keyframes.size(); ++i) {
+		auto& keyframe = m_timeline.keyframes.at(i);
+		auto& tile_id = keyframe.tile;
 		if (ImGui::BeginCombo(FixedString{"[{}]", i}.c_str(), tile_id.c_str())) {
 			for (auto const& id : m_tile_ids) {
 				if (ImGui::Selectable(id.c_str(), id == tile_id)) {
@@ -253,7 +253,9 @@ void Animator::load_new_atlas(std::string_view uri) {
 }
 
 void Animator::new_timeline() {
-	m_sprite.set_timeline({});
+	m_timeline.keyframes.clear();
+	m_timeline.duration = 1s;
+	m_sprite.set_timeline(m_timeline.view());
 	m_sprite.set_uv(uv_rect_v);
 
 	m_rect.set_geometry({});
@@ -268,7 +270,8 @@ auto Animator::load_timeline(std::string_view uri) -> bool {
 	auto timeline = m_loader.load_anim_timeline(uri);
 	if (!timeline) { return false; }
 
-	m_sprite.set_timeline(std::move(*timeline));
+	m_timeline = std::move(*timeline);
+	m_sprite.set_timeline(m_timeline.view());
 	m_unsaved = false;
 
 	set_title();
@@ -289,9 +292,12 @@ void Animator::save_timeline() {
 	auto json = dj::Json{};
 	json["asset_type"] = get_asset_type<AnimTimeline>();
 	json["duration"] = timeline.duration.count();
-	if (!timeline.tiles.empty()) {
-		auto& out_tile_ids = json["tiles"];
-		for (auto const& tile_id : timeline.tiles) { out_tile_ids.push_back(tile_id); }
+	if (!timeline.keyframes.empty()) {
+		auto& out_tile_ids = json["keyframes"];
+		for (auto const& in_keyframe : timeline.keyframes) {
+			auto& out_keyframe = out_tile_ids.push_back({});
+			out_keyframe["tile_id"] = in_keyframe.tile;
+		}
 	}
 
 	if (!save_json(json, state->animator.last_timeline)) {

@@ -1,15 +1,33 @@
 {
   "asset_type": "AnimTimeline",
-  "duration": 0.25,
-  "tiles": [
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8"
+  "duration": 0.250000,
+  "keyframes": [
+    {
+      "tile_id": "0"
+    },
+    {
+      "tile_id": "1"
+    },
+    {
+      "tile_id": "2"
+    },
+    {
+      "tile_id": "3"
+    },
+    {
+      "tile_id": "4"
+    },
+    {
+      "tile_id": "5"
+    },
+    {
+      "tile_id": "6"
+    },
+    {
+      "tile_id": "7"
+    },
+    {
+      "tile_id": "8"
+    }
   ]
 }

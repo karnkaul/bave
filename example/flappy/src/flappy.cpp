@@ -193,7 +193,7 @@ void Flappy::load_assets() {
 void Flappy::create_entities() {
 	// explode animation.
 	m_explode = SpriteAnim{m_config.explode_atlas};
-	if (m_config.explode_timeline) { m_explode->set_timeline(*m_config.explode_timeline); }
+	if (m_config.explode_timeline) { m_explode->set_timeline(m_config.explode_timeline->view()); }
 	m_explode->repeat = false;
 
 	// player sprite.
