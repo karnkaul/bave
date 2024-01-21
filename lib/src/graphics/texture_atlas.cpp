@@ -39,7 +39,7 @@ TextureAtlas::TextureAtlas(NotNull<RenderDevice*> render_device, BitmapView bitm
 	: Texture(render_device, bitmap, mip_map), m_blocks(std::move(blocks)) {
 	for (auto const& block : m_blocks) {
 		if (block.id.empty()) { continue; }
-		m_rects.insert_or_assign(block.id, block.rect);
+		m_rects.insert_or_assign(block.id, block.image_rect);
 	}
 }
 

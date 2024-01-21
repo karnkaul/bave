@@ -5,7 +5,7 @@
 namespace bave {
 class SpriteAnim : public Sprite {
   public:
-	using Timeline = AnimTimeline::View;
+	using Timeline = AnimTimeline;
 
 	static auto make_timeline(TextureAtlas const& atlas, Seconds duration) -> AnimTimeline;
 

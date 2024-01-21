@@ -94,11 +94,11 @@ void Tiler::tiles_control() {
 			if (erased) { break; }
 		}
 
-		auto local_origin = 0.5f * glm::vec2{block.block.rect.lt + block.block.rect.rb};
+		auto local_origin = 0.5f * glm::vec2{block.block.image_rect.lt + block.block.image_rect.rb};
 		local_origin.y = -local_origin.y;
 		auto rect = LineRect{};
 		rect.origin = origin_offset + local_origin;
-		rect.size = glm::vec2{block.block.rect.rb - block.block.rect.lt};
+		rect.size = glm::vec2{block.block.image_rect.rb - block.block.image_rect.lt};
 		block.rect.set_geometry(Geometry::from(rect));
 	}
 
@@ -130,13 +130,13 @@ void Tiler::block_control(Block& out, std::size_t const index) const {
 		}
 	}
 
-	ImGui::DragInt("left", &out.block.rect.lt.x, 1.0f, 0, out.block.rect.rb.x);
-	ImGui::DragInt("top", &out.block.rect.lt.y, 1.0f, 0, out.block.rect.rb.y);
-	ImGui::DragInt("right", &out.block.rect.rb.x, 1.0f, out.block.rect.lt.x, size.x);
-	ImGui::DragInt("bottom", &out.block.rect.rb.y, 1.0f, out.block.rect.lt.y, size.y);
+	ImGui::DragInt("left", &out.block.image_rect.lt.x, 1.0f, 0, out.block.image_rect.rb.x);
+	ImGui::DragInt("top", &out.block.image_rect.lt.y, 1.0f, 0, out.block.image_rect.rb.y);
+	ImGui::DragInt("right", &out.block.image_rect.rb.x, 1.0f, out.block.image_rect.lt.x, size.x);
+	ImGui::DragInt("bottom", &out.block.image_rect.rb.y, 1.0f, out.block.image_rect.lt.y, size.y);
 
-	auto const rect_size = out.block.rect.rb - out.block.rect.lt;
-	if (drag_ivec2("position", out.block.rect.lt, {.hi = size - rect_size})) { out.block.rect.rb = out.block.rect.lt + rect_size; }
+	auto const rect_size = out.block.image_rect.rb - out.block.image_rect.lt;
+	if (drag_ivec2("position", out.block.image_rect.lt, {.hi = size - rect_size})) { out.block.image_rect.rb = out.block.image_rect.lt + rect_size; }
 
 	auto rgba = out.rect.tint.to_vec4();
 	if (ImGui::ColorEdit3("RGB", &rgba.x)) { out.rect.tint = Rgba::from(rgba); }
@@ -206,7 +206,7 @@ auto Tiler::load_atlas(std::string_view const uri) -> bool {
 	for (auto const& in_block : json["blocks"].array_view()) {
 		auto out_block = TextureAtlas::Block{};
 		out_block.id = in_block["id"].as_string();
-		from_json(in_block["rect"], out_block.rect);
+		from_json(in_block["image_rect"], out_block.image_rect);
 		m_blocks.push_back(make_block(std::move(out_block)));
 	}
 	m_unsaved = false;
@@ -228,7 +228,7 @@ void Tiler::save_atlas() {
 	for (auto const& in_block : m_blocks) {
 		auto out_block = dj::Json{};
 		out_block["id"] = in_block.block.id;
-		to_json(out_block["rect"], in_block.block.rect);
+		to_json(out_block["rect"], in_block.block.image_rect);
 		out_blocks.push_back(std::move(out_block));
 	}
 
@@ -256,7 +256,7 @@ void Tiler::generate_blocks() {
 
 auto Tiler::make_block(int id, Rect<int> const& rect) const -> Block {
 	auto ret = Block{};
-	ret.block.rect = rect;
+	ret.block.image_rect = rect;
 	ret.block.id = std::to_string(id);
 	ret.id.set_text(ret.block.id);
 	ret.rect.tint = m_block_rgba;

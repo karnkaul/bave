@@ -13,7 +13,7 @@ class TextureAtlas : public Texture {
   public:
 	struct Block {
 		std::string id{};
-		Rect<int> rect{};
+		Rect<int> image_rect{};
 	};
 
 	struct Tile {
