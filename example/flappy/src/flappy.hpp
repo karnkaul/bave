@@ -3,7 +3,6 @@
 #include <bave/graphics/sprite.hpp>
 #include <bave/graphics/sprite_anim.hpp>
 #include <bave/graphics/text.hpp>
-#include <bave/imgui/im_texture.hpp>
 #include <src/background.hpp>
 #include <src/pipes.hpp>
 #include <src/player.hpp>
@@ -66,8 +65,6 @@ class Flappy : public bave::Driver {
 	bool m_exploding{};
 
 	bool m_force_lag{};
-
-	std::optional<bave::ImTexture> m_im_texture{};
 
   public:
 	// constructor needs to be public (or at least accessible by the game factory that's setup in the main target)

@@ -123,7 +123,7 @@ void Animator::file_menu_items() {
 }
 
 void Animator::timeline_control() {
-	auto duration = m_sprite.get_timeline().duration.count();
+	auto duration = m_timeline->duration.count();
 
 	ImGui::BeginDisabled(!m_texture);
 	ImGui::Checkbox("animate", &m_sprite.animate);
@@ -133,20 +133,20 @@ void Animator::timeline_control() {
 
 	auto modified = false;
 	if (ImGui::DragFloat("duration", &duration, 0.05f, 0.0f, 500.0f)) {
-		m_timeline.duration = Seconds{duration};
+		m_timeline->duration = Seconds{duration};
 		modified = true;
 	}
 
 	if (ImGui::Button("Push")) {
-		m_timeline.tiles.push_back(get_next_tile_id());
+		m_timeline->tiles.push_back(get_next_tile_id());
 		modified = true;
 	}
 	if (ImGui::TreeNode("tiles")) {
 		modified |= tiles_control();
 		ImGui::TreePop();
 	}
-	if (!m_timeline.tiles.empty() && ImGui::Button("Pop")) {
-		m_timeline.tiles.pop_back();
+	if (!m_timeline->tiles.empty() && ImGui::Button("Pop")) {
+		m_timeline->tiles.pop_back();
 		modified = true;
 	}
 
@@ -161,8 +161,8 @@ void Animator::timeline_control() {
 
 auto Animator::get_next_tile_id() const -> std::string {
 	if (m_tile_ids.empty()) { return std::string{"?"}; }
-	if (m_sprite.get_timeline().tiles.empty()) { return m_tile_ids.front(); }
-	auto const& previous = m_sprite.get_timeline().tiles.back();
+	if (m_timeline->tiles.empty()) { return m_tile_ids.front(); }
+	auto const& previous = m_timeline->tiles.back();
 	auto const it = std::find(m_tile_ids.begin(), m_tile_ids.end(), previous);
 	if (it == m_tile_ids.end()) { return m_tile_ids.front(); }
 	auto const index = static_cast<std::size_t>(it - m_tile_ids.begin());
@@ -171,8 +171,8 @@ auto Animator::get_next_tile_id() const -> std::string {
 
 auto Animator::tiles_control() -> bool {
 	auto ret = false;
-	for (std::size_t i = 0; i < m_timeline.tiles.size(); ++i) {
-		auto& tile_id = m_timeline.tiles.at(i);
+	for (std::size_t i = 0; i < m_timeline->tiles.size(); ++i) {
+		auto& tile_id = m_timeline->tiles.at(i);
 		if (ImGui::BeginCombo(FixedString{"[{}]", i}.c_str(), tile_id.c_str())) {
 			for (auto const& id : m_tile_ids) {
 				if (ImGui::Selectable(id.c_str(), id == tile_id)) {
@@ -252,8 +252,8 @@ void Animator::load_new_atlas(std::string_view uri) {
 }
 
 void Animator::new_timeline() {
-	m_timeline.tiles.clear();
-	m_timeline.duration = 1s;
+	m_timeline->tiles.clear();
+	m_timeline->duration = 1s;
 	m_sprite.set_timeline(m_timeline);
 	m_sprite.set_uv(uv_rect_v);
 
@@ -269,7 +269,7 @@ auto Animator::load_timeline(std::string_view uri) -> bool {
 	auto timeline = m_loader.load_anim_timeline(uri);
 	if (!timeline) { return false; }
 
-	m_timeline = std::move(*timeline);
+	m_timeline = std::move(timeline);
 	m_sprite.set_timeline(m_timeline);
 	m_unsaved = false;
 
@@ -287,13 +287,12 @@ void Animator::load_new_timeline(std::string_view const uri) {
 
 void Animator::save_timeline() {
 	if (state->animator.last_timeline.empty()) { return; }
-	auto const& timeline = m_sprite.get_timeline();
 	auto json = dj::Json{};
 	json["asset_type"] = get_asset_type<AnimTimeline>();
-	json["duration"] = timeline.duration.count();
-	if (!timeline.tiles.empty()) {
+	json["duration"] = m_timeline->duration.count();
+	if (!m_timeline->tiles.empty()) {
 		auto& out_tile_ids = json["tiles"];
-		for (auto const& in_tile : timeline.tiles) { out_tile_ids.push_back(in_tile); }
+		for (auto const& in_tile : m_timeline->tiles) { out_tile_ids.push_back(in_tile); }
 	}
 
 	if (!save_json(json, state->animator.last_timeline)) {

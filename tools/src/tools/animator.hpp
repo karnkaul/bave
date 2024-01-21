@@ -45,7 +45,7 @@ class Animator : public Applet {
 	QuadShape m_image_quad{};
 	SpriteAnim m_sprite{};
 	std::shared_ptr<TextureAtlas> m_texture{};
-	AnimTimeline m_timeline{};
+	std::shared_ptr<AnimTimeline> m_timeline{std::make_shared<AnimTimeline>()};
 
 	Transform m_top_view{};
 	Transform m_bottom_view{};

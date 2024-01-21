@@ -6,6 +6,7 @@
 #include <thread>
 
 using bave::Action;
+using bave::AnimTimeline;
 using bave::App;
 using bave::FocusChange;
 using bave::Key;
@@ -29,8 +30,6 @@ Flappy::Flappy(App& app) : Driver(app), m_game_view(app.get_render_device().rend
 	create_entities();
 	// create and setup the HUD (mainly text here).
 	setup_hud();
-
-	m_im_texture = bave::ImTexture{m_config.cloud_texture};
 }
 
 void Flappy::tick() {
@@ -83,12 +82,6 @@ void Flappy::tick() {
 			if (ImGui::Button(pause_text)) { m_paused = !m_paused; }
 
 			ImGui::Checkbox("force lag", &m_force_lag);
-
-			if (m_im_texture->get_id() != vk::DescriptorSet{}) {
-				ImGui::Separator();
-				glm::vec2 const size = m_im_texture->get_texture()->get_size();
-				ImGui::Image(m_im_texture->get_id(), {size.x, size.y});
-			}
 		}
 		ImGui::End();
 	}
@@ -192,8 +185,7 @@ void Flappy::load_assets() {
 
 void Flappy::create_entities() {
 	// explode animation.
-	m_explode = SpriteAnim{m_config.explode_atlas};
-	if (m_config.explode_timeline) { m_explode->set_timeline(*m_config.explode_timeline); }
+	m_explode = SpriteAnim{m_config.explode_atlas, m_config.explode_timeline};
 	m_explode->repeat = false;
 
 	// player sprite.

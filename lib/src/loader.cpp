@@ -80,24 +80,6 @@ auto Loader::load_image_file(std::string_view uri) const -> std::optional<ImageF
 	return ret;
 }
 
-auto Loader::load_anim_timeline(std::string_view const uri) const -> std::optional<AnimTimeline> {
-	auto const json = load_json_asset<AnimTimeline>(uri);
-	if (!json) { return {}; }
-
-	auto ret = AnimTimeline{};
-	ret.duration = Seconds{json["duration"].as<float>()};
-	auto const& in_tiles = json["tiles"];
-	ret.tiles.reserve(in_tiles.array_view().size());
-	for (auto const& in_tile : in_tiles.array_view()) {
-		auto tile_id = in_tile.as_string();
-		if (tile_id.empty()) { continue; }
-		ret.tiles.emplace_back(tile_id);
-	}
-
-	m_log.info("loaded AnimTimeline: '{}'", uri);
-	return ret;
-}
-
 auto Loader::load_texture(std::string_view const uri, bool const mip_map) const -> std::shared_ptr<Texture> {
 	auto const bytes = load_bytes(uri);
 	if (bytes.empty()) { return {}; }
@@ -174,6 +156,24 @@ auto Loader::load_audio_clip(std::string_view const uri) const -> std::shared_pt
 	}
 
 	m_log.info("loaded AudioClip: '{}'", uri);
+	return ret;
+}
+
+auto Loader::load_anim_timeline(std::string_view const uri) const -> std::shared_ptr<AnimTimeline> {
+	auto const json = load_json_asset<AnimTimeline>(uri);
+	if (!json) { return {}; }
+
+	auto ret = std::make_shared<AnimTimeline>();
+	ret->duration = Seconds{json["duration"].as<float>()};
+	auto const& in_tiles = json["tiles"];
+	ret->tiles.reserve(in_tiles.array_view().size());
+	for (auto const& in_tile : in_tiles.array_view()) {
+		auto tile_id = in_tile.as_string();
+		if (tile_id.empty()) { continue; }
+		ret->tiles.emplace_back(tile_id);
+	}
+
+	m_log.info("loaded AnimTimeline: '{}'", uri);
 	return ret;
 }
 } // namespace bave
