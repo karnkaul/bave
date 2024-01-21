@@ -6,7 +6,6 @@
 #include <thread>
 
 using bave::Action;
-using bave::AnimTimeline;
 using bave::App;
 using bave::FocusChange;
 using bave::Key;
