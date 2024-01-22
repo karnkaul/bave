@@ -6,6 +6,7 @@
 namespace bave::tools {
 namespace fs = std::filesystem;
 
+// TODO: colliders
 Tiler::Tiler(App& app, NotNull<std::shared_ptr<State>> const& state)
 	: Applet(app, state), m_loader(&get_app().get_data_store(), &get_app().get_render_device()) {
 	m_sprite = push(std::make_unique<Sprite>());
@@ -40,13 +41,13 @@ void Tiler::render(Shader& shader) const {
 void Tiler::file_menu_items() {
 	if (ImGui::MenuItem("New")) { new_atlas(); }
 	if (ImGui::MenuItem("Open...")) {
-		if (auto uri = dialog_open_file("Open Image / TextureAtlas"); !uri.empty()) { load_new_uri(uri); }
+		if (auto uri = dialog_open_file("Open Image / TileSheet"); !uri.empty()) { load_new_uri(uri); }
 	}
 	if (ImGui::MenuItem("Save", nullptr, false, !m_json_uri.empty())) { save_atlas(); }
 	if (ImGui::MenuItem("Save As...", nullptr, false, !m_image_uri.empty())) {
 		auto json_uri = fs::path{m_json_uri};
-		if (json_uri.empty()) { json_uri = replace_extension(m_image_uri, ".atlas.json"); }
-		if (auto uri = dialog_save_file("Save TextureAtlas", json_uri.generic_string()); !uri.empty()) {
+		if (json_uri.empty()) { json_uri = replace_extension(m_image_uri, ".sheet.json"); }
+		if (auto uri = dialog_save_file("Save TileSheet", json_uri.generic_string()); !uri.empty()) {
 			m_json_uri = uri;
 			save_atlas();
 		}
@@ -82,7 +83,7 @@ void Tiler::tiles_control() {
 	for (std::size_t index = 0; index < m_blocks.size(); ++index) {
 		auto erased = false;
 		auto& block = m_blocks.at(index);
-		if (ImGui::TreeNode(FixedString{"{}###{}", block.block.id, index}.c_str())) {
+		if (ImGui::TreeNode(FixedString{"{}###{}", block.tile.id, index}.c_str())) {
 			block_control(block, index);
 
 			if (ImGui::SmallButton("Remove")) {
@@ -94,11 +95,11 @@ void Tiler::tiles_control() {
 			if (erased) { break; }
 		}
 
-		auto local_origin = 0.5f * glm::vec2{block.block.image_rect.lt + block.block.image_rect.rb};
+		auto local_origin = 0.5f * glm::vec2{block.tile.image_rect.lt + block.tile.image_rect.rb};
 		local_origin.y = -local_origin.y;
 		auto rect = LineRect{};
 		rect.origin = origin_offset + local_origin;
-		rect.size = glm::vec2{block.block.image_rect.rb - block.block.image_rect.lt};
+		rect.size = glm::vec2{block.tile.image_rect.rb - block.tile.image_rect.lt};
 		block.rect.set_geometry(Geometry::from(rect));
 	}
 
@@ -123,20 +124,20 @@ void Tiler::block_control(Block& out, std::size_t const index) const {
 	glm::ivec2 const size = m_sprite->get_size();
 
 	if (out.id("id")) {
-		out.block.id = out.id.as_view();
-		if (out.block.id.empty()) {
-			out.block.id = std::to_string(index);
-			out.id.set_text(out.block.id);
+		out.tile.id = out.id.as_view();
+		if (out.tile.id.empty()) {
+			out.tile.id = std::to_string(index);
+			out.id.set_text(out.tile.id);
 		}
 	}
 
-	ImGui::DragInt("left", &out.block.image_rect.lt.x, 1.0f, 0, out.block.image_rect.rb.x);
-	ImGui::DragInt("top", &out.block.image_rect.lt.y, 1.0f, 0, out.block.image_rect.rb.y);
-	ImGui::DragInt("right", &out.block.image_rect.rb.x, 1.0f, out.block.image_rect.lt.x, size.x);
-	ImGui::DragInt("bottom", &out.block.image_rect.rb.y, 1.0f, out.block.image_rect.lt.y, size.y);
+	ImGui::DragInt("left", &out.tile.image_rect.lt.x, 1.0f, 0, out.tile.image_rect.rb.x);
+	ImGui::DragInt("top", &out.tile.image_rect.lt.y, 1.0f, 0, out.tile.image_rect.rb.y);
+	ImGui::DragInt("right", &out.tile.image_rect.rb.x, 1.0f, out.tile.image_rect.lt.x, size.x);
+	ImGui::DragInt("bottom", &out.tile.image_rect.rb.y, 1.0f, out.tile.image_rect.lt.y, size.y);
 
-	auto const rect_size = out.block.image_rect.rb - out.block.image_rect.lt;
-	if (drag_ivec2("position", out.block.image_rect.lt, {.hi = size - rect_size})) { out.block.image_rect.rb = out.block.image_rect.lt + rect_size; }
+	auto const rect_size = out.tile.image_rect.rb - out.tile.image_rect.lt;
+	if (drag_ivec2("position", out.tile.image_rect.lt, {.hi = size - rect_size})) { out.tile.image_rect.rb = out.tile.image_rect.lt + rect_size; }
 
 	auto rgba = out.rect.tint.to_vec4();
 	if (ImGui::ColorEdit3("RGB", &rgba.x)) { out.rect.tint = Rgba::from(rgba); }
@@ -202,13 +203,11 @@ auto Tiler::load_atlas(std::string_view const uri) -> bool {
 
 	if (!load_image_at(json["image"].as_string())) { return false; }
 
+	auto sheet = TileSheet{};
+	from_json(json["tile_sheet"], sheet);
+
 	m_blocks.clear();
-	for (auto const& in_block : json["blocks"].array_view()) {
-		auto out_block = TextureAtlas::Block{};
-		out_block.id = in_block["id"].as_string();
-		from_json(in_block["image_rect"], out_block.image_rect);
-		m_blocks.push_back(make_block(std::move(out_block)));
-	}
+	for (auto& tile : sheet.tiles) { m_blocks.push_back(make_block(std::move(tile))); }
 	m_unsaved = false;
 
 	m_json_uri = uri;
@@ -224,13 +223,10 @@ void Tiler::save_atlas() {
 	auto json = dj::Json{};
 	json["asset_type"] = get_asset_type<TextureAtlas>();
 	json["image"] = m_image_uri;
-	auto& out_blocks = json["blocks"];
-	for (auto const& in_block : m_blocks) {
-		auto out_block = dj::Json{};
-		out_block["id"] = in_block.block.id;
-		to_json(out_block["rect"], in_block.block.image_rect);
-		out_blocks.push_back(std::move(out_block));
-	}
+	auto in_sheet = TileSheet{};
+	for (auto const& block : m_blocks) { in_sheet.tiles.push_back(block.tile); }
+	auto& out_sheet = json["tile_sheet"];
+	to_json(out_sheet, in_sheet);
 
 	if (!save_json(json, m_json_uri)) {
 		m_log.error("failed to save TextureAtlas to '{}'", m_json_uri);
@@ -248,7 +244,7 @@ void Tiler::save_atlas() {
 void Tiler::generate_blocks() {
 	m_tile_count.x = std::max(m_tile_count.x, 1);
 	m_tile_count.y = std::max(m_tile_count.y, 1);
-	auto const rects = TextureAtlas::make_rects(m_sprite->get_size(), m_tile_count);
+	auto const rects = TileSheet::make_rects(m_sprite->get_size(), m_tile_count);
 	m_blocks.clear();
 	auto id = int{};
 	for (auto const& rect : rects) { m_blocks.push_back(make_block(id++, rect)); }
@@ -256,16 +252,16 @@ void Tiler::generate_blocks() {
 
 auto Tiler::make_block(int id, Rect<int> const& rect) const -> Block {
 	auto ret = Block{};
-	ret.block.image_rect = rect;
-	ret.block.id = std::to_string(id);
-	ret.id.set_text(ret.block.id);
+	ret.tile.image_rect = rect;
+	ret.tile.id = std::to_string(id);
+	ret.id.set_text(ret.tile.id);
 	ret.rect.tint = m_block_rgba;
 	return ret;
 }
 
-auto Tiler::make_block(TextureAtlas::Block in) const -> Block {
-	auto ret = Block{.block = std::move(in)};
-	ret.id.set_text(ret.block.id);
+auto Tiler::make_block(TileSheet::Tile in) const -> Block {
+	auto ret = Block{.tile = std::move(in)};
+	ret.id.set_text(ret.tile.id);
 	ret.rect.tint = m_block_rgba;
 	return ret;
 }

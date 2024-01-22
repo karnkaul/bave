@@ -27,14 +27,14 @@ void Animator::tick() {
 
 	if (!m_texture) { return; }
 	auto const tex_size = m_texture->get_size();
-	if (auto const tile = m_texture->find_tile(m_sprite.get_current_tile_id())) {
+	if (auto const* tile = m_texture->get_sheet().find_tile(m_sprite.get_current_tile_id())) {
 		auto const size_ratio = m_image_quad.get_shape().size / glm::vec2{tex_size};
 
 		auto outline = LineRect{};
-		outline.size = glm::vec2{tile->size} * size_ratio;
+		outline.size = glm::vec2{tile->get_size()} * size_ratio;
 		m_rect.set_geometry(Geometry::from(outline));
 
-		auto const top_left = (glm::vec2{glm::ivec2{tile->top_left.x, -tile->top_left.y} + glm::ivec2{-tex_size.x / 2, tex_size.y / 2}}) * size_ratio;
+		auto const top_left = (glm::vec2{glm::ivec2{tile->image_rect.lt.x, -tile->image_rect.lt.y} + glm::ivec2{-tex_size.x / 2, tex_size.y / 2}}) * size_ratio;
 		auto const centre = top_left + 0.5f * glm::vec2{outline.size.x, -outline.size.y};
 		m_rect.transform.position = m_image_quad.transform.position + centre;
 	}
@@ -227,18 +227,18 @@ auto Animator::load_atlas(std::string_view uri) -> bool {
 		m_image_quad.set_shape(quad);
 
 		m_tile_ids.clear();
-		m_tile_ids.reserve(m_texture->get_blocks().size());
-		for (auto const& block : m_texture->get_blocks()) { m_tile_ids.push_back(block.id); }
+		m_tile_ids.reserve(m_texture->get_sheet().tiles.size());
+		for (auto const& block : m_texture->get_sheet().tiles) { m_tile_ids.push_back(block.id); }
 		m_sprite.set_texture_atlas(m_texture);
 		m_sprite.animate = true;
 
 		m_unsaved = false;
 
-		m_log.info("opened TiledTexture: '{}'", uri);
+		m_log.info("opened TextureAtlas: '{}'", uri);
 		return true;
 	}
 
-	m_log.error("failed to open TiledTexture: '{}'", uri);
+	m_log.error("failed to open TextureAtlas: '{}'", uri);
 	return false;
 }
 

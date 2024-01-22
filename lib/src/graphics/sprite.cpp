@@ -24,9 +24,17 @@ void Sprite::set_uv(UvRect const uv) {
 	}
 }
 
-void Sprite::set_tile(TextureAtlas::Tile const& tile) {
-	set_uv(tile.uv);
-	if (m_max_size) { set_size(ExtentScaler{.source = tile.size}.fit_space(*m_max_size)); }
+void Sprite::set_tile(TileSheet::Tile const& tile) {
+	auto const size = [&] {
+		if (auto const& texture = get_texture()) { return texture->get_size(); }
+		return glm::ivec2{};
+	}();
+	set_tile(tile, size);
+}
+
+void Sprite::set_tile(TileSheet::Tile const& tile, glm::ivec2 const total_size) {
+	set_uv(tile.get_uv(total_size));
+	if (m_max_size) { set_size(ExtentScaler{.source = tile.get_size()}.fit_space(*m_max_size)); }
 }
 
 void Sprite9Slice::set_texture_9slice(std::shared_ptr<Texture9Slice const> texture) {

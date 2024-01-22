@@ -9,9 +9,9 @@ auto make_timeline(std::shared_ptr<AnimTimeline const> timeline, std::shared_ptr
 	auto ret = std::make_shared<AnimTimeline>();
 	ret->duration = duration;
 	if (atlas) {
-		auto const blocks = atlas->get_blocks();
-		ret->tiles.reserve(blocks.size());
-		for (auto const& block : blocks) { ret->tiles.emplace_back(block.id); }
+		auto const& tiles = atlas->get_sheet().tiles;
+		ret->tiles.reserve(tiles.size());
+		for (auto const& block : tiles) { ret->tiles.emplace_back(block.id); }
 	}
 	return ret;
 }
@@ -37,18 +37,16 @@ void SpriteAnim::set_timeline(std::shared_ptr<Timeline const> timeline) {
 void SpriteAnim::tick(Seconds dt) {
 	if (textures[0] != m_atlas) { textures[0] = m_atlas; }
 
+	if (!m_atlas) { animate = false; }
+
 	if (!animate) {
 		elapsed = {};
 		return;
 	}
 
-	assert(m_atlas);
 	elapsed += dt;
 	auto const tile_id = m_timeline->get_tile_at(elapsed);
-	if (tile_id != m_current_tile_id) {
-		if (auto const tile = m_atlas->find_tile(tile_id)) { set_tile(*tile); }
-		m_current_tile_id = tile_id;
-	}
+	if (tile_id != m_current_tile_id) { set_current_tile(tile_id); }
 	if (elapsed > m_timeline->duration) {
 		elapsed = {};
 		if (!repeat) { animate = false; }
@@ -59,10 +57,23 @@ void SpriteAnim::reset_anim() {
 	elapsed = {};
 	animate = m_atlas != nullptr;
 	m_current_tile_id.clear();
+	m_current_tile = {};
 
-	m_current_tile_id = m_timeline->get_tile_at(elapsed);
-	if (m_atlas) {
-		if (auto const tile = m_atlas->find_tile(m_current_tile_id)) { set_tile(*tile); }
+	if (m_atlas) { set_current_tile(m_timeline->get_tile_at(elapsed)); }
+}
+
+auto SpriteAnim::set_current_tile(std::string_view const id) -> bool {
+	assert(m_atlas);
+	if (auto const* tile = m_atlas->get_sheet().find_tile(id)) {
+		set_current_tile(*tile);
+		return true;
 	}
+	return false;
+}
+
+void SpriteAnim::set_current_tile(Tile const& tile) {
+	set_tile(tile, m_atlas->get_size());
+	m_current_tile = &tile;
+	m_current_tile_id = tile.id;
 }
 } // namespace bave
