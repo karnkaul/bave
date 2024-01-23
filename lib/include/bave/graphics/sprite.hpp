@@ -3,6 +3,7 @@
 #include <bave/graphics/texture_9slice.hpp>
 #include <bave/graphics/texture_atlas.hpp>
 #include <bave/graphics/tile_sheet.hpp>
+#include <optional>
 
 namespace bave {
 class Sprite : public QuadShape {
