@@ -258,9 +258,10 @@ void Animator::new_timeline() {
 	m_sprite.set_uv(uv_rect_v);
 
 	m_rect.set_geometry({});
+	m_unsaved = false;
 
 	state->animator.last_timeline.clear();
-	m_unsaved = false;
+	save_state();
 
 	set_title();
 }

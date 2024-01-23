@@ -161,6 +161,9 @@ void NineSlicer::new_slice() {
 	m_json_uri.clear();
 	m_unsaved = false;
 
+	state->nine_slicer.last_loaded.clear();
+	save_state();
+
 	main_view.scale = auto_zoom(m_image_quad->get_shape().size.current);
 	set_title();
 }

@@ -186,12 +186,14 @@ auto Tiler::load_image_at(std::string_view const uri) -> bool {
 }
 
 void Tiler::new_atlas() {
-	m_sprite->set_texture({});
-	m_sprite->set_size(Quad::size_v);
+	m_blocks.clear();
 
 	m_image_uri.clear();
 	m_json_uri.clear();
 	m_unsaved = false;
+
+	state->tiler.last_loaded.clear();
+	save_state();
 
 	main_view.scale = auto_zoom(m_sprite->get_size());
 	set_title();
