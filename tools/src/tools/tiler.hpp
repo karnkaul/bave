@@ -22,7 +22,7 @@ class Tiler : public Applet {
 	auto load_new_uri(std::string_view uri) -> bool final;
 
 	void tiles_control();
-	void block_control(Block& out, std::size_t index) const;
+	auto block_control(Block& out, std::size_t index) const -> bool;
 	void metadata_control();
 
 	auto load_uri(std::string_view uri) -> bool;

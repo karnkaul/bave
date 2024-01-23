@@ -48,6 +48,8 @@ class Applet : public Polymorphic {
 	void begin_sidepanel_window(CString label, float min_width = 300.0f);
 
 	static auto drag_ivec2(CString label, glm::ivec2& out, InclusiveRange<glm::ivec2> range = {}, float width = 50.0f) -> bool;
+	static auto drag_irect(Rect<int>& out, InclusiveRange<Rect<int>> range = {}, bool positional = true) -> bool;
+
 	static void zoom_control(CString label, glm::vec2& out_scale);
 	void wireframe_control();
 	static void image_meta_control(std::string_view image_uri, glm::ivec2 size);

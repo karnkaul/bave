@@ -73,21 +73,23 @@ auto Tiler::load_new_uri(std::string_view const uri) -> bool {
 void Tiler::tiles_control() {
 	auto rgba = m_block_rgba.to_vec4();
 	if (ImGui::ColorEdit3("RGB", &rgba.x)) { m_block_rgba = Rgba::from(rgba); }
-	if (ImGui::Button("Add Block")) { m_blocks.push_back(make_block(static_cast<int>(m_blocks.size()))); }
+	if (ImGui::Button("Add Tile")) { m_blocks.push_back(make_block(static_cast<int>(m_blocks.size()))); }
 
 	ImGui::Separator();
 	glm::ivec2 const size = m_sprite->get_size();
 	auto const origin_offset = 0.5f * glm::vec2{-size.x, size.y};
-	im_text("Blocks");
+	im_text("Tiles");
 	if (m_blocks.empty()) { im_text("[none]"); }
+	auto modified = false;
 	for (std::size_t index = 0; index < m_blocks.size(); ++index) {
 		auto erased = false;
 		auto& block = m_blocks.at(index);
 		if (ImGui::TreeNode(FixedString{"{}###{}", block.tile.id, index}.c_str())) {
-			block_control(block, index);
+			modified |= block_control(block, index);
 
 			if (ImGui::SmallButton("Remove")) {
 				m_blocks.erase(m_blocks.begin() + static_cast<std::ptrdiff_t>(index));
+				modified = true;
 				erased = true;
 			}
 
@@ -104,7 +106,7 @@ void Tiler::tiles_control() {
 	}
 
 	ImGui::Separator();
-	if (ImGui::Button("Generate Blocks")) { ImGui::OpenPopup("Generate"); }
+	if (ImGui::Button("Generate Tiles")) { ImGui::OpenPopup("Generate"); }
 
 	if (ImGui::BeginPopup("Generate")) {
 		ImGui::SetNextItemWidth(30.0f);
@@ -114,16 +116,24 @@ void Tiler::tiles_control() {
 		ImGui::DragInt("cols", &m_tile_count.x, 1.0f, 1, 1000);
 		if (ImGui::Button("Generate")) {
 			generate_blocks();
+			modified = true;
 			ImGui::CloseCurrentPopup();
 		}
 		ImGui::EndPopup();
 	}
+
+	if (modified && !m_unsaved) {
+		m_unsaved = true;
+		set_title();
+	}
 }
 
-void Tiler::block_control(Block& out, std::size_t const index) const {
+auto Tiler::block_control(Block& out, std::size_t const index) const -> bool {
 	glm::ivec2 const size = m_sprite->get_size();
 
+	auto ret = false;
 	if (out.id("id")) {
+		ret = true;
 		out.tile.id = out.id.as_view();
 		if (out.tile.id.empty()) {
 			out.tile.id = std::to_string(index);
@@ -131,16 +141,19 @@ void Tiler::block_control(Block& out, std::size_t const index) const {
 		}
 	}
 
-	ImGui::DragInt("left", &out.tile.image_rect.lt.x, 1.0f, 0, out.tile.image_rect.rb.x);
-	ImGui::DragInt("top", &out.tile.image_rect.lt.y, 1.0f, 0, out.tile.image_rect.rb.y);
-	ImGui::DragInt("right", &out.tile.image_rect.rb.x, 1.0f, out.tile.image_rect.lt.x, size.x);
-	ImGui::DragInt("bottom", &out.tile.image_rect.rb.y, 1.0f, out.tile.image_rect.lt.y, size.y);
-
-	auto const rect_size = out.tile.image_rect.rb - out.tile.image_rect.lt;
-	if (drag_ivec2("position", out.tile.image_rect.lt, {.hi = size - rect_size})) { out.tile.image_rect.rb = out.tile.image_rect.lt + rect_size; }
+	if (ImGui::TreeNode("image rect")) {
+		auto const range = InclusiveRange<Rect<int>>{
+			.lo = {.lt = {0, 0}, .rb = out.tile.image_rect.lt},
+			.hi = {.lt = out.tile.image_rect.rb, .rb = size},
+		};
+		ret |= drag_irect(out.tile.image_rect, range);
+		ImGui::TreePop();
+	}
 
 	auto rgba = out.rect.tint.to_vec4();
 	if (ImGui::ColorEdit3("RGB", &rgba.x)) { out.rect.tint = Rgba::from(rgba); }
+
+	return ret;
 }
 
 void Tiler::metadata_control() {
