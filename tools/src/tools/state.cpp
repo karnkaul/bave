@@ -27,7 +27,7 @@ void State::load_members(dj::Json const& json) {
 	if (auto const& in_tl = json["tiler"]) { tiler.last_loaded = in_tl["last_loaded"].as_string(); }
 
 	if (auto const& in_an = json["animator"]) {
-		animator.last_animation = in_an["last_animation"].as_string();
+		animator.last_timeline = in_an["last_timeline"].as_string();
 		animator.last_atlas = in_an["last_atlas"].as_string();
 	}
 }
@@ -47,7 +47,7 @@ void State::save_members(dj::Json& out) const {
 
 	if (!animator.is_empty()) {
 		auto& out_an = out["animator"];
-		if (!animator.last_animation.empty()) { out_an["last_animation"] = animator.last_animation; }
+		if (!animator.last_timeline.empty()) { out_an["last_timeline"] = animator.last_timeline; }
 		if (!animator.last_atlas.empty()) { out_an["last_atlas"] = animator.last_atlas; }
 	}
 }

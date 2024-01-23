@@ -95,6 +95,22 @@ auto Applet::drag_ivec2(CString label, glm::ivec2& out, InclusiveRange<glm::ivec
 	return ret;
 }
 
+auto Applet::drag_irect(Rect<int>& out, InclusiveRange<Rect<int>> range, bool positional) -> bool {
+	auto ret = false;
+	ret |= ImGui::DragInt("left", &out.lt.x, 1.0f, range.lo.lt.x, range.hi.lt.x);
+	ret |= ImGui::DragInt("top", &out.lt.y, 1.0f, range.lo.lt.y, range.hi.lt.y);
+	ret |= ImGui::DragInt("right", &out.rb.x, 1.0f, range.lo.rb.x, range.hi.rb.x);
+	ret |= ImGui::DragInt("bottom", &out.rb.y, 1.0f, range.lo.rb.y, range.hi.rb.y);
+	if (positional) {
+		auto const rect_size = out.rb - out.lt;
+		if (drag_ivec2("position", out.lt, {.hi = range.hi.rb - rect_size})) {
+			out.rb = out.lt + rect_size;
+			ret = true;
+		}
+	}
+	return ret;
+}
+
 void Applet::zoom_control(CString label, glm::vec2& out_scale) {
 	static constexpr auto zoom_range_f = InclusiveRange<glm::vec2>{.lo = zoom_scale_range_v.lo * 100.0f, .hi = zoom_scale_range_v.hi * 100.0f};
 	static constexpr auto zoom_range_i = InclusiveRange<int>{static_cast<int>(zoom_range_f.lo.x), static_cast<int>(zoom_range_f.hi.x)};

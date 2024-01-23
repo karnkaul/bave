@@ -161,13 +161,16 @@ void NineSlicer::new_slice() {
 	m_json_uri.clear();
 	m_unsaved = false;
 
+	state->nine_slicer.last_loaded.clear();
+	save_state();
+
 	main_view.scale = auto_zoom(m_image_quad->get_shape().size.current);
 	set_title();
 }
 
 auto NineSlicer::load_slice(std::string_view const uri) -> bool {
-	auto json = m_loader.load_json(uri);
-	if (!json || !json.contains("image") || !json.contains("nine_slice")) { return false; }
+	auto json = m_loader.load_json_asset<Texture9Slice>(uri);
+	if (!json) { return false; }
 
 	if (!load_image_at(json["image"].as_string())) { return false; }
 
@@ -186,6 +189,7 @@ auto NineSlicer::load_slice(std::string_view const uri) -> bool {
 void NineSlicer::save_slice() {
 	if (m_json_uri.empty()) { return; }
 	auto json = dj::Json{};
+	json["asset_type"] = get_asset_type<Texture9Slice>();
 	json["image"] = m_image_uri;
 	to_json(json["nine_slice"], m_image_quad->get_shape().slice);
 

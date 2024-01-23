@@ -43,12 +43,35 @@ auto Loader::load_json(std::string_view const uri) const -> dj::Json {
 	return ret;
 }
 
-auto Loader::load_image_file(std::string_view uri) const -> std::shared_ptr<ImageFile> {
+auto Loader::load_json_asset(std::string_view const uri, std::string_view const asset_type) const -> dj::Json {
+	if (asset_type.empty()) {
+		m_log.warn("cannot load unknown asset type");
+		return {};
+	}
+
+	auto ret = load_json(uri);
+	if (!ret) { return {}; }
+
+	if (!ret.contains("asset_type")) {
+		m_log.warn("JSON missing 'asset_type' field: '{}'", uri);
+		return {};
+	}
+
+	auto const in_asset_type = ret["asset_type"].as_string();
+	if (in_asset_type != asset_type) {
+		m_log.warn("JSON asset_type mismatch, expected: '{}', obtained: '{}'", asset_type, in_asset_type);
+		return {};
+	}
+
+	return ret;
+}
+
+auto Loader::load_image_file(std::string_view uri) const -> std::optional<ImageFile> {
 	auto const bytes = load_bytes(uri);
 	if (bytes.empty()) { return {}; }
 
-	auto ret = std::make_shared<ImageFile>();
-	if (!ret->load_from_bytes(bytes)) {
+	auto ret = ImageFile{};
+	if (!ret.load_from_bytes(bytes)) {
 		m_log.warn("failed to load ImageFile: '{}'", uri);
 		return {};
 	}
@@ -73,8 +96,8 @@ auto Loader::load_texture(std::string_view const uri, bool const mip_map) const 
 }
 
 auto Loader::load_texture_9slice(std::string_view const uri) const -> std::shared_ptr<Texture9Slice> {
-	auto json = load_json(uri);
-	if (!json || !json.contains("image")) { return {}; }
+	auto json = load_json_asset<Texture9Slice>(uri);
+	if (!json) { return {}; }
 
 	auto image = load_image_file(json["image"].as_string());
 	if (!image) { return {}; }
@@ -83,26 +106,21 @@ auto Loader::load_texture_9slice(std::string_view const uri) const -> std::share
 	from_json(json["nine_slice"], slice);
 
 	auto ret = std::make_shared<Texture9Slice>(m_render_device, image->get_bitmap_view(), slice);
-	m_log.info("loaded SlicedTexture: '{}'", uri);
+	m_log.info("loaded Texture9Slice: '{}'", uri);
 	return ret;
 }
 
 auto Loader::load_texture_atlas(std::string_view uri, bool mip_map) const -> std::shared_ptr<TextureAtlas> {
-	auto json = load_json(uri);
-	if (!json || !json.contains("image")) { return {}; }
+	auto json = load_json_asset<TextureAtlas>(uri);
+	if (!json) { return {}; }
 
 	auto image = load_image_file(json["image"].as_string());
 	if (!image) { return {}; }
 
-	auto blocks = std::vector<TextureAtlas::Block>{};
-	for (auto const& in_block : json["blocks"].array_view()) {
-		auto block = TextureAtlas::Block{.id = std::string{in_block["id"].as_string()}};
-		if (block.id.empty()) { continue; }
-		from_json(in_block["rect"], block.rect);
-		blocks.push_back(std::move(block));
-	}
+	auto sheet = TileSheet{};
+	from_json(json["tile_sheet"], sheet);
 
-	auto ret = std::make_shared<TextureAtlas>(TextureAtlas(m_render_device, image->get_bitmap_view(), std::move(blocks), mip_map));
+	auto ret = std::make_shared<TextureAtlas>(m_render_device, image->get_bitmap_view(), sheet, mip_map);
 	m_log.info("loaded TextureAtlas: '{}'", uri);
 	return ret;
 }
@@ -136,17 +154,21 @@ auto Loader::load_audio_clip(std::string_view const uri) const -> std::shared_pt
 	return ret;
 }
 
-auto Loader::load_sprite_animation(std::string_view const uri) const -> std::optional<SpriteAnim::Animation> {
-	auto const json = load_json(uri);
+auto Loader::load_anim_timeline(std::string_view const uri) const -> std::shared_ptr<AnimTimeline> {
+	auto const json = load_json_asset<AnimTimeline>(uri);
 	if (!json) { return {}; }
 
-	auto ret = SpriteAnim::Animation{};
-	ret.duration = Seconds{json["duration"].as<float>()};
+	auto ret = std::make_shared<AnimTimeline>();
+	ret->duration = Seconds{json["duration"].as<float>()};
 	auto const& in_tiles = json["tiles"];
-	ret.tiles.reserve(in_tiles.array_view().size());
-	for (auto const& tile_id : in_tiles.array_view()) { ret.tiles.emplace_back(tile_id.as_string()); }
+	ret->tiles.reserve(in_tiles.array_view().size());
+	for (auto const& in_tile : in_tiles.array_view()) {
+		auto tile_id = in_tile.as_string();
+		if (tile_id.empty()) { continue; }
+		ret->tiles.emplace_back(tile_id);
+	}
 
-	m_log.info("loaded SpriteAnimation: '{}'", uri);
+	m_log.info("loaded AnimTimeline: '{}'", uri);
 	return ret;
 }
 } // namespace bave

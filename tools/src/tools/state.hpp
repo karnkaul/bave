@@ -27,9 +27,9 @@ struct State {
 
 	struct {
 		std::string last_atlas{};
-		std::string last_animation{};
+		std::string last_timeline{};
 
-		[[nodiscard]] auto is_empty() const -> bool { return last_atlas.empty() && last_animation.empty(); }
+		[[nodiscard]] auto is_empty() const -> bool { return last_atlas.empty() && last_timeline.empty(); }
 
 	} animator{};
 

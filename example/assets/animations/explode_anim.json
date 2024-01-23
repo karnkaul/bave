@@ -1,5 +1,6 @@
 {
-  "duration": 0.25,
+  "asset_type": "AnimTimeline",
+  "duration": 0.250000,
   "tiles": [
     "0",
     "1",

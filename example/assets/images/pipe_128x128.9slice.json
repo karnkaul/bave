@@ -1,4 +1,5 @@
 {
+  "asset_type": "Texture9Slice",
   "image": "images/pipe_128x128.png",
   "nine_slice": {
     "n_left_top": [

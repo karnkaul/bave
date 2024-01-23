@@ -1,5 +1,6 @@
 #pragma once
 #include <bave/graphics/sprite.hpp>
+#include <bave/graphics/tile_sheet.hpp>
 #include <bave/imgui/im_input_text.hpp>
 #include <bave/loader.hpp>
 #include <tools/applet.hpp>
@@ -8,7 +9,7 @@ namespace bave::tools {
 class Tiler : public Applet {
 	struct Block {
 		CustomShape rect{};
-		TextureAtlas::Block block{};
+		TileSheet::Tile tile{};
 		ImInputText id{};
 	};
 
@@ -21,7 +22,7 @@ class Tiler : public Applet {
 	auto load_new_uri(std::string_view uri) -> bool final;
 
 	void tiles_control();
-	void block_control(Block& out, std::size_t index) const;
+	auto block_control(Block& out, std::size_t index) const -> bool;
 	void metadata_control();
 
 	auto load_uri(std::string_view uri) -> bool;
@@ -35,7 +36,7 @@ class Tiler : public Applet {
 	void generate_blocks();
 
 	[[nodiscard]] auto make_block(int id, Rect<int> const& rect = rect_v) const -> Block;
-	[[nodiscard]] auto make_block(TextureAtlas::Block in) const -> Block;
+	[[nodiscard]] auto make_block(TileSheet::Tile in) const -> Block;
 
 	void set_title();
 
