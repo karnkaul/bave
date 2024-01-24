@@ -33,6 +33,8 @@ class Applet : public Polymorphic {
 
 	void save_state();
 
+	Rgba clear_colour{black_v};
+
   protected:
 	static constexpr float y_top_v{20.0f};
 	static constexpr auto zoom_scale_range_v = InclusiveRange<glm::vec2>{.lo = glm::vec2{0.01f}, .hi = glm::vec2{5.0f}};
@@ -50,8 +52,9 @@ class Applet : public Polymorphic {
 	static auto drag_ivec2(CString label, glm::ivec2& out, InclusiveRange<glm::ivec2> range = {}, float width = 50.0f) -> bool;
 	static auto drag_irect(Rect<int>& out, InclusiveRange<Rect<int>> range = {}, bool positional = true) -> bool;
 
-	static void zoom_control(CString label, glm::vec2& out_scale);
 	void wireframe_control();
+	void clear_colour_control();
+	static void zoom_control(CString label, glm::vec2& out_scale);
 	static void image_meta_control(std::string_view image_uri, glm::ivec2 size);
 
 	[[nodiscard]] auto get_sidepanel_width() const -> float { return m_sidepanel_width; }

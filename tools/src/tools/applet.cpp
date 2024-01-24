@@ -125,6 +125,11 @@ void Applet::zoom_control(CString label, glm::vec2& out_scale) {
 
 void Applet::wireframe_control() { ImGui::Checkbox("Wireframe", &wireframe); }
 
+void Applet::clear_colour_control() {
+	auto rgba = clear_colour.to_vec4();
+	if (ImGui::ColorEdit3("clear colour", &rgba.x)) { clear_colour = Rgba::from(rgba); }
+}
+
 void Applet::image_meta_control(std::string_view const image_uri, glm::ivec2 const size) {
 	im_text("Image: {}", or_none(image_uri).data());
 	im_text("Size: {} x {}", size.x, size.y);

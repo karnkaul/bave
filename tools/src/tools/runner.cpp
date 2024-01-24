@@ -37,6 +37,7 @@ Runner::Runner(App& app) : Driver(app), m_state(load_or_create_state()) {
 void Runner::tick() {
 	main_menu_bar();
 	m_active->tick();
+	clear_colour = m_active->clear_colour;
 }
 
 void Runner::render() const { m_active->render(); }

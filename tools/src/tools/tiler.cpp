@@ -21,7 +21,10 @@ void Tiler::tick() {
 
 	if (ImGui::CollapsingHeader("Metadata", ImGuiTreeNodeFlags_DefaultOpen)) { metadata_control(); }
 
-	if (ImGui::CollapsingHeader("Misc")) { zoom_control("Zoom", main_view.scale); }
+	if (ImGui::CollapsingHeader("Misc")) {
+		clear_colour_control();
+		zoom_control("Zoom", main_view.scale);
+	}
 
 	ImGui::End();
 }
