@@ -127,6 +127,13 @@ Shader::Shader(NotNull<Renderer const*> renderer, vk::ShaderModule vertex, vk::S
 	set_viewport();
 }
 
+void Shader::set_line_strip(float const line_width) {
+	this->line_width = line_width;
+	topology = vk::PrimitiveTopology::eLineStrip;
+}
+
+void Shader::set_tri_strip() { topology = vk::PrimitiveTopology::eTriangleStrip; }
+
 auto Shader::update_texture(CombinedImageSampler const cis, std::uint32_t binding) -> bool {
 	if (binding >= m_sets.cis.size()) { return false; }
 

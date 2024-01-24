@@ -60,9 +60,7 @@ void Animator::render(Shader& shader) const {
 
 	render_view.transform = m_top_view;
 	render_view.n_scissor = top_scissor;
-	shader.polygon_mode = vk::PolygonMode::eLine;
-	shader.topology = vk::PrimitiveTopology::eLineStrip;
-	shader.line_width = 2.0f;
+	shader.set_line_strip(2.0f);
 	m_rect.draw(shader);
 }
 

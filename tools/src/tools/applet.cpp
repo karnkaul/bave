@@ -19,10 +19,13 @@ void Applet::render() const {
 }
 
 void Applet::on_key(KeyInput const& key_input) {
-	if (key_input.action == Action::ePress && key_input.key == Key::eW && key_input.mods == make_key_mods(mod::ctrl)) { get_app().shutdown(); }
+	if (key_input.key == Key::eLeftControl || key_input.key == Key::eRightControl) { m_ctrl_pressed = key_input.action != Action::eRelease; }
 }
 
-void Applet::on_scroll(MouseScroll const& scroll) { change_zoom(scroll.delta.y * zoom_scroll_rate, get_app().get_active_pointers().front().position); }
+void Applet::on_scroll(MouseScroll const& scroll) {
+	if (!m_ctrl_pressed) { return; }
+	change_zoom(scroll.delta.y * zoom_scroll_rate, get_app().get_active_pointers().front().position);
+}
 
 void Applet::on_drop(std::span<std::string const> paths) {
 	for (auto const& path : paths) {

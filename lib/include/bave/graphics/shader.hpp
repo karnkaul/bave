@@ -11,6 +11,9 @@ class Shader {
   public:
 	explicit Shader(NotNull<class Renderer const*> renderer, vk::ShaderModule vertex, vk::ShaderModule fragment);
 
+	void set_line_strip(float line_width);
+	void set_tri_strip();
+
 	auto update_texture(CombinedImageSampler cis, std::uint32_t binding = 0) -> bool;
 	void update_textures(std::span<CombinedImageSampler const, SetLayout::max_textures_v> cis);
 

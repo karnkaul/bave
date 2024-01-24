@@ -43,6 +43,7 @@ void Runner::render() const { m_active->render(); }
 
 void Runner::on_key(KeyInput const& key_input) {
 	if (key_input.action == Action::ePress && key_input.key == Key::eW && key_input.mods == make_key_mods(mod::ctrl)) { get_app().shutdown(); }
+	m_active->on_key(key_input);
 }
 
 void Runner::on_scroll(MouseScroll const& scroll) { m_active->on_scroll(scroll); }

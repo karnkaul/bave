@@ -80,7 +80,8 @@ class Applet : public Polymorphic {
 	bool wireframe{};
 
   private:
-	float m_sidepanel_width{};
 	Logger m_log{"Applet"};
+	float m_sidepanel_width{};
+	bool m_ctrl_pressed{};
 };
 } // namespace bave::tools
