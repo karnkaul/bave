@@ -8,7 +8,7 @@ auto main(int argc, char** argv) -> int {
 	auto const create_info = bave::DesktopApp::CreateInfo{
 		.args = bave::make_args(argc, argv),
 		.title = "BaveExample",
-		.extent = {720, 1280},
+		.mode = bave::Windowed{.extent = {720, 1280}},
 		.assets_patterns = "assets,example/assets",
 	};
 

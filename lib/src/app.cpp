@@ -64,6 +64,12 @@ auto App::set_framebuffer_size(glm::ivec2 const size) -> bool {
 	return do_set_window_size(w_size);
 }
 
+auto App::get_features() const -> FeatureFlags {
+	auto ret = do_get_native_features();
+	if (get_render_device().validation_layers_enabled()) { ret.set(Feature::validation_layers); }
+	return ret;
+}
+
 auto App::get_display_ratio() const -> glm::vec2 {
 	auto const w_size = get_window_size();
 	auto const f_size = get_framebuffer_size();

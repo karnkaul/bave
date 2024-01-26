@@ -24,6 +24,16 @@ enum struct ErrCode : int { eSuccess = 0, eFailure = 1 };
 
 class App : public PolyPinned {
   public:
+	struct Feature {
+		static constexpr std::size_t resizeable{0};
+		static constexpr std::size_t has_title{1};
+		static constexpr std::size_t has_icon{2};
+		static constexpr std::size_t validation_layers{3};
+
+		static constexpr std::size_t count_v{8};
+	};
+	using FeatureFlags = std::bitset<Feature::count_v>;
+
 	using Bootloader = std::function<std::unique_ptr<class Driver>(App&)>;
 
 	explicit App(std::string tag = "App");
@@ -38,6 +48,9 @@ class App : public PolyPinned {
 
 	auto set_window_size(glm::ivec2 size) -> bool { return do_set_window_size(size); }
 	auto set_framebuffer_size(glm::ivec2 size) -> bool;
+	auto set_window_icon(std::span<BitmapView const> bitmaps) -> bool { return do_set_window_icon(bitmaps); }
+
+	[[nodiscard]] auto get_features() const -> FeatureFlags;
 
 	[[nodiscard]] auto get_data_store() const -> DataStore& { return *m_data_store; }
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return do_get_render_device(); }
@@ -83,6 +96,7 @@ class App : public PolyPinned {
 
 	virtual void do_shutdown() = 0;
 
+	[[nodiscard]] virtual auto do_get_native_features() const -> FeatureFlags { return {}; }
 	[[nodiscard]] virtual auto do_get_window_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
 	[[nodiscard]] virtual auto do_get_framebuffer_size() const -> glm::ivec2 = 0;
 
@@ -92,6 +106,7 @@ class App : public PolyPinned {
 
 	virtual auto do_set_window_size(glm::ivec2 size) -> bool = 0;
 	virtual auto do_set_title(CString /*title*/) -> bool { return false; }
+	virtual auto do_set_window_icon(std::span<BitmapView const> /*bitmaps*/) -> bool { return false; }
 
 	void pre_tick();
 

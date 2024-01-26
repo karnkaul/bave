@@ -37,6 +37,8 @@ class RenderDevice {
 
 	explicit RenderDevice(NotNull<detail::IWsi*> wsi, CreateInfo create_info = {});
 
+	[[nodiscard]] auto validation_layers_enabled() const -> bool { return !!m_debug_messenger; }
+
 	[[nodiscard]] auto get_instance() const -> vk::Instance { return *m_instance; }
 	[[nodiscard]] auto get_surface() const -> vk::SurfaceKHR { return *m_surface; }
 	[[nodiscard]] auto get_gpu() const -> Gpu const& { return m_gpu; }

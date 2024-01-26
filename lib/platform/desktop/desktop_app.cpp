@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 
 #include <bave/core/error.hpp>
+#include <bave/core/visitor.hpp>
 #include <bave/desktop_app.hpp>
 #include <bave/file_io.hpp>
 #include <platform/desktop/clap/clap.hpp>
@@ -189,6 +190,10 @@ void DesktopApp::render() {
 
 void DesktopApp::do_shutdown() { glfwSetWindowShouldClose(m_window.get(), GLFW_TRUE); }
 
+auto DesktopApp::do_get_native_features() const -> FeatureFlags {
+	return make_bitset<FeatureFlags>(Feature::resizeable, Feature::has_title, Feature::has_icon);
+}
+
 auto DesktopApp::do_get_window_size() const -> glm::ivec2 {
 	auto ret = glm::ivec2{};
 	glfwGetWindowSize(m_window.get(), &ret.x, &ret.y);
@@ -244,6 +249,22 @@ auto DesktopApp::do_set_title(CString title) -> bool {
 	return true;
 }
 
+auto DesktopApp::do_set_window_icon(std::span<BitmapView const> bitmaps) -> bool {
+	auto images = std::vector<GLFWimage>{};
+	images.reserve(bitmaps.size());
+	for (auto const& bitmap : bitmaps) {
+		if (bitmap.bytes.empty()) { continue; }
+		auto image = GLFWimage{
+			.width = bitmap.extent.x,
+			.height = bitmap.extent.y,
+			.pixels = reinterpret_cast<unsigned char*>(const_cast<std::byte*>(bitmap.bytes.data())), // NOLINT
+		};
+		images.push_back(image);
+	}
+	glfwSetWindowIcon(m_window.get(), static_cast<int>(images.size()), images.data());
+	return true;
+}
+
 auto DesktopApp::self(Ptr<GLFWwindow> window) -> DesktopApp& {
 	auto* ret = static_cast<DesktopApp*>(glfwGetWindowUserPointer(window));
 	if (ret == nullptr) { throw Error{"Dereferencing null GLFW Window User Pointer"}; }
@@ -265,13 +286,32 @@ void DesktopApp::init_data_store() {
 void DesktopApp::make_window() {
 	if (glfwVulkanSupported() == GLFW_FALSE) { throw Error{"Vulkan not supported"}; }
 
+	auto display_mode = m_create_info.mode;
+	Ptr<GLFWmonitor> primary_monitor = glfwGetPrimaryMonitor();
+	Ptr<GLFWvidmode const> video_mode = glfwGetVideoMode(primary_monitor);
+	if (video_mode == nullptr && std::holds_alternative<BorderlessFullscreen>(display_mode)) { display_mode = Windowed{.extent = {1280, 720}}; }
+
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	auto* window = glfwCreateWindow(m_create_info.extent.x, m_create_info.extent.y, m_create_info.title.c_str(), nullptr, nullptr);
+	auto create_window = Visitor{
+		[&](BorderlessFullscreen const&) {
+			glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
+			glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
+			glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
+			glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
+			return glfwCreateWindow(video_mode->width, video_mode->height, m_create_info.title.c_str(), primary_monitor, nullptr);
+		},
+		[&](Windowed const& w) {
+			if (!w.decoration) { glfwWindowHint(GLFW_DECORATED, GLFW_FALSE); }
+			auto* ret = glfwCreateWindow(w.extent.x, w.extent.y, m_create_info.title.c_str(), nullptr, nullptr);
+			if (w.lock_aspect_ratio) { glfwSetWindowAspectRatio(ret, w.extent.x, w.extent.y); }
+			return ret;
+		},
+	};
+
+	auto* window = std::visit(create_window, m_create_info.mode);
 	m_window = std::unique_ptr<GLFWwindow, Glfw::Deleter>{window};
 	if (m_window == nullptr) { throw Error{"Failed to create Window"}; }
 	glfwSetWindowUserPointer(m_window.get(), this);
-
-	if (m_create_info.lock_aspect_ratio) { glfwSetWindowAspectRatio(m_window.get(), m_create_info.extent.x, m_create_info.extent.y); }
 
 	glfwSetWindowCloseCallback(m_window.get(), [](Ptr<GLFWwindow> window) { self(window).shutdown(); });
 	glfwSetWindowFocusCallback(m_window.get(), [](Ptr<GLFWwindow> window, int v) { push(window, FocusChange{.in_focus = v == GLFW_TRUE}); });

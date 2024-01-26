@@ -14,14 +14,23 @@ struct GLFWwindow;
 namespace bave {
 [[nodiscard]] constexpr auto make_args(int argc, char const* const* argv) -> std::span<char const* const> { return {argv, static_cast<size_t>(argc)}; }
 
+struct Windowed {
+	glm::ivec2 extent{1280, 720};
+	bool lock_aspect_ratio{true};
+	bool decoration{true};
+};
+
+struct BorderlessFullscreen {};
+
+using DisplayMode = std::variant<Windowed, BorderlessFullscreen>;
+
 class DesktopApp : public App, public detail::IWsi {
   public:
 	struct CreateInfo {
 		std::span<char const* const> args{};
 		CString title{"BaveApp"};
-		glm::ivec2 extent{1280, 720};
+		DisplayMode mode{Windowed{}};
 		std::function<Gpu(std::span<Gpu const>)> select_gpu{};
-		bool lock_aspect_ratio{true};
 		std::string_view assets_patterns{"assets"};
 		bool validation_layers{debug_v};
 	};
@@ -58,6 +67,7 @@ class DesktopApp : public App, public detail::IWsi {
 
 	void do_shutdown() final;
 
+	[[nodiscard]] auto do_get_native_features() const -> FeatureFlags final;
 	[[nodiscard]] auto do_get_window_size() const -> glm::ivec2 final;
 	[[nodiscard]] auto do_get_framebuffer_size() const -> glm::ivec2 final;
 
@@ -72,6 +82,7 @@ class DesktopApp : public App, public detail::IWsi {
 
 	auto do_set_window_size(glm::ivec2 size) -> bool final;
 	auto do_set_title(CString title) -> bool final;
+	auto do_set_window_icon(std::span<BitmapView const> bitmaps) -> bool final;
 
 	void init_data_store();
 	void make_window();
