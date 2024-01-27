@@ -1,6 +1,6 @@
 #pragma once
 #include <bave/core/random.hpp>
-#include <bave/graphics/sprite.hpp>
+#include <bave/graphics/sprite_9slice.hpp>
 #include <src/config.hpp>
 
 class Pipes {

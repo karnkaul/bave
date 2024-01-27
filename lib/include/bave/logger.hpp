@@ -33,6 +33,7 @@ auto get_thread_id() -> int;
 void set_max_level(Level level);
 /// \brief Set the max logging level for a particular tag.
 /// \param level Max level: logs with this tag and levels below this will be ignored.
+/// \param tag Tag to associate this rule with.
 void set_max_level(std::string_view tag, Level level);
 
 namespace internal {

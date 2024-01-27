@@ -9,6 +9,7 @@
 #include <vector>
 
 namespace bave {
+/// \brief A single 2D vertex.
 struct Vertex {
 	glm::vec2 position{};
 	glm::vec2 uv{};
@@ -21,6 +22,7 @@ struct RoundedQuad;
 struct NineQuad;
 struct LineRect;
 
+/// \brief Collection of vertices and indices representing a graphics draw primitive.
 struct Geometry {
 	std::vector<Vertex> vertices{};
 	std::vector<std::uint32_t> indices{};
@@ -41,6 +43,7 @@ struct Geometry {
 	}
 };
 
+/// \brief Spec for an axis-aligned quad.
 struct Quad {
 	static constexpr auto size_v = glm::vec2{200.0f};
 
@@ -54,6 +57,7 @@ struct Quad {
 	auto operator==(Quad const&) const -> bool = default;
 };
 
+/// \brief Spec for a circle.
 struct Circle {
 	static constexpr int resolution_v{128};
 	static constexpr auto diameter_v{200.0f};
@@ -68,6 +72,7 @@ struct Circle {
 	auto operator==(Circle const&) const -> bool = default;
 };
 
+/// \brief Spec for a quad with rounded corners.
 struct RoundedQuad : Quad {
 	float corner_radius{0.25f * size_v.x};
 	int corner_resolution{8};
@@ -77,6 +82,7 @@ struct RoundedQuad : Quad {
 	auto operator==(RoundedQuad const&) const -> bool = default;
 };
 
+/// \brief Spec for a 9-slice.
 struct NineSlice {
 	glm::vec2 n_left_top{0.25f};
 	glm::vec2 n_right_bottom{0.75f};
@@ -84,6 +90,7 @@ struct NineSlice {
 	auto operator==(NineSlice const&) const -> bool = default;
 };
 
+/// \brief Spec for a 9-sliced axis-aligned quad.
 struct NineQuad {
 	struct Size {
 		glm::vec2 reference{Quad::size_v};

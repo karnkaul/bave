@@ -23,10 +23,11 @@ struct GLFWwindow;
 
 namespace bave {
 struct RenderDeviceCreateInfo {
-	ColourSpace swapchain_colour_space{ColourSpace::eSrgb};
+	detail::ColourSpace swapchain_colour_space{detail::ColourSpace::eSrgb};
 	bool validation_layers{debug_v};
 };
 
+/// \brief Vulkan rendering device.
 class RenderDevice {
   public:
 	static constexpr auto max_timeout_v{std::numeric_limits<std::uint64_t>::max()};
@@ -60,7 +61,7 @@ class RenderDevice {
 
 	auto request_present_mode(vk::PresentModeKHR present_mode) -> bool;
 
-	[[nodiscard]] auto acquire_next_image(vk::Fence wait, vk::Semaphore signal) -> std::optional<RenderTarget>;
+	[[nodiscard]] auto acquire_next_image(vk::Fence wait, vk::Semaphore signal) -> std::optional<detail::RenderTarget>;
 	auto queue_submit(vk::SubmitInfo const& submit_info, vk::Fence signal) -> bool;
 	auto submit_and_present(vk::SubmitInfo const& submit_info, vk::Fence draw_signal, vk::Semaphore present_wait) -> bool;
 

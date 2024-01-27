@@ -5,6 +5,7 @@
 #include <bave/graphics/shape.hpp>
 
 namespace bave {
+/// \brief Configuration for a particle emitter.
 struct ParticleConfig {
 	struct {
 		InclusiveRange<glm::vec2> position{};
@@ -30,6 +31,7 @@ struct ParticleConfig {
 	bool respawn{true};
 };
 
+/// \brief Particle Emitter.
 class ParticleEmitter : public QuadShape {
   public:
 	struct Modifier {

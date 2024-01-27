@@ -44,32 +44,34 @@ class Loader {
 	}
 
 	/// \brief Try to load an ImageFile.
-	/// \param URI to load from.
+	/// \param uri URI to load from.
 	/// \returns ImageFile on success, std::nullopt on failure.
 	[[nodiscard]] auto load_image_file(std::string_view uri) const -> std::optional<ImageFile>;
 
 	/// \brief Try to load a Texture.
-	/// \param URI to load from.
+	/// \param uri URI to load from.
+	/// \param mip_map Whether to enable mip-mapping.
 	/// \returns Texture on success, nullptr on failure.
 	[[nodiscard]] auto load_texture(std::string_view uri, bool mip_map = false) const -> std::shared_ptr<Texture>;
 	/// \brief Try to load a Texture9Slice.
-	/// \param URI to load from.
+	/// \param uri URI to load from.
 	/// \returns Texture9Slice on success, nullptr on failure.
 	[[nodiscard]] auto load_texture_9slice(std::string_view uri) const -> std::shared_ptr<Texture9Slice>;
 	/// \brief Try to load a TextureAtlas.
-	/// \param URI to load from.
+	/// \param uri URI to load from.
+	/// \param mip_map Whether to enable mip-mapping.
 	/// \returns TextureAtlas on success, nullptr on failure.
 	[[nodiscard]] auto load_texture_atlas(std::string_view uri, bool mip_map = false) const -> std::shared_ptr<TextureAtlas>;
 	/// \brief Try to load a Font.
-	/// \param URI to load from.
+	/// \param uri URI to load from.
 	/// \returns Font on success, nullptr on failure.
 	[[nodiscard]] auto load_font(std::string_view uri) const -> std::shared_ptr<Font>;
 	/// \brief Try to load an AudioClip.
-	/// \param URI to load from.
+	/// \param uri URI to load from.
 	/// \returns AudioClip on success, nullptr on failure.
 	[[nodiscard]] auto load_audio_clip(std::string_view uri) const -> std::shared_ptr<AudioClip>;
 	/// \brief Try to load an AnimTimeline.
-	/// \param URI to load from.
+	/// \param uri URI to load from.
 	/// \returns AnimTimeline on success, nullptr on failure.
 	[[nodiscard]] auto load_anim_timeline(std::string_view uri) const -> std::shared_ptr<AnimTimeline>;
 

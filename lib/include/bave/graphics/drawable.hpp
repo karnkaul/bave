@@ -7,17 +7,28 @@
 #include <vector>
 
 namespace bave {
+/// \brief Base class for drawable objects.
 class Drawable : public Polymorphic {
   public:
+	/// \brief Draw this object using a given shader.
+	/// \param shader Shader instance to use.
 	void draw(Shader& shader) const;
 
+	/// \brief Get the bounding rectangle of this instance.
 	[[nodiscard]] auto get_bounds() const -> Rect<>;
+	/// \brief Get the Geometry of this instance.
 	[[nodiscard]] auto get_geometry() const -> Geometry const& { return m_geometry; }
 
+	/// \brief World transform of this instance.
 	Transform transform{};
-	Rgba tint{};
-	std::array<std::shared_ptr<Texture const>, SetLayout::max_textures_v> textures{};
+	/// \brief Tint to apply during draw.
+	Rgba tint{white_v};
+	/// \brief Textures to bind during draw.
+	std::array<std::shared_ptr<Texture const>, Shader::max_textures_v> textures{};
 
+	/// \brief Instanced rendering.
+	///
+	/// transform and tint are ignored if instances is not empty.
 	std::vector<RenderInstance> instances{};
 
   protected:

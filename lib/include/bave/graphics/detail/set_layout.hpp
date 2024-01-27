@@ -2,7 +2,7 @@
 #include <vulkan/vulkan.hpp>
 #include <cstdint>
 
-namespace bave {
+namespace bave::detail {
 template <std::size_t Count>
 constexpr auto make_bindings(vk::DescriptorType const type) -> std::array<vk::DescriptorType, Count> {
 	auto ret = std::array<vk::DescriptorType, Count>{};
@@ -36,4 +36,4 @@ struct SetLayout {
 };
 
 constexpr auto set_layout_v = SetLayout{};
-} // namespace bave
+} // namespace bave::detail

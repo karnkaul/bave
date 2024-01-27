@@ -8,12 +8,14 @@ struct CombinedImageSampler {
 	vk::Sampler sampler{};
 };
 
+/// \brief Texture: image on the GPU.
 class Texture {
   public:
 	enum class Wrap : int { eRepeat, eClampEdge, eClampBorder };
 	enum class Filter : int { eLinear, eNearest };
 	enum class Border : int { eOpaqueBlack, eOpaqueWhite, eTransparentBlack };
 
+	/// \brief Texture sampler.
 	struct Sampler {
 		Wrap wrap_s{Wrap::eRepeat};
 		Wrap wrap_t{Wrap::eRepeat};
@@ -30,13 +32,17 @@ class Texture {
 	Texture(Texture&&) = default;
 	auto operator=(Texture&&) -> Texture& = default;
 
+	/// \brief Constructor.
+	/// \param render_device Non-null pointer to RenderDevice.
+	/// \param bitmap View of bitmap.
+	/// \param mip_map Whether to enable mip-mapping.
 	explicit Texture(NotNull<RenderDevice*> render_device, BitmapView bitmap, bool mip_map = false);
 
 	~Texture();
 
 	[[nodiscard]] auto get_size() const -> glm::ivec2;
-	[[nodiscard]] auto combined_image_sampler() const -> CombinedImageSampler;
 
+	[[nodiscard]] auto combined_image_sampler() const -> CombinedImageSampler;
 	[[nodiscard]] auto get_image() const -> std::shared_ptr<detail::RenderImage> const& { return m_image; }
 
 	Sampler sampler{};

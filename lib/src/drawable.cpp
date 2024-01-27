@@ -71,7 +71,7 @@ void Drawable::bake_instances() const {
 }
 
 void Drawable::update_textures(Shader& out_shader) const {
-	auto image_samplers = std::array<CombinedImageSampler, SetLayout::max_textures_v>{};
+	auto image_samplers = std::array<CombinedImageSampler, Shader::max_textures_v>{};
 	for (std::uint32_t binding = 0; binding < textures.size(); ++binding) {
 		auto const& texture = textures.at(binding);
 		if (texture == nullptr) { continue; }
