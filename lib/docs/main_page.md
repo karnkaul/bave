@@ -1,4 +1,4 @@
-\mainpage bave Reference
+\mainpage bave API Reference
 
 `bave` stands for "BAsic Vulkan Engine" and is a 2D game engine library that can target desktop and/or Android.
 
