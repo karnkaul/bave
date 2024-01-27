@@ -47,5 +47,6 @@ struct MouseScroll {
 	glm::vec2 delta{};
 };
 
+/// \brief Variant of all event types.
 using Event = std::variant<FocusChange, WindowResize, FramebufferResize, KeyInput, CharInput, PointerTap, PointerMove, MouseScroll>;
 } // namespace bave

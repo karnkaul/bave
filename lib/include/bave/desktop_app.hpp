@@ -22,10 +22,13 @@ struct Windowed {
 
 struct BorderlessFullscreen {};
 
+/// \brief Variant of possible display modes.
 using DisplayMode = std::variant<Windowed, BorderlessFullscreen>;
 
+/// \brief Concrete App for desktop.
 class DesktopApp : public App, public detail::IWsi {
   public:
+	/// \brief Data needed during construction.
 	struct CreateInfo {
 		std::span<char const* const> args{};
 		CString title{"BaveApp"};
@@ -35,6 +38,8 @@ class DesktopApp : public App, public detail::IWsi {
 		bool validation_layers{debug_v};
 	};
 
+	/// \brief Constructor.
+	/// \param create_info CreateInfo for this instance.
 	explicit DesktopApp(CreateInfo create_info);
 
   private:

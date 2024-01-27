@@ -19,7 +19,7 @@ constexpr auto to_char(log::Level const level) {
 
 auto get_timestamp() -> std::array<char, timestamp_size_v> {
 	auto ret = std::array<char, timestamp_size_v>{};
-	auto const time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	auto const time = std::time(nullptr);
 	static auto mutex = std::mutex{};
 	auto lock = std::scoped_lock{mutex};
 	auto const* tm = std::localtime(&time); // NOLINT(concurrency-mt-unsafe)

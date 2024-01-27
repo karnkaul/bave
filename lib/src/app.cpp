@@ -64,20 +64,6 @@ auto App::set_framebuffer_size(glm::ivec2 const size) -> bool {
 	return do_set_window_size(w_size);
 }
 
-auto App::get_features() const -> FeatureFlags {
-	auto ret = do_get_native_features();
-	if (get_render_device().validation_layers_enabled()) { ret.set(Feature::validation_layers); }
-	return ret;
-}
-
-auto App::get_display_ratio() const -> glm::vec2 {
-	auto const w_size = get_window_size();
-	auto const f_size = get_framebuffer_size();
-	if (w_size == f_size) { return glm::vec2{1.0f}; }
-	if (!is_positive(w_size)) { return {}; }
-	return glm::vec2{f_size} / glm::vec2{w_size};
-}
-
 auto App::load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader> {
 	auto const& renderer = get_renderer();
 	if (!renderer.is_rendering()) {
@@ -98,6 +84,20 @@ auto App::change_mount_point(std::string_view const directory) -> bool {
 	if (!get_data_store().set_mount_point(directory)) { return false; }
 	get_renderer().get_pipeline_cache().clear_loaded();
 	return true;
+}
+
+auto App::get_features() const -> FeatureFlags {
+	auto ret = do_get_native_features();
+	if (get_render_device().validation_layers_enabled()) { ret.set(Feature::validation_layers); }
+	return ret;
+}
+
+auto App::get_display_ratio() const -> glm::vec2 {
+	auto const w_size = get_window_size();
+	auto const f_size = get_framebuffer_size();
+	if (w_size == f_size) { return glm::vec2{1.0f}; }
+	if (!is_positive(w_size)) { return {}; }
+	return glm::vec2{f_size} / glm::vec2{w_size};
 }
 
 void App::start_next_frame() {

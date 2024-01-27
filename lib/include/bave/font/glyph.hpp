@@ -2,6 +2,7 @@
 #include <bave/graphics/rect.hpp>
 
 namespace bave {
+/// \brief A single character glyph.
 struct Glyph {
 	glm::vec2 advance{};
 	glm::vec2 extent{};

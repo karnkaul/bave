@@ -20,10 +20,16 @@
 #include <vector>
 
 namespace bave {
-enum struct ErrCode : int { eSuccess = 0, eFailure = 1 };
+/// \brief Error code.
+enum struct ErrCode : int { eSuccess = EXIT_SUCCESS, eFailure = EXIT_FAILURE };
 
+/// \brief Application API and entrypoint.
+///
+/// Owns window, devices, game and event loops.
+/// Customized via Driver sub-class.
 class App : public PolyPinned {
   public:
+	/// \brief Individual feature flags.
 	struct Feature {
 		static constexpr std::size_t resizeable{0};
 		static constexpr std::size_t has_title{1};
@@ -32,23 +38,68 @@ class App : public PolyPinned {
 
 		static constexpr std::size_t count_v{8};
 	};
+	/// \brief Bitset of feature flags.
 	using FeatureFlags = std::bitset<Feature::count_v>;
 
+	/// \brief Driver Factory.
 	using Bootloader = std::function<std::unique_ptr<class Driver>(App&)>;
 
-	explicit App(std::string tag = "App");
-
+	/// \brief Set Bootloader.
+	/// \param bootloader Driver factory callback.
+	///
+	/// App will create a Driver after successful initialization of the window and devices.
 	void set_bootloader(Bootloader bootloader);
+	/// \brief Set custom DataStore.
+	/// \param data_store store instance to use.
+	/// \pre data_store should not be null.
 	void set_data_store(std::unique_ptr<DataStore> data_store);
 
+	/// \brief Run the game loop.
+	/// \returns Error code.
 	auto run() -> ErrCode;
 
+	/// \brief Request shutdown.
 	void shutdown();
+	/// \brief Check if shutting down.
+	/// \returns true if shutting down.
 	[[nodiscard]] auto is_shutting_down() const { return m_shutting_down; }
 
-	auto set_window_size(glm::ivec2 size) -> bool { return do_set_window_size(size); }
+	/// \brief Set window size.
+	/// \returns true if success.
+	///
+	/// Android windows cannot be resized.
+	auto set_window_size(glm::ivec2 const size) -> bool { return do_set_window_size(size); }
+	/// \brief Set framebuffer size.
+	/// \returns true if success.
+	///
+	/// Android windows cannot be resized.
 	auto set_framebuffer_size(glm::ivec2 size) -> bool;
+	/// \brief Set window icons.
+	/// \returns true if success.
+	///
+	/// Android windows do not have icons.
 	auto set_window_icon(std::span<BitmapView const> bitmaps) -> bool { return do_set_window_icon(bitmaps); }
+	/// \brief Set the window title.
+	/// \returns true if success.
+	///
+	/// Android windows do not have a title.
+	auto set_title(CString title) -> bool { return do_set_title(title); }
+
+	/// \brief Load a shader for drawing.
+	/// \param vertex URI of vertex shader (SPIR-V).
+	/// \param fragment URI of fragment shader (SPIR-V).
+	/// \returns Shader if loaded successfully.
+	///
+	/// Loaded shaders are cached and not reloaded on every call.
+	/// A Shader instance is intended to be temporary, within a draw scope.
+	[[nodiscard]] auto load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader>;
+
+	/// \brief Change the data store mount point.
+	/// \param directory Directory to mount.
+	/// \returns true on success.
+	///
+	/// Mount point is fixed on Android.
+	auto change_mount_point(std::string_view directory) -> bool;
 
 	[[nodiscard]] auto get_features() const -> FeatureFlags;
 
@@ -71,12 +122,9 @@ class App : public PolyPinned {
 	[[nodiscard]] auto get_timer() -> Timer& { return m_timer; }
 	[[nodiscard]] auto get_driver() const -> Ptr<Driver> { return do_get_driver(); }
 
-	[[nodiscard]] auto load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader>;
-
-	auto change_mount_point(std::string_view directory) -> bool;
-	auto set_title(CString title) -> bool { return do_set_title(title); }
-
   protected:
+	explicit App(std::string tag = "App");
+
 	void start_next_frame();
 	void push_event(Event event);
 	void push_drop(std::string path);

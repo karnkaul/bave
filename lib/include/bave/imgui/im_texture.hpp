@@ -4,6 +4,7 @@
 #include <bave/graphics/texture.hpp>
 
 namespace bave {
+/// \brief RAII ImTexture wrapper.
 class ImTexture {
   public:
 	explicit ImTexture(NotNull<std::shared_ptr<Texture>> const& texture);

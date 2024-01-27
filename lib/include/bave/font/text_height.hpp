@@ -1,6 +1,7 @@
 #pragma once
 
 namespace bave {
+/// \brief Strongly typed text height.
 enum struct TextHeight : int {
 	eDefault = 40,
 	eMin = 10,
