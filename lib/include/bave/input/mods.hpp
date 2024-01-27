@@ -13,12 +13,12 @@ constexpr size_t numlock{6};
 constexpr size_t count_v{numlock + 1};
 }; // namespace mod
 
-///
 /// \brief Bit flags for modifier keys.
-///
 using KeyMods = std::bitset<mod::count_v>;
 
-///! Create KeyMods with mods set.
+/// \brief Create KeyMods with mods set.
+/// \param mods mods to set.
+/// \returns KeyMods with mods set.
 template <std::convertible_to<std::size_t>... I>
 constexpr auto make_key_mods(I const... mods) -> KeyMods {
 	return make_bitset<KeyMods>(mods...);

@@ -1,6 +1,7 @@
 #pragma once
 
 namespace bave {
+/// \brief Base class for polymorphic types.
 class Polymorphic {
   public:
 	Polymorphic(Polymorphic const&) = default;
@@ -12,6 +13,7 @@ class Polymorphic {
 	virtual ~Polymorphic() = default;
 };
 
+/// \brief Base class for non-copiable and non-movable polymorphic types.
 class PolyPinned {
   public:
 	PolyPinned(PolyPinned const&) = delete;

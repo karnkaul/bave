@@ -2,11 +2,17 @@
 #include <glm/common.hpp>
 
 namespace bave {
+/// \brief Ends of an inclusive range.
 template <typename Type>
 struct InclusiveRange {
+	/// \brief Lower end of range.
 	Type lo{};
+	/// \brief Upper end of range.
 	Type hi{};
 
+	/// \brief Clamp input to stored range.
+	/// \param in Input to clamp.
+	/// \returns in clamped between lo and hi.
 	constexpr auto clamp(Type const& in) const -> Type {
 		using glm::clamp;
 		return clamp(in, lo, hi);
