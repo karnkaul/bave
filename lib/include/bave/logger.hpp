@@ -4,16 +4,16 @@
 
 namespace bave {
 namespace log {
-constexpr auto error_v{'E'};
-constexpr auto warn_v{'W'};
-constexpr auto info_v{'I'};
-constexpr auto debug_v{'D'};
+enum class Level : int { eError, eWarn, eInfo, eDebug };
 
 [[nodiscard]] auto format_full(char level, std::string_view tag, std::string_view message) -> std::string;
 [[nodiscard]] auto format_thread(std::string_view message) -> std::string;
 
-void log_message(char level, CString tag, CString message);
+void log_message(Level level, CString tag, CString message);
 auto get_thread_id() -> int;
+
+void set_max_level(Level level);
+void set_max_level(std::string_view tag, Level level);
 
 namespace internal {
 void log_message(char level, CString tag, CString message);
@@ -23,26 +23,26 @@ void log_message(char level, CString tag, CString message);
 struct Logger {
 	std::string tag{"default"};
 
-	void log(char level, CString message) const;
+	void log(log::Level level, CString message) const;
 
 	template <typename... Args>
 	void error(fmt::format_string<Args...> fmt, Args&&... args) const {
-		log(log::error_v, fmt::format(fmt, std::forward<Args>(args)...).c_str());
+		log(log::Level::eError, fmt::format(fmt, std::forward<Args>(args)...).c_str());
 	}
 
 	template <typename... Args>
 	void warn(fmt::format_string<Args...> fmt, Args&&... args) const {
-		log(log::warn_v, fmt::format(fmt, std::forward<Args>(args)...).c_str());
+		log(log::Level::eWarn, fmt::format(fmt, std::forward<Args>(args)...).c_str());
 	}
 
 	template <typename... Args>
 	void info(fmt::format_string<Args...> fmt, Args&&... args) const {
-		log(log::info_v, fmt::format(fmt, std::forward<Args>(args)...).c_str());
+		log(log::Level::eInfo, fmt::format(fmt, std::forward<Args>(args)...).c_str());
 	}
 
 	template <typename... Args>
 	void debug(fmt::format_string<Args...> fmt, Args&&... args) const {
-		log(log::debug_v, fmt::format(fmt, std::forward<Args>(args)...).c_str());
+		log(log::Level::eDebug, fmt::format(fmt, std::forward<Args>(args)...).c_str());
 	}
 };
 } // namespace bave

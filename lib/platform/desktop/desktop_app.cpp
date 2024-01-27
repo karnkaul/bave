@@ -86,7 +86,7 @@ auto g_file_logger = std::unique_ptr<FileLogger>{}; // NOLINT(cppcoreguidelines-
 void log::internal::log_message(char level, CString tag, CString message) {
 	auto const formatted = format_full(level, tag, message);
 
-	auto& out = level == error_v ? std::cerr : std::cout;
+	auto& out = level == 'E' ? std::cerr : std::cout;
 	out << formatted.c_str();
 
 	if (g_file_logger) { g_file_logger->push(formatted); }
