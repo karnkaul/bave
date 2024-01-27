@@ -3,19 +3,14 @@
 #include <bave/graphics/tile_sheet.hpp>
 
 namespace bave {
+/// \brief Texture atlas (sprite sheet).
 class TextureAtlas : public Texture {
   public:
-	struct Block {
-		std::string id{};
-		Rect<int> image_rect{};
-	};
-
-	struct Tile {
-		glm::ivec2 size{};
-		UvRect uv{};
-		glm::ivec2 top_left{};
-	};
-
+	/// \brief Constructor.
+	/// \param render_device Non-null pointer to RenderDevice.
+	/// \param bitmap View of atlas bitmap.
+	/// \param sheet TileSheet describing tiles and their rects.
+	/// \param mip_map Whether to enable mip-mapping.
 	explicit TextureAtlas(NotNull<RenderDevice*> render_device, BitmapView bitmap, TileSheet sheet, bool mip_map = false);
 
 	[[nodiscard]] auto get_sheet() const -> TileSheet const& { return m_sheet; }

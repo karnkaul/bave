@@ -60,9 +60,7 @@ void Animator::render(Shader& shader) const {
 
 	render_view.transform = m_top_view;
 	render_view.n_scissor = top_scissor;
-	shader.polygon_mode = vk::PolygonMode::eLine;
-	shader.topology = vk::PrimitiveTopology::eLineStrip;
-	shader.line_width = 2.0f;
+	shader.set_line_strip(2.0f);
 	m_rect.draw(shader);
 }
 
@@ -189,6 +187,7 @@ auto Animator::tiles_control() -> bool {
 void Animator::metadata_control() { im_text<128>("Atlas: {}", or_none(state->animator.last_atlas)); }
 
 void Animator::misc_control() {
+	clear_colour_control();
 	im_text("Zoom");
 	zoom_control("Top", m_top_view.scale);
 	zoom_control("Bottom", m_bottom_view.scale);

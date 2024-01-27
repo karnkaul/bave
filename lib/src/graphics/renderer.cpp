@@ -4,7 +4,7 @@
 
 namespace bave {
 namespace {
-auto make_framebuffer(vk::Device device, vk::RenderPass render_pass, RenderTarget const& render_target) -> vk::UniqueFramebuffer {
+auto make_framebuffer(vk::Device device, vk::RenderPass render_pass, detail::RenderTarget const& render_target) -> vk::UniqueFramebuffer {
 	auto fci = vk::FramebufferCreateInfo{};
 	fci.renderPass = render_pass;
 	fci.attachmentCount = 1;

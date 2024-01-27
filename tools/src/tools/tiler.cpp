@@ -9,8 +9,6 @@ namespace fs = std::filesystem;
 // TODO: colliders
 Tiler::Tiler(App& app, NotNull<std::shared_ptr<State>> const& state)
 	: Applet(app, state), m_loader(&get_app().get_data_store(), &get_app().get_render_device()) {
-	m_sprite = push(std::make_unique<Sprite>());
-
 	load_previous();
 }
 
@@ -23,19 +21,48 @@ void Tiler::tick() {
 
 	if (ImGui::CollapsingHeader("Metadata", ImGuiTreeNodeFlags_DefaultOpen)) { metadata_control(); }
 
-	if (ImGui::CollapsingHeader("Misc")) { zoom_control("Zoom", main_view.scale); }
+	if (ImGui::CollapsingHeader("Misc")) {
+		clear_colour_control();
+		zoom_control("Zoom", main_view.scale);
+	}
 
 	ImGui::End();
 }
 
 void Tiler::render(Shader& shader) const {
-	for (auto const& drawable : drawables) { drawable->draw(shader); }
+	m_sprite.draw(shader);
 
-	shader.polygon_mode = vk::PolygonMode::eLine;
-	shader.topology = vk::PrimitiveTopology::eLineStrip;
-	shader.line_width = m_outline_width;
+	shader.set_line_strip(m_outline_width);
 
-	for (auto const& block : m_blocks) { block.rect.draw(shader); }
+	glm::ivec2 const size = m_sprite.get_size();
+	auto const origin_offset = 0.5f * glm::vec2{-size.x, size.y};
+
+	auto tile_rect = CustomShape{};
+	tile_rect.tint = m_tile_rgba;
+	auto collider_rect = CustomShape{};
+	collider_rect.tint = m_collider_rgba;
+
+	for (auto const& block : m_blocks) {
+		auto local_origin = 0.5f * glm::vec2{block.tile.image_rect.lt + block.tile.image_rect.rb};
+		local_origin.y = -local_origin.y;
+		auto rect = LineRect{};
+		rect.origin = origin_offset + local_origin;
+		rect.size = glm::vec2{block.tile.image_rect.rb - block.tile.image_rect.lt};
+		tile_rect.set_geometry(rect.to_geometry());
+		tile_rect.draw(shader);
+	}
+
+	for (auto const& block : m_blocks) {
+		for (auto const& collider : block.tile.colliders) {
+			auto local_origin = 0.5f * glm::vec2{collider.lt + collider.rb};
+			local_origin.y = -local_origin.y;
+			auto rect = LineRect{};
+			rect.origin = origin_offset + local_origin;
+			rect.size = glm::vec2{collider.rb - collider.lt};
+			collider_rect.set_geometry(rect.to_geometry());
+			collider_rect.draw(shader);
+		}
+	}
 }
 
 void Tiler::file_menu_items() {
@@ -71,13 +98,11 @@ auto Tiler::load_new_uri(std::string_view const uri) -> bool {
 }
 
 void Tiler::tiles_control() {
-	auto rgba = m_block_rgba.to_vec4();
-	if (ImGui::ColorEdit3("RGB", &rgba.x)) { m_block_rgba = Rgba::from(rgba); }
+	auto rgba = m_tile_rgba.to_vec4();
+	if (ImGui::ColorEdit3("RGB", &rgba.x)) { m_tile_rgba = Rgba::from(rgba); }
 	if (ImGui::Button("Add Tile")) { m_blocks.push_back(make_block(static_cast<int>(m_blocks.size()))); }
 
 	ImGui::Separator();
-	glm::ivec2 const size = m_sprite->get_size();
-	auto const origin_offset = 0.5f * glm::vec2{-size.x, size.y};
 	im_text("Tiles");
 	if (m_blocks.empty()) { im_text("[none]"); }
 	auto modified = false;
@@ -96,13 +121,6 @@ void Tiler::tiles_control() {
 			ImGui::TreePop();
 			if (erased) { break; }
 		}
-
-		auto local_origin = 0.5f * glm::vec2{block.tile.image_rect.lt + block.tile.image_rect.rb};
-		local_origin.y = -local_origin.y;
-		auto rect = LineRect{};
-		rect.origin = origin_offset + local_origin;
-		rect.size = glm::vec2{block.tile.image_rect.rb - block.tile.image_rect.lt};
-		block.rect.set_geometry(Geometry::from(rect));
 	}
 
 	ImGui::Separator();
@@ -129,7 +147,7 @@ void Tiler::tiles_control() {
 }
 
 auto Tiler::block_control(Block& out, std::size_t const index) const -> bool {
-	glm::ivec2 const size = m_sprite->get_size();
+	glm::ivec2 const size = m_sprite.get_size();
 
 	auto ret = false;
 	if (out.id("id")) {
@@ -149,16 +167,34 @@ auto Tiler::block_control(Block& out, std::size_t const index) const -> bool {
 		ret |= drag_irect(out.tile.image_rect, range);
 		ImGui::TreePop();
 	}
+	if (ImGui::TreeNode("colliders")) {
+		if (ImGui::SmallButton("add")) {
+			out.tile.colliders.push_back(out.tile.image_rect);
+			ret = true;
+		}
 
-	auto rgba = out.rect.tint.to_vec4();
-	if (ImGui::ColorEdit3("RGB", &rgba.x)) { out.rect.tint = Rgba::from(rgba); }
+		for (std::size_t i = 0; i < out.tile.colliders.size(); ++i) {
+			if (ImGui::TreeNode(FixedString{"{}", i}.c_str())) {
+				ret |= drag_irect(out.tile.colliders.at(i));
+				if (ImGui::SmallButton("remove")) {
+					out.tile.colliders.erase(out.tile.colliders.begin() + static_cast<std::ptrdiff_t>(i));
+					ret = true;
+					ImGui::TreePop();
+					break;
+				}
+				ImGui::TreePop();
+			}
+		}
+
+		ImGui::TreePop();
+	}
 
 	return ret;
 }
 
 void Tiler::metadata_control() {
 	auto const size = [&]() -> glm::ivec2 {
-		if (auto const& texture = m_sprite->get_texture()) { return texture->get_size(); }
+		if (auto const& texture = m_sprite.get_texture()) { return texture->get_size(); }
 		return {};
 	}();
 	image_meta_control(m_image_uri, size);
@@ -184,8 +220,8 @@ auto Tiler::load_image_at(std::string_view const uri) -> bool {
 	if (!texture) { return false; }
 
 	glm::vec2 const image_size = texture->get_size();
-	m_sprite->set_texture(std::move(texture));
-	m_sprite->set_size(image_size);
+	m_sprite.set_texture(std::move(texture));
+	m_sprite.set_size(image_size);
 
 	m_blocks.clear();
 	m_image_uri = uri;
@@ -208,7 +244,7 @@ void Tiler::new_atlas() {
 	state->tiler.last_loaded.clear();
 	save_state();
 
-	main_view.scale = auto_zoom(m_sprite->get_size());
+	main_view.scale = auto_zoom(m_sprite.get_size());
 	set_title();
 }
 
@@ -259,25 +295,23 @@ void Tiler::save_atlas() {
 void Tiler::generate_blocks() {
 	m_tile_count.x = std::max(m_tile_count.x, 1);
 	m_tile_count.y = std::max(m_tile_count.y, 1);
-	auto const rects = TileSheet::make_rects(m_sprite->get_size(), m_tile_count);
+	auto const rects = TileSheet::make_rects(m_sprite.get_size(), m_tile_count);
 	m_blocks.clear();
 	auto id = int{};
 	for (auto const& rect : rects) { m_blocks.push_back(make_block(id++, rect)); }
 }
 
-auto Tiler::make_block(int id, Rect<int> const& rect) const -> Block {
+auto Tiler::make_block(int id, Rect<int> const& rect) -> Block {
 	auto ret = Block{};
 	ret.tile.image_rect = rect;
 	ret.tile.id = std::to_string(id);
 	ret.id.set_text(ret.tile.id);
-	ret.rect.tint = m_block_rgba;
 	return ret;
 }
 
-auto Tiler::make_block(TileSheet::Tile in) const -> Block {
+auto Tiler::make_block(TileSheet::Tile in) -> Block {
 	auto ret = Block{.tile = std::move(in)};
 	ret.id.set_text(ret.tile.id);
-	ret.rect.tint = m_block_rgba;
 	return ret;
 }
 

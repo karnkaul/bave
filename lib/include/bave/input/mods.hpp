@@ -1,5 +1,5 @@
 #pragma once
-#include <bitset>
+#include <bave/core/make_bitset.hpp>
 
 namespace bave {
 namespace mod {
@@ -10,19 +10,17 @@ constexpr size_t alt{3};
 constexpr size_t super{4};
 constexpr size_t capslock{5};
 constexpr size_t numlock{6};
-constexpr size_t count_v{numlock};
+constexpr size_t count_v{numlock + 1};
 }; // namespace mod
 
-///
 /// \brief Bit flags for modifier keys.
-///
 using KeyMods = std::bitset<mod::count_v>;
 
-///! Create KeyMods with mods set.
+/// \brief Create KeyMods with mods set.
+/// \param mods mods to set.
+/// \returns KeyMods with mods set.
 template <std::convertible_to<std::size_t>... I>
 constexpr auto make_key_mods(I const... mods) -> KeyMods {
-	auto ret = KeyMods{};
-	(ret.set(mods), ...);
-	return ret;
+	return make_bitset<KeyMods>(mods...);
 }
 } // namespace bave

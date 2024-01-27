@@ -7,6 +7,7 @@
 #include <vector>
 
 namespace bave {
+/// \brief Expandable ImGui input text buffer.
 class ImInputText : public Polymorphic {
   public:
 	static constexpr std::size_t init_size_v{64};

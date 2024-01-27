@@ -14,9 +14,9 @@ namespace bave {
 void log::internal::log_message(char level, CString tag, CString message) {
 	auto lvl = ANDROID_LOG_INFO;
 	switch (level) {
-	case error_v: lvl = ANDROID_LOG_ERROR; break;
-	case warn_v: lvl = ANDROID_LOG_WARN; break;
-	case debug_v: lvl = ANDROID_LOG_DEBUG; break;
+	case 'E': lvl = ANDROID_LOG_ERROR; break;
+	case 'W': lvl = ANDROID_LOG_WARN; break;
+	case 'D': lvl = ANDROID_LOG_DEBUG; break;
 	default: break;
 	}
 

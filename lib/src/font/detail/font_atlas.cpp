@@ -21,7 +21,7 @@ FontAtlas::FontAtlas(NotNull<RenderDevice*> render_device, NotNull<GlyphSlot::Fa
 
 		auto glyph = Glyph{
 			.advance = {slot.advance.x >> 6, slot.advance.y >> 6},
-			.extent = slot.pixmap.get_size(),
+			.extent = slot.pixmap.get_extent(),
 			.left_top = slot.left_top,
 		};
 		auto entry = Entry{.codepoint = codepoint, .glyph = glyph};

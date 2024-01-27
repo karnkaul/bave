@@ -13,20 +13,20 @@ constexpr auto ceil_pot(int const size) -> int {
 constexpr auto ceil_pot(glm::ivec2 const size) -> glm::ivec2 { return {ceil_pot(size.x), ceil_pot(size.y)}; }
 } // namespace
 
-Pixmap::Pixmap(glm::ivec2 const size, Rgba const background) : m_size(size), m_pixels(static_cast<std::size_t>(m_size.x * m_size.y), background) {}
+Pixmap::Pixmap(glm::ivec2 const size, Rgba const background) : m_extent(size), m_pixels(static_cast<std::size_t>(m_extent.x * m_extent.y), background) {}
 
 auto Pixmap::overwrite(Pixmap const& source, Index2D const left_top) -> bool {
-	auto const rb = Index2D{left_top.x + source.m_size.x, left_top.y + source.m_size.y};
-	if (rb.x > m_size.x || rb.y > m_size.y) { return false; }
+	auto const rb = Index2D{left_top.x + source.m_extent.x, left_top.y + source.m_extent.y};
+	if (rb.x > m_extent.x || rb.y > m_extent.y) { return false; }
 
-	for (int row = 0; row < source.m_size.y; ++row) {
-		for (int col = 0; col < source.m_size.x; ++col) { at({col + left_top.x, row + left_top.y}) = source.at({col, row}); }
+	for (int row = 0; row < source.m_extent.y; ++row) {
+		for (int col = 0; col < source.m_extent.x; ++col) { at({col + left_top.x, row + left_top.y}) = source.at({col, row}); }
 	}
 	return true;
 }
 
 auto Pixmap::at(Index2D index) const -> Rgba const& {
-	auto const idx = static_cast<std::size_t>(index.flatten(m_size.x));
+	auto const idx = static_cast<std::size_t>(index.flatten(m_extent.x));
 	if (idx >= m_pixels.size()) { throw Error{"Out of bounds index: '{}x{}'", index.x, index.y}; }
 	return m_pixels.at(idx);
 }
@@ -42,7 +42,7 @@ auto Pixmap::make_bitmap() const -> Bitmap {
 		auto const pix_bytes = pixel.to_bytes();
 		bytes.insert(bytes.end(), pix_bytes.begin(), pix_bytes.end());
 	}
-	return Bitmap{std::move(bytes), m_size};
+	return Bitmap{std::move(bytes), m_extent};
 }
 
 Pixmap::Builder::Builder(int max_width, glm::ivec2 pad) : m_max_width(max_width > min_width_v ? ceil_pot(max_width) : min_width_v), m_pad(pad) {
@@ -52,13 +52,13 @@ Pixmap::Builder::Builder(int max_width, glm::ivec2 pad) : m_max_width(max_width 
 void Pixmap::Builder::add(Id id, Pixmap pixmap) {
 	if (pixmap.m_pixels.empty()) { return; }
 
-	if (m_data.cursor.x + pixmap.m_size.x + m_pad.x >= m_max_width) { line_break(); }
+	if (m_data.cursor.x + pixmap.m_extent.x + m_pad.x >= m_max_width) { line_break(); }
 
 	auto const lt = m_data.cursor;
-	auto const rb = lt + pixmap.m_size;
-	m_data.line_height = std::max(m_data.line_height, pixmap.m_size.y);
+	auto const rb = lt + pixmap.m_extent;
+	m_data.line_height = std::max(m_data.line_height, pixmap.m_extent.y);
 	m_entries.push_back(Entry{.pixmap = std::move(pixmap), .rect = {.lt = lt, .rb = rb}, .id = id});
-	m_data.cursor.x += pixmap.m_size.x + m_pad.x;
+	m_data.cursor.x += pixmap.m_extent.x + m_pad.x;
 	m_data.size.x = std::max(m_data.size.x, m_data.cursor.x);
 	m_data.size.y = std::max(m_data.size.y, m_data.current_height + m_data.line_height + m_pad.y);
 }
@@ -67,7 +67,7 @@ auto Pixmap::Builder::build(Rgba const background) const -> Atlas {
 	if (m_entries.empty()) { return {}; }
 	auto ret = Atlas{};
 	ret.pixmap = Pixmap{ceil_pot(m_data.size), background};
-	auto const fsize = glm::vec2{ret.pixmap.m_size};
+	auto const fsize = glm::vec2{ret.pixmap.m_extent};
 	for (auto const& entry : m_entries) {
 		ret.pixmap.overwrite(entry.pixmap, {entry.rect.lt.x, entry.rect.lt.y});
 		auto const fu = glm::vec2{entry.rect.top_left()} / fsize;

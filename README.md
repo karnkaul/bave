@@ -23,6 +23,10 @@ https://github.com/karnkaul/bave/assets/16272243/86539229-0640-42c5-baac-ca74eb3
 - [x] Audio playback.
 - [x] Streaming audio (music).
 
+## API Reference
+
+Documentation is located [here](https://karnkaul.github.io/bave-docs/).
+
 ## Requirements
 
 ### Runtime

@@ -3,9 +3,11 @@
 #include <string_view>
 
 namespace bave {
+/// \brief Concept for types string_view can be constructed from.
 template <typename Type>
 concept StringyT = std::constructible_from<std::string_view, Type>;
 
+/// \brief Generalized string hasher.
 struct StringHash {
 	using is_transparent = void;
 

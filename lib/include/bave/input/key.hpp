@@ -1,9 +1,7 @@
 #pragma once
 
 namespace bave {
-///
 /// \brief Set of all keyboard keys.
-///
 enum class Key : int {
 	eUnknown = 0,
 	eSpace = 32,

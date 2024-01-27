@@ -103,8 +103,8 @@ auto make_vpi_bindings(RenderDevice const& render_device, std::span<RenderInstan
 	};
 }
 
-auto make_texture_bindings(std::span<CombinedImageSampler const, SetLayout::max_textures_v> textures, CombinedImageSampler const white) {
-	auto ret = std::array<ImageBinding, SetLayout::max_textures_v>{};
+auto make_texture_bindings(std::span<CombinedImageSampler const, Shader::max_textures_v> textures, CombinedImageSampler const white) {
+	auto ret = std::array<ImageBinding, Shader::max_textures_v>{};
 	for (std::uint32_t i = 0; i < ret.size(); ++i) {
 		auto cis = textures[i]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
 		if (!cis.image_view || !cis.sampler) { cis = white; }
@@ -127,6 +127,13 @@ Shader::Shader(NotNull<Renderer const*> renderer, vk::ShaderModule vertex, vk::S
 	set_viewport();
 }
 
+void Shader::set_line_strip(float const line_width) {
+	this->line_width = line_width;
+	topology = vk::PrimitiveTopology::eLineStrip;
+}
+
+void Shader::set_tri_strip() { topology = vk::PrimitiveTopology::eTriangleStrip; }
+
 auto Shader::update_texture(CombinedImageSampler const cis, std::uint32_t binding) -> bool {
 	if (binding >= m_sets.cis.size()) { return false; }
 
@@ -134,7 +141,7 @@ auto Shader::update_texture(CombinedImageSampler const cis, std::uint32_t bindin
 	return true;
 }
 
-void Shader::update_textures(std::span<CombinedImageSampler const, SetLayout::max_textures_v> cis) { std::copy(cis.begin(), cis.end(), m_sets.cis.begin()); }
+void Shader::update_textures(std::span<CombinedImageSampler const, max_textures_v> cis) { std::copy(cis.begin(), cis.end(), m_sets.cis.begin()); }
 
 auto Shader::write_ubo(void const* data, vk::DeviceSize const size) -> bool {
 	if (data == nullptr || size == 0) { return false; }
@@ -204,13 +211,13 @@ auto Shader::get_scissor(Rect<> n_rect) const -> vk::Rect2D {
 }
 
 void Shader::update_and_bind_sets(vk::CommandBuffer command_buffer, std::span<RenderInstance::Baked const> instances) const {
-	static_assert(set_layout_v.view_instances.set == 0);
-	static_assert(set_layout_v.textures.set == 1);
-	static_assert(set_layout_v.buffers.set == 2);
-	static_assert(set_layout_v.view_instances.bindings[0] == vk::DescriptorType::eUniformBuffer);
-	static_assert(set_layout_v.view_instances.bindings[1] == vk::DescriptorType::eStorageBuffer);
-	static_assert(set_layout_v.buffers.bindings[0] == vk::DescriptorType::eUniformBuffer);
-	static_assert(set_layout_v.buffers.bindings[1] == vk::DescriptorType::eStorageBuffer);
+	static_assert(detail::set_layout_v.view_instances.set == 0);
+	static_assert(detail::set_layout_v.textures.set == 1);
+	static_assert(detail::set_layout_v.buffers.set == 2);
+	static_assert(detail::set_layout_v.view_instances.bindings[0] == vk::DescriptorType::eUniformBuffer);
+	static_assert(detail::set_layout_v.view_instances.bindings[1] == vk::DescriptorType::eStorageBuffer);
+	static_assert(detail::set_layout_v.buffers.bindings[0] == vk::DescriptorType::eUniformBuffer);
+	static_assert(detail::set_layout_v.buffers.bindings[1] == vk::DescriptorType::eStorageBuffer);
 
 	auto descriptor_sets = allocate_descriptor_sets(m_renderer->get_pipeline_cache());
 	static_assert(descriptor_sets.size() == 3);

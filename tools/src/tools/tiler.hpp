@@ -8,7 +8,6 @@
 namespace bave::tools {
 class Tiler : public Applet {
 	struct Block {
-		CustomShape rect{};
 		TileSheet::Tile tile{};
 		ImInputText id{};
 	};
@@ -35,21 +34,22 @@ class Tiler : public Applet {
 	void save_atlas();
 	void generate_blocks();
 
-	[[nodiscard]] auto make_block(int id, Rect<int> const& rect = rect_v) const -> Block;
-	[[nodiscard]] auto make_block(TileSheet::Tile in) const -> Block;
+	[[nodiscard]] static auto make_block(int id, Rect<int> const& rect = rect_v) -> Block;
+	[[nodiscard]] static auto make_block(TileSheet::Tile in) -> Block;
 
 	void set_title();
 
 	Logger m_log{"Tiler"};
 	Loader m_loader;
 
-	Ptr<Sprite> m_sprite{};
+	Sprite m_sprite{};
 	std::vector<Block> m_blocks{};
 
 	std::string m_image_uri{};
 	std::string m_json_uri{};
 
-	Rgba m_block_rgba = red_v;
+	Rgba m_tile_rgba = red_v;
+	Rgba m_collider_rgba = green_v;
 	glm::ivec2 m_tile_count{1, 1};
 	float m_outline_width{3.0f};
 	bool m_unsaved{};

@@ -1,8 +1,16 @@
 #pragma once
-#include <source_location>
+#include <cstdint>
 #include <string_view>
 
 namespace test {
+struct SrcLoc {
+	std::int64_t line_{};
+	std::string_view file_name_{};
+
+	[[nodiscard]] constexpr auto line() const { return line_; }
+	[[nodiscard]] constexpr auto file_name() const { return file_name_; }
+};
+
 class Test {
   public:
 	Test();
@@ -17,13 +25,13 @@ class Test {
 	virtual void run() const = 0;
 
   protected:
-	static void do_expect(bool pred, std::string_view expr, std::source_location const& location);
-	static void do_assert(bool pred, std::string_view expr, std::source_location const& location);
+	static void do_expect(bool pred, std::string_view expr, SrcLoc const& location);
+	static void do_assert(bool pred, std::string_view expr, SrcLoc const& location);
 };
 } // namespace test
 
-#define EXPECT(pred) do_expect(pred, #pred, std::source_location::current()) // NOLINT(cppcoreguidelines-macro-usage)
-#define ASSERT(pred) do_assert(pred, #pred, std::source_location::current()) // NOLINT(cppcoreguidelines-macro-usage)
+#define EXPECT(pred) do_expect(pred, #pred, {__LINE__, __FILE__}) // NOLINT(cppcoreguidelines-macro-usage)
+#define ASSERT(pred) do_assert(pred, #pred, {__LINE__, __FILE__}) // NOLINT(cppcoreguidelines-macro-usage)
 
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define ADD_TEST(Class)                                                                                                                                        \

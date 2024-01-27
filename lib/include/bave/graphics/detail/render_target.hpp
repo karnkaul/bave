@@ -1,7 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
 
-namespace bave {
+namespace bave::detail {
 enum class ColourSpace : int { eSrgb, eLinear };
 
 struct RenderTarget {
@@ -10,4 +10,4 @@ struct RenderTarget {
 	vk::Extent2D extent{};
 	vk::Format format{};
 };
-} // namespace bave
+} // namespace bave::detail

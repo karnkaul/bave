@@ -46,7 +46,7 @@ class Renderer : public Pinned {
 		vk::UniqueRenderPass render_pass{};
 
 		detail::Buffered<vk::UniqueFramebuffer> framebuffers{};
-		std::optional<RenderTarget> render_target{};
+		std::optional<detail::RenderTarget> render_target{};
 
 		static auto make(RenderDevice& render_device) -> Frame;
 	};

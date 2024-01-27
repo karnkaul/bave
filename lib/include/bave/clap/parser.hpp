@@ -1,6 +1,6 @@
 #pragma once
+#include <bave/clap/clap.hpp>
 #include <bave/core/error.hpp>
-#include <platform/desktop/clap/clap.hpp>
 #include <span>
 
 namespace bave::clap {

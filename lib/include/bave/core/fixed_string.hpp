@@ -17,10 +17,8 @@ class FixedString {
 
 	FixedString() = default;
 
-	///
 	/// \brief Construct an instance by copying t into the internal buffer.
-	/// \param t Direct string to copy
-	///
+	/// \param t Direct string to copy.
 	template <std::convertible_to<std::string_view> T>
 	FixedString(T const& t) {
 		auto const str = std::string_view{t};
@@ -28,11 +26,9 @@ class FixedString {
 		std::memcpy(m_buffer.data(), str.data(), m_size);
 	}
 
-	///
 	/// \brief Construct an instance by formatting into the internal buffer.
-	/// \param fmt Format string
-	/// \param args... Format arguments
-	///
+	/// \param fmt Format string.
+	/// \param args Format arguments.
 	template <typename... Args>
 	explicit FixedString(fmt::format_string<Args...> fmt, Args&&... args) {
 		auto const [it, _] = fmt::format_to_n(m_buffer.data(), Capacity, fmt, std::forward<Args>(args)...);
@@ -40,10 +36,8 @@ class FixedString {
 		m_size = static_cast<std::size_t>(std::distance(m_buffer.data(), it));
 	}
 
-	///
 	/// \brief Append a string to the internal buffer.
 	/// \param rhs The string to append.
-	///
 	template <std::size_t N>
 	void append(FixedString<N> const& rhs) {
 		auto const dsize = std::min(Capacity - m_size, rhs.size());
@@ -51,30 +45,20 @@ class FixedString {
 		m_size += dsize;
 	}
 
-	///
 	/// \brief Obtain a view into the stored string.
-	/// \returns A view into the stored string
-	///
+	/// \returns A view into the stored string.
 	[[nodiscard]] auto view() const -> std::string_view { return {data(), size()}; }
-	///
 	/// \brief Obtain a pointer to the start of the stored string.
-	/// \returns A const pointer to the start of the string
-	///
+	/// \returns A const pointer to the start of the string.
 	[[nodiscard]] auto data() const -> char const* { return m_buffer.data(); }
-	///
 	/// \brief Obtain a pointer to the start of the stored string.
-	/// \returns A const pointer to the start of the string
-	///
+	/// \returns A const pointer to the start of the string.
 	[[nodiscard]] auto c_str() const -> char const* { return data(); }
-	///
 	/// \brief Obtain the size of the stored string.
-	/// \returns The number of characters in the string
-	///
+	/// \returns The number of characters in the string.
 	[[nodiscard]] auto size() const -> std::size_t { return m_size; }
-	///
 	/// \brief Check if the stored string is empty.
-	/// \returns true If the size is 0
-	///
+	/// \returns true If the size is 0.
 	[[nodiscard]] auto empty() const -> bool { return m_size == 0; }
 
 	operator std::string_view() const { return view(); }

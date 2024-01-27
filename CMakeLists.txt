@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(project_prefix bave)
-project(${project_prefix} VERSION 0.2.0)
+project(${project_prefix} VERSION 0.3.0)
 
 set(is_root_project FALSE)
 
@@ -14,10 +14,6 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 endif()
 
 set(build_tests ${is_root_project})
-
-if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  set(build_tests FALSE)
-endif()
 
 option(BAVE_USE_PCH "Use PCH for bave builds" ON)
 option(BAVE_BUILD_EXAMPLE "Build bave example" ${is_root_project})

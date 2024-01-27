@@ -1,5 +1,5 @@
 #pragma once
-#include <platform/desktop/clap/from_string.hpp>
+#include <bave/clap/from_string.hpp>
 #include <concepts>
 #include <memory>
 #include <span>

@@ -1,8 +1,10 @@
 #pragma once
 #include <bave/graphics/rgba.hpp>
 #include <bave/graphics/transform.hpp>
+#include <span>
 
 namespace bave {
+/// \brief A single render instance.
 struct RenderInstance {
 	struct Baked;
 
@@ -12,11 +14,13 @@ struct RenderInstance {
 	[[nodiscard]] auto bake() const -> Baked;
 };
 
+/// \brief Baked render instance (ready to upload to GPU).
 struct RenderInstance::Baked {
 	glm::mat4 transform;
 	glm::vec4 rgba;
 };
 
+/// \brief View of a draw primitive.
 struct RenderPrimitive {
 	std::span<std::byte const> bytes{};
 	std::size_t ibo_offset{};

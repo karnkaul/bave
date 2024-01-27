@@ -1,7 +1,7 @@
 #pragma once
 #include <bave/graphics/detail/descriptor_cache.hpp>
+#include <bave/graphics/detail/set_layout.hpp>
 #include <bave/graphics/detail/shader_cache.hpp>
-#include <bave/graphics/set_layout.hpp>
 #include <span>
 
 namespace bave::detail {

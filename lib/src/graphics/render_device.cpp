@@ -118,7 +118,7 @@ auto RenderDevice::request_present_mode(vk::PresentModeKHR present_mode) -> bool
 	return true;
 }
 
-auto RenderDevice::acquire_next_image(vk::Fence wait, vk::Semaphore signal) -> std::optional<RenderTarget> {
+auto RenderDevice::acquire_next_image(vk::Fence wait, vk::Semaphore signal) -> std::optional<detail::RenderTarget> {
 	auto const framebuffer = m_wsi->get_framebuffer_extent();
 	if (framebuffer.width == 0 || framebuffer.height == 0) { return {}; }
 

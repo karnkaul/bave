@@ -32,6 +32,7 @@ void NineSlicer::tick() {
 		if (ImGui::CollapsingHeader("Metadata", ImGuiTreeNodeFlags_DefaultOpen)) { metadata_control(); }
 
 		if (ImGui::CollapsingHeader("Misc")) {
+			clear_colour_control();
 			zoom_control("Zoom", main_view.scale);
 			wireframe_control();
 		}

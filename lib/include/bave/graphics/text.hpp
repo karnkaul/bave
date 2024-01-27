@@ -3,12 +3,16 @@
 #include <bave/graphics/drawable.hpp>
 
 namespace bave {
+/// \brief Drawable text.
 class Text : public Drawable {
   public:
+	/// \brief Text alignment (horizontal).
 	enum class Align : std::uint8_t { eMid, eLeft, eRight };
 
 	using Height = TextHeight;
 
+	/// \brief Constructor.
+	/// \param font Font instance to use.
 	explicit Text(std::shared_ptr<Font> font = {});
 
 	auto set_font(std::shared_ptr<Font> font) -> Text&;

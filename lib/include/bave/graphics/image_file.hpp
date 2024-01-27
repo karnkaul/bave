@@ -3,10 +3,16 @@
 #include <memory>
 
 namespace bave {
+/// \brief Image file decompresser.
 class ImageFile : public IBitmapViewSource {
   public:
+	/// \brief Attempt to load a compressed image.
+	/// \param compressed Bytestream representing image data.
+	/// \returns true on success.
 	auto load_from_bytes(std::span<std::byte const> compressed) -> bool;
 
+	/// \brief Obtain a view into the decompressed bitmap.
+	/// \returns a BitmapView into the decompressed bitmap.
 	[[nodiscard]] auto get_bitmap_view() const -> BitmapView final;
 
 	[[nodiscard]] auto is_empty() const -> bool { return m_impl == nullptr; }

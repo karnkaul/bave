@@ -1,8 +1,9 @@
 #pragma once
-#include <concepts>
+#include <type_traits>
 #include <utility>
 
 namespace bave {
+/// \brief Uniquely owned resource with its deleter.
 template <std::equality_comparable Type, typename Deleter>
 	requires(std::is_invocable_v<Deleter, Type>)
 class ScopedResource {
@@ -14,6 +15,9 @@ class ScopedResource {
 
 	ScopedResource() = default;
 
+	/// \brief Constructor.
+	/// \param t Object to store.
+	/// \param deleter Deleter to store.
 	constexpr ScopedResource(Type t, Deleter deleter = Deleter{}) : m_t(std::move(t)), m_deleter(std::move(deleter)) {}
 
 	constexpr ScopedResource(ScopedResource&& rhs) noexcept { swap(*this, rhs); }
@@ -27,7 +31,11 @@ class ScopedResource {
 		m_deleter(m_t);
 	}
 
+	/// \brief Obtain the stored object.
+	/// \returns Const reference to underlying type.
 	constexpr auto get() const -> Type const& { return m_t; }
+	/// \brief Obtain the stored object.
+	/// \returns Mutable reference to underlying type.
 	constexpr auto get() -> Type& { return m_t; }
 
 	constexpr operator Type const&() const { return get(); }

@@ -8,6 +8,7 @@
 namespace bave {
 class RenderDevice;
 
+/// \brief TextureAtlas and glyph map for a given font.
 class Font {
   public:
 	class Pen;
@@ -15,8 +16,14 @@ class Font {
 	static constexpr auto scale_v{2.0f};
 	static constexpr auto scale_limit_v = InclusiveRange<float>{1.0f, 16.0f};
 
+	/// \brief Constructor.
+	/// \param render_device Non-null pointer to RenderDevice.
 	explicit Font(NotNull<RenderDevice*> render_device);
 
+	/// \brief Attempt to load font.
+	/// \param file_bytes Bytestream representing font file (TTF / OTF).
+	/// \param scale Scale factor for glyph and atlas generation.
+	/// \returns true on success.
 	auto load_from_bytes(std::vector<std::byte> file_bytes, float scale = scale_v) -> bool;
 
 	[[nodiscard]] auto glyph_for(TextHeight height, Codepoint codepoint) -> Glyph;
