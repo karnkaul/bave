@@ -13,6 +13,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
+  bave::bave
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

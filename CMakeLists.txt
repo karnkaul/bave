@@ -15,10 +15,6 @@ endif()
 
 set(build_tests ${is_root_project})
 
-if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  set(build_tests FALSE)
-endif()
-
 option(BAVE_USE_PCH "Use PCH for bave builds" ON)
 option(BAVE_BUILD_EXAMPLE "Build bave example" ${is_root_project})
 option(BAVE_BUILD_TESTS "Build bave tests" ${build_tests})
