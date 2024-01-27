@@ -5,7 +5,6 @@
 #include <bave/core/visitor.hpp>
 #include <bave/desktop_app.hpp>
 #include <bave/file_io.hpp>
-#include <platform/desktop/clap/clap.hpp>
 #include <platform/desktop/desktop_data_store.hpp>
 #include <filesystem>
 #include <fstream>
@@ -136,14 +135,6 @@ DesktopApp::DesktopApp(CreateInfo create_info) : App("DesktopApp"), m_create_inf
 }
 
 auto DesktopApp::setup() -> std::optional<ErrCode> {
-	auto options = clap::Options{
-		clap::make_app_name(m_create_info.args.front()),
-		"bave app",
-		to_string(build_version_v),
-	};
-	auto const result = options.parse(m_create_info.args.subspan(1));
-	if (clap::should_quit(result)) { return static_cast<ErrCode>(clap::return_code(result)); }
-
 	m_active_pointers.emplace_back();
 
 	m_log.debug("glfwInit");

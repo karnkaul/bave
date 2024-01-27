@@ -1,6 +1,6 @@
 #include <fmt/format.h>
-#include <platform/desktop/clap/clap.hpp>
-#include <platform/desktop/clap/parser.hpp>
+#include <bave/clap/clap.hpp>
+#include <bave/clap/parser.hpp>
 #include <cassert>
 #include <filesystem>
 #include <iostream>
