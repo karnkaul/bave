@@ -19,6 +19,7 @@
 namespace bave {
 namespace fs = std::filesystem;
 
+namespace {
 class FileLogger {
   public:
 	FileLogger(FileLogger const&) = delete;
@@ -81,6 +82,7 @@ class FileLogger {
 };
 
 auto g_file_logger = std::unique_ptr<FileLogger>{}; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+} // namespace
 
 void log::internal::log_message(char level, CString tag, CString message) {
 	auto const formatted = format_full(level, tag, message);
@@ -160,6 +162,7 @@ auto DesktopApp::setup() -> std::optional<ErrCode> {
 
 void DesktopApp::poll_events() {
 	glfwPollEvents();
+	update_gamepads();
 	m_driver->handle_events(get_events());
 	if (auto const drops = get_file_drops(); !drops.empty()) { m_driver->on_drop(drops); }
 }
@@ -332,5 +335,33 @@ void DesktopApp::init_graphics() {
 	m_render_device = std::make_unique<RenderDevice>(this, RenderDevice::CreateInfo{.validation_layers = m_create_info.validation_layers});
 	m_renderer = std::make_unique<Renderer>(m_render_device.get(), &get_data_store());
 	m_dear_imgui = std::make_unique<detail::DearImGui>(m_window.get(), *m_render_device, m_renderer->get_render_pass());
+}
+
+void DesktopApp::update_gamepads() {
+	for (auto& gamepad : m_gamepads) {
+		auto state = GLFWgamepadstate{};
+		if (glfwGetGamepadState(static_cast<int>(gamepad.id), &state) != GLFW_TRUE) {
+			gamepad = Gamepad{.id = gamepad.id};
+			continue;
+		}
+
+		gamepad.connected = true;
+		gamepad.name = glfwGetGamepadName(static_cast<int>(gamepad.id));
+
+		auto const buttons = std::span{state.buttons};
+		auto const axes = std::span{state.axes};
+		std::memcpy(gamepad.axes.data(), axes.data(), axes.size_bytes());
+		// adjust triggers to be in [0, 1], otherwise the rest value is -1.
+		static constexpr auto project_trigger = [](float& out) { out = (out + 1.0f) * 0.5f; };
+		project_trigger(gamepad.axes.at(static_cast<std::size_t>(GamepadAxis::eLeftTrigger)));
+		project_trigger(gamepad.axes.at(static_cast<std::size_t>(GamepadAxis::eRightTrigger)));
+		gamepad.button_states = {};
+		for (std::size_t b = 0; b < buttons.size(); ++b) {
+			if (buttons[b] == 0x1) { gamepad.button_states.set(b); }
+		}
+
+		static constexpr auto active_axis = [](float const value) { return value > 0.2f; };
+		if (gamepad.button_states != 0 || std::any_of(gamepad.axes.begin(), gamepad.axes.end(), active_axis)) { m_most_recent_gamepad = gamepad.id; }
+	}
 }
 } // namespace bave

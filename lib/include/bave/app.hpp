@@ -10,6 +10,7 @@
 #include <bave/graphics/renderer.hpp>
 #include <bave/graphics/shader.hpp>
 #include <bave/input/event.hpp>
+#include <bave/input/gamepad.hpp>
 #include <bave/input/gesture_recognizer.hpp>
 #include <bave/logger.hpp>
 #include <bave/platform.hpp>
@@ -43,6 +44,9 @@ class App : public PolyPinned {
 
 	/// \brief Driver Factory.
 	using Bootloader = std::function<std::unique_ptr<class Driver>(App&)>;
+
+	/// \brief Maximum supported gamepads.
+	static constexpr auto max_gamepads_v = static_cast<std::size_t>(GamepadId::eCOUNT_);
 
 	/// \brief Set Bootloader.
 	/// \param bootloader Driver factory callback.
@@ -101,6 +105,19 @@ class App : public PolyPinned {
 	/// Mount point is fixed on Android.
 	auto change_mount_point(std::string_view directory) -> bool;
 
+	/// \brief Get a particular gamepad.
+	/// \param id ID of gamepad.
+	/// \returns Const reference to Gamepad.
+	/// \pre id must be non-negative and less than GamepadId::eCOUNT_.
+	///
+	/// Currently gamepads are only processed on desktop.
+	[[nodiscard]] auto get_gamepad(GamepadId const id) const -> Gamepad const& { return m_gamepads.at(static_cast<std::size_t>(id)); }
+	/// \brief Get the most recently used gamepad.
+	/// \returns Const reference to Gamepad.
+	///
+	/// Currently gamepads are only processed on desktop.
+	[[nodiscard]] auto get_most_recent_gamepad() const -> Gamepad const& { return get_gamepad(m_most_recent_gamepad); }
+
 	[[nodiscard]] auto get_features() const -> FeatureFlags;
 
 	[[nodiscard]] auto get_data_store() const -> DataStore& { return *m_data_store; }
@@ -112,6 +129,7 @@ class App : public PolyPinned {
 	[[nodiscard]] auto get_events() const -> std::span<Event const> { return m_events; }
 	[[nodiscard]] auto get_file_drops() const -> std::span<std::string const> { return m_drops; }
 	[[nodiscard]] auto get_active_pointers() const -> std::span<Pointer const> { return m_active_pointers; }
+	[[nodiscard]] auto get_gamepads() const -> std::span<Gamepad const, max_gamepads_v> { return m_gamepads; }
 	[[nodiscard]] auto get_gesture_recognizer() const -> GestureRecognizer const& { return m_gesture_recognizer; }
 	[[nodiscard]] auto get_dt() const -> Seconds { return m_dt.dt; }
 	[[nodiscard]] auto get_window_size() const -> glm::ivec2 { return do_get_window_size(); }
@@ -134,6 +152,8 @@ class App : public PolyPinned {
 
 	Logger m_log{};
 	std::vector<Pointer> m_active_pointers{};
+	std::array<Gamepad, max_gamepads_v> m_gamepads{};
+	Gamepad::Id m_most_recent_gamepad{};
 	GestureRecognizer m_gesture_recognizer{};
 
   private:
