@@ -115,7 +115,16 @@ void App::pre_tick() {
 }
 
 void App::push_event(Event event) {
-	if (auto const* pointer_tap = std::get_if<PointerTap>(&event)) { m_gesture_recognizer.on_tap(*pointer_tap); }
+	if (auto const* pointer_tap = std::get_if<PointerTap>(&event)) {
+		m_gesture_recognizer.on_tap(*pointer_tap);
+	} else if (auto const* key_input = std::get_if<KeyInput>(&event)) {
+		auto key_state = m_key_state.held_keys[static_cast<std::size_t>(key_input->key)];
+		switch (key_input->action) {
+		case Action::ePress: key_state = true; break;
+		case Action::eRelease: key_state = false; break;
+		default: break;
+		}
+	}
 	m_events.push_back(event);
 }
 

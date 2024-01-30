@@ -12,6 +12,7 @@
 #include <bave/input/event.hpp>
 #include <bave/input/gamepad.hpp>
 #include <bave/input/gesture_recognizer.hpp>
+#include <bave/input/key_state.hpp>
 #include <bave/logger.hpp>
 #include <bave/platform.hpp>
 #include <capo/capo.hpp>
@@ -131,6 +132,7 @@ class App : public PolyPinned {
 	[[nodiscard]] auto get_active_pointers() const -> std::span<Pointer const> { return m_active_pointers; }
 	[[nodiscard]] auto get_gamepads() const -> std::span<Gamepad const, max_gamepads_v> { return m_gamepads; }
 	[[nodiscard]] auto get_gesture_recognizer() const -> GestureRecognizer const& { return m_gesture_recognizer; }
+	[[nodiscard]] auto get_key_state() const -> KeyState const& { return m_key_state; }
 	[[nodiscard]] auto get_dt() const -> Seconds { return m_dt.dt; }
 	[[nodiscard]] auto get_window_size() const -> glm::ivec2 { return do_get_window_size(); }
 	[[nodiscard]] auto get_framebuffer_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
@@ -155,6 +157,7 @@ class App : public PolyPinned {
 	std::array<Gamepad, max_gamepads_v> m_gamepads{};
 	Gamepad::Id m_most_recent_gamepad{};
 	GestureRecognizer m_gesture_recognizer{};
+	KeyState m_key_state{};
 
   private:
 	virtual auto setup() -> std::optional<ErrCode> = 0;
