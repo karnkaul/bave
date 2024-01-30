@@ -111,13 +111,13 @@ constexpr auto to_action(int const glfw_action) {
 
 constexpr auto to_mods(int const glfw_mods) {
 	auto ret = KeyMods{};
-	if ((glfw_mods & GLFW_MOD_SHIFT) != 0) { ret.set(mod::shift); }
-	if ((glfw_mods & GLFW_MOD_CONTROL) != 0) { ret.set(mod::ctrl); }
-	if ((glfw_mods & GLFW_MOD_CONTROL) != 0) { ret.set(mod::ctrl); }
-	if ((glfw_mods & GLFW_MOD_ALT) != 0) { ret.set(mod::alt); }
-	if ((glfw_mods & GLFW_MOD_SUPER) != 0) { ret.set(mod::super); }
-	if ((glfw_mods & GLFW_MOD_CAPS_LOCK) != 0) { ret.set(mod::capslock); }
-	if ((glfw_mods & GLFW_MOD_NUM_LOCK) != 0) { ret.set(mod::numlock); }
+	if ((glfw_mods & GLFW_MOD_SHIFT) != 0) { ret.set(static_cast<std::size_t>(Mod::eShift)); }
+	if ((glfw_mods & GLFW_MOD_CONTROL) != 0) { ret.set(static_cast<std::size_t>(Mod::eCtrl)); }
+	if ((glfw_mods & GLFW_MOD_CONTROL) != 0) { ret.set(static_cast<std::size_t>(Mod::eCtrl)); }
+	if ((glfw_mods & GLFW_MOD_ALT) != 0) { ret.set(static_cast<std::size_t>(Mod::eAlt)); }
+	if ((glfw_mods & GLFW_MOD_SUPER) != 0) { ret.set(static_cast<std::size_t>(Mod::eSuper)); }
+	if ((glfw_mods & GLFW_MOD_CAPS_LOCK) != 0) { ret.set(static_cast<std::size_t>(Mod::eCapsLock)); }
+	if ((glfw_mods & GLFW_MOD_NUM_LOCK) != 0) { ret.set(static_cast<std::size_t>(Mod::eNumLock)); }
 	return ret;
 }
 } // namespace

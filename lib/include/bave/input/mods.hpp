@@ -2,25 +2,16 @@
 #include <bave/core/make_bitset.hpp>
 
 namespace bave {
-namespace mod {
-constexpr size_t none{0};
-constexpr size_t shift{1};
-constexpr size_t ctrl{2};
-constexpr size_t alt{3};
-constexpr size_t super{4};
-constexpr size_t capslock{5};
-constexpr size_t numlock{6};
-constexpr size_t count_v{numlock + 1};
-}; // namespace mod
+enum class Mod : int { eShift, eCtrl, eAlt, eSuper, eCapsLock, eNumLock, eCOUNT_ };
 
 /// \brief Bit flags for modifier keys.
-using KeyMods = std::bitset<mod::count_v>;
+using KeyMods = std::bitset<static_cast<std::size_t>(Mod::eCOUNT_)>;
 
 /// \brief Create KeyMods with mods set.
 /// \param mods mods to set.
 /// \returns KeyMods with mods set.
-template <std::convertible_to<std::size_t>... I>
+template <std::same_as<Mod>... I>
 constexpr auto make_key_mods(I const... mods) -> KeyMods {
-	return make_bitset<KeyMods>(mods...);
+	return make_bitset<KeyMods>(static_cast<std::size_t>(mods)...);
 }
 } // namespace bave

@@ -129,11 +129,11 @@ constexpr auto to_key_action(int const action) {
 
 constexpr auto to_key_mods(int const mods) {
 	auto ret = KeyMods{};
-	if ((mods & AMETA_CTRL_ON) != 0) { ret.set(mod::ctrl); }
-	if ((mods & AMETA_SHIFT_ON) != 0) { ret.set(mod::shift); }
-	if ((mods & AMETA_ALT_ON) != 0) { ret.set(mod::alt); }
-	if ((mods & AMETA_CAPS_LOCK_ON) != 0) { ret.set(mod::capslock); }
-	if ((mods & AMETA_NUM_LOCK_ON) != 0) { ret.set(mod::numlock); }
+	if ((mods & AMETA_CTRL_ON) != 0) { ret.set(static_cast<std::size_t>(Mod::eCtrl)); }
+	if ((mods & AMETA_SHIFT_ON) != 0) { ret.set(static_cast<std::size_t>(Mod::eShift)); }
+	if ((mods & AMETA_ALT_ON) != 0) { ret.set(static_cast<std::size_t>(Mod::eAlt)); }
+	if ((mods & AMETA_CAPS_LOCK_ON) != 0) { ret.set(static_cast<std::size_t>(Mod::eCapsLock)); }
+	if ((mods & AMETA_NUM_LOCK_ON) != 0) { ret.set(static_cast<std::size_t>(Mod::eNumLock)); }
 	return ret;
 }
 
