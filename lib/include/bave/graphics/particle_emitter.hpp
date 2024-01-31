@@ -37,12 +37,7 @@ class ParticleEmitter : public QuadShape {
 	enum class Modifier : int { eTranslate, eRotate, eScale, eTint, eCOUNT_ };
 	using Modifiers = std::bitset<static_cast<std::size_t>(Modifier::eCOUNT_)>;
 
-	template <std::same_as<Modifier>... I>
-	static auto make_modifiers(I const... modifiers) -> Modifiers {
-		return make_bitset<Modifiers>(static_cast<std::size_t>(modifiers)...);
-	}
-
-	inline static auto const all_modifiers_v = make_modifiers(Modifier::eTranslate, Modifier::eRotate, Modifier::eScale, Modifier::eTint);
+	inline static auto const all_modifiers_v = make_bitset<Modifiers>(Modifier::eTranslate, Modifier::eRotate, Modifier::eScale, Modifier::eTint);
 
 	using Config = ParticleConfig;
 
