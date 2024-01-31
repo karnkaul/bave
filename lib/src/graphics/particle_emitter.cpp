@@ -56,10 +56,10 @@ void ParticleEmitter::tick(Seconds dt) {
 		while (m_particles.size() < config.count) { m_particles.push_back(make_particle()); }
 	}
 
-	auto const do_translate = modifiers.test(Modifier::translate);
-	auto const do_rotate = modifiers.test(Modifier::rotate);
-	auto const do_scale = modifiers.test(Modifier::scale);
-	auto const do_tint = modifiers.test(Modifier::tint);
+	auto const do_translate = modifiers.test(static_cast<std::size_t>(Modifier::eTranslate));
+	auto const do_rotate = modifiers.test(static_cast<std::size_t>(Modifier::eRotate));
+	auto const do_scale = modifiers.test(static_cast<std::size_t>(Modifier::eScale));
+	auto const do_tint = modifiers.test(static_cast<std::size_t>(Modifier::eTint));
 
 	instances.resize(m_particles.size());
 	for (std::size_t index = 0; index < m_particles.size(); ++index) {

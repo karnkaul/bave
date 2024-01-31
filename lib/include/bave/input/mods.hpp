@@ -11,7 +11,7 @@ using KeyMods = std::bitset<static_cast<std::size_t>(Mod::eCOUNT_)>;
 /// \param mods mods to set.
 /// \returns KeyMods with mods set.
 template <std::same_as<Mod>... I>
-constexpr auto make_key_mods(I const... mods) -> KeyMods {
+auto make_key_mods(I const... mods) -> KeyMods {
 	return make_bitset<KeyMods>(static_cast<std::size_t>(mods)...);
 }
 } // namespace bave

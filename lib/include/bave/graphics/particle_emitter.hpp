@@ -34,16 +34,15 @@ struct ParticleConfig {
 /// \brief Particle Emitter.
 class ParticleEmitter : public QuadShape {
   public:
-	struct Modifier {
-		static constexpr std::size_t translate{0};
-		static constexpr std::size_t rotate{1};
-		static constexpr std::size_t scale{2};
-		static constexpr std::size_t tint{3};
+	enum class Modifier : int { eTranslate, eRotate, eScale, eTint, eCOUNT_ };
+	using Modifiers = std::bitset<static_cast<std::size_t>(Modifier::eCOUNT_)>;
 
-		static constexpr std::size_t count_v{tint + 1};
-	};
-	using Modifiers = std::bitset<Modifier::count_v>;
-	inline static auto const all_modifiers_v = make_bitset<Modifiers>(Modifier::translate, Modifier::rotate, Modifier::scale, Modifier::tint);
+	template <std::same_as<Modifier>... I>
+	static auto make_modifiers(I const... modifiers) -> Modifiers {
+		return make_bitset<Modifiers>(static_cast<std::size_t>(modifiers)...);
+	}
+
+	inline static auto const all_modifiers_v = make_modifiers(Modifier::eTranslate, Modifier::eRotate, Modifier::eScale, Modifier::eTint);
 
 	using Config = ParticleConfig;
 
