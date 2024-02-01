@@ -1,6 +1,6 @@
 #pragma once
+#include <bave/core/enum_flags.hpp>
 #include <bave/core/inclusive_range.hpp>
-#include <bave/core/make_bitset.hpp>
 #include <bave/core/time.hpp>
 #include <bave/graphics/shape.hpp>
 
@@ -35,9 +35,9 @@ struct ParticleConfig {
 class ParticleEmitter : public QuadShape {
   public:
 	enum class Modifier : int { eTranslate, eRotate, eScale, eTint, eCOUNT_ };
-	using Modifiers = std::bitset<static_cast<std::size_t>(Modifier::eCOUNT_)>;
+	using Modifiers = EnumFlags<Modifier>;
 
-	inline static auto const all_modifiers_v = make_bitset<Modifiers>(Modifier::eTranslate, Modifier::eRotate, Modifier::eScale, Modifier::eTint);
+	inline static auto const all_modifiers_v = Modifiers{Modifier::eTranslate, Modifier::eRotate, Modifier::eScale, Modifier::eTint};
 
 	using Config = ParticleConfig;
 

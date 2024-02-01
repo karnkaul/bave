@@ -43,7 +43,7 @@ void Runner::tick() {
 void Runner::render() const { m_active->render(); }
 
 void Runner::on_key(KeyInput const& key_input) {
-	if (key_input.action == Action::ePress && key_input.key == Key::eW && key_input.mods == make_key_mods(Mod::eCtrl)) { get_app().shutdown(); }
+	if (key_input.action == Action::ePress && key_input.key == Key::eW && key_input.mods == KeyMods(Mod::eCtrl)) { get_app().shutdown(); }
 	m_active->on_key(key_input);
 }
 

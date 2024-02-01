@@ -32,16 +32,15 @@ enum struct ErrCode : int { eSuccess = EXIT_SUCCESS, eFailure = EXIT_FAILURE };
 class App : public PolyPinned {
   public:
 	/// \brief Individual feature flags.
-	struct Feature {
-		static constexpr std::size_t resizeable{0};
-		static constexpr std::size_t has_title{1};
-		static constexpr std::size_t has_icon{2};
-		static constexpr std::size_t validation_layers{3};
-
-		static constexpr std::size_t count_v{8};
+	enum class Feature : int {
+		eResizeable,
+		eHasTitle,
+		eHasIcon,
+		eValidationLayers,
+		eCOUNT_,
 	};
 	/// \brief Bitset of feature flags.
-	using FeatureFlags = std::bitset<Feature::count_v>;
+	using FeatureFlags = EnumFlags<Feature>;
 
 	/// \brief Driver Factory.
 	using Bootloader = std::function<std::unique_ptr<class Driver>(App&)>;

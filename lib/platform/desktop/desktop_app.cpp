@@ -111,13 +111,13 @@ constexpr auto to_action(int const glfw_action) {
 
 constexpr auto to_mods(int const glfw_mods) {
 	auto ret = KeyMods{};
-	if ((glfw_mods & GLFW_MOD_SHIFT) != 0) { ret.set(static_cast<std::size_t>(Mod::eShift)); }
-	if ((glfw_mods & GLFW_MOD_CONTROL) != 0) { ret.set(static_cast<std::size_t>(Mod::eCtrl)); }
-	if ((glfw_mods & GLFW_MOD_CONTROL) != 0) { ret.set(static_cast<std::size_t>(Mod::eCtrl)); }
-	if ((glfw_mods & GLFW_MOD_ALT) != 0) { ret.set(static_cast<std::size_t>(Mod::eAlt)); }
-	if ((glfw_mods & GLFW_MOD_SUPER) != 0) { ret.set(static_cast<std::size_t>(Mod::eSuper)); }
-	if ((glfw_mods & GLFW_MOD_CAPS_LOCK) != 0) { ret.set(static_cast<std::size_t>(Mod::eCapsLock)); }
-	if ((glfw_mods & GLFW_MOD_NUM_LOCK) != 0) { ret.set(static_cast<std::size_t>(Mod::eNumLock)); }
+	if ((glfw_mods & GLFW_MOD_SHIFT) != 0) { ret.set(Mod::eShift); }
+	if ((glfw_mods & GLFW_MOD_CONTROL) != 0) { ret.set(Mod::eCtrl); }
+	if ((glfw_mods & GLFW_MOD_CONTROL) != 0) { ret.set(Mod::eCtrl); }
+	if ((glfw_mods & GLFW_MOD_ALT) != 0) { ret.set(Mod::eAlt); }
+	if ((glfw_mods & GLFW_MOD_SUPER) != 0) { ret.set(Mod::eSuper); }
+	if ((glfw_mods & GLFW_MOD_CAPS_LOCK) != 0) { ret.set(Mod::eCapsLock); }
+	if ((glfw_mods & GLFW_MOD_NUM_LOCK) != 0) { ret.set(Mod::eNumLock); }
 	return ret;
 }
 } // namespace
@@ -184,9 +184,7 @@ void DesktopApp::render() {
 
 void DesktopApp::do_shutdown() { glfwSetWindowShouldClose(m_window.get(), GLFW_TRUE); }
 
-auto DesktopApp::do_get_native_features() const -> FeatureFlags {
-	return make_bitset<FeatureFlags>(Feature::resizeable, Feature::has_title, Feature::has_icon);
-}
+auto DesktopApp::do_get_native_features() const -> FeatureFlags { return FeatureFlags{Feature::eResizeable, Feature::eHasTitle, Feature::eHasIcon}; }
 
 auto DesktopApp::do_get_window_size() const -> glm::ivec2 {
 	auto ret = glm::ivec2{};
@@ -357,7 +355,7 @@ void DesktopApp::update_gamepads() {
 		project_trigger(gamepad.axes.at(static_cast<std::size_t>(GamepadAxis::eRightTrigger)));
 		gamepad.button_states = {};
 		for (std::size_t b = 0; b < buttons.size(); ++b) {
-			if (buttons[b] == 0x1) { gamepad.button_states.set(b); }
+			if (buttons[b] == 0x1) { gamepad.button_states.set(static_cast<GamepadButton>(b)); }
 		}
 
 		static constexpr auto active_axis = [](float const value) { return value > 0.2f; };

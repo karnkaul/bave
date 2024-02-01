@@ -1,8 +1,8 @@
 #pragma once
 #include <bave/core/c_string.hpp>
+#include <bave/core/enum_flags.hpp>
 #include <bave/input/action.hpp>
 #include <array>
-#include <bitset>
 
 namespace bave {
 /// \brief Set of gamepad IDs.
@@ -66,7 +66,7 @@ struct Gamepad {
 	/// \brief ID of gamepad.
 	Id id{};
 	/// \brief Button states.
-	std::bitset<buttons_v> button_states{};
+	EnumFlags<Button> button_states{};
 	/// \brief Axis values.
 	std::array<float, axes_v> axes{};
 	/// \brief Reported name of gamepad.
@@ -77,7 +77,7 @@ struct Gamepad {
 	/// \brief Check if a button is pressed.
 	/// \param button Button to test for.
 	/// \returns true if pressed.
-	[[nodiscard]] auto is_pressed(Button const button) const -> bool { return button_states.test(static_cast<std::size_t>(button)); }
+	[[nodiscard]] auto is_pressed(Button const button) const -> bool { return button_states.test(button); }
 
 	/// \brief Obtain an axis value.
 	/// \param axis Axis to obtain value of.
