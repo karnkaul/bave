@@ -1,7 +1,6 @@
+#include <bave/core/enum_array.hpp>
 #include <bave/logger.hpp>
 #include <algorithm>
-#include <array>
-#include <chrono>
 #include <mutex>
 #include <thread>
 #include <unordered_map>
@@ -13,8 +12,8 @@ using namespace std::chrono_literals;
 constexpr std::size_t timestamp_size_v{16};
 
 constexpr auto to_char(log::Level const level) {
-	constexpr auto levels_v = std::array{'E', 'W', 'I', 'D'};
-	return levels_v.at(static_cast<std::size_t>(level));
+	constexpr auto levels_v = EnumArray<log::Level, char, 4>{'E', 'W', 'I', 'D'};
+	return levels_v.at(level);
 }
 
 auto get_timestamp() -> std::array<char, timestamp_size_v> {

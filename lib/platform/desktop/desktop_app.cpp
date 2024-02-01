@@ -351,8 +351,8 @@ void DesktopApp::update_gamepads() {
 		std::memcpy(gamepad.axes.data(), axes.data(), axes.size_bytes());
 		// adjust triggers to be in [0, 1], otherwise the rest value is -1.
 		static constexpr auto project_trigger = [](float& out) { out = (out + 1.0f) * 0.5f; };
-		project_trigger(gamepad.axes.at(static_cast<std::size_t>(GamepadAxis::eLeftTrigger)));
-		project_trigger(gamepad.axes.at(static_cast<std::size_t>(GamepadAxis::eRightTrigger)));
+		project_trigger(gamepad.axes.at(GamepadAxis::eLeftTrigger));
+		project_trigger(gamepad.axes.at(GamepadAxis::eRightTrigger));
 		gamepad.button_states = {};
 		for (std::size_t b = 0; b < buttons.size(); ++b) {
 			if (buttons[b] == 0x1) { gamepad.button_states.set(static_cast<GamepadButton>(b)); }

@@ -111,7 +111,7 @@ class App : public PolyPinned {
 	/// \pre id must be non-negative and less than GamepadId::eCOUNT_.
 	///
 	/// Currently gamepads are only processed on desktop.
-	[[nodiscard]] auto get_gamepad(GamepadId const id) const -> Gamepad const& { return m_gamepads.at(static_cast<std::size_t>(id)); }
+	[[nodiscard]] auto get_gamepad(GamepadId const id) const -> Gamepad const& { return m_gamepads.at(id); }
 	/// \brief Get the most recently used gamepad.
 	/// \returns Const reference to Gamepad.
 	///
@@ -129,7 +129,7 @@ class App : public PolyPinned {
 	[[nodiscard]] auto get_events() const -> std::span<Event const> { return m_events; }
 	[[nodiscard]] auto get_file_drops() const -> std::span<std::string const> { return m_drops; }
 	[[nodiscard]] auto get_active_pointers() const -> std::span<Pointer const> { return m_active_pointers; }
-	[[nodiscard]] auto get_gamepads() const -> std::span<Gamepad const, max_gamepads_v> { return m_gamepads; }
+	[[nodiscard]] auto get_gamepads() const -> EnumArray<GamepadId, Gamepad> const& { return m_gamepads; }
 	[[nodiscard]] auto get_gesture_recognizer() const -> GestureRecognizer const& { return m_gesture_recognizer; }
 	[[nodiscard]] auto get_key_state() const -> KeyState const& { return m_key_state; }
 	[[nodiscard]] auto get_dt() const -> Seconds { return m_dt.dt; }
@@ -153,7 +153,7 @@ class App : public PolyPinned {
 
 	Logger m_log{};
 	std::vector<Pointer> m_active_pointers{};
-	std::array<Gamepad, max_gamepads_v> m_gamepads{};
+	EnumArray<GamepadId, Gamepad> m_gamepads{};
 	Gamepad::Id m_most_recent_gamepad{};
 	GestureRecognizer m_gesture_recognizer{};
 	KeyState m_key_state{};

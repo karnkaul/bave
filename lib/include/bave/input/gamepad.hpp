@@ -1,5 +1,6 @@
 #pragma once
 #include <bave/core/c_string.hpp>
+#include <bave/core/enum_array.hpp>
 #include <bave/core/enum_flags.hpp>
 #include <bave/input/action.hpp>
 #include <array>
@@ -68,7 +69,7 @@ struct Gamepad {
 	/// \brief Button states.
 	EnumFlags<Button> button_states{};
 	/// \brief Axis values.
-	std::array<float, axes_v> axes{};
+	EnumArray<Axis, float> axes{};
 	/// \brief Reported name of gamepad.
 	CString name{};
 	/// \brief Whether the gamepad is connected.
@@ -85,6 +86,6 @@ struct Gamepad {
 	///
 	/// eLeftTrigger and eRightTrigger have a range of [0, 1].
 	/// All other axes have a range of [-1, 1].
-	[[nodiscard]] auto get_axis(Axis const axis) const -> float { return axes.at(static_cast<std::size_t>(axis)); }
+	[[nodiscard]] auto get_axis(Axis const axis) const -> float { return axes.at(axis); }
 };
 } // namespace bave
