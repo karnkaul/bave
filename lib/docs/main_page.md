@@ -5,4 +5,4 @@
 This documentation is a WIP.
 
 - <a href="files.html">File List</a>: all interface headers, effectively the entire public API.
-
+- [Changelog](changelog.md).
