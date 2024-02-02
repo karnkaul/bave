@@ -7,12 +7,20 @@
 #include <vector>
 
 namespace bave {
-/// \brief Base class for drawable objects.
-class Drawable : public Polymorphic {
+/// \brief Interface for all drawable types.
+class IDrawable : public Polymorphic {
   public:
 	/// \brief Draw this object using a given shader.
 	/// \param shader Shader instance to use.
-	void draw(Shader& shader) const;
+	virtual void draw(Shader& shader) const = 0;
+};
+
+/// \brief Base class for drawable objects.
+class Drawable : public IDrawable {
+  public:
+	/// \brief Draw this object using a given shader.
+	/// \param shader Shader instance to use.
+	void draw(Shader& shader) const final;
 
 	/// \brief Get the bounding rectangle of this instance.
 	[[nodiscard]] auto get_bounds() const -> Rect<>;

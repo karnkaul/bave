@@ -2,7 +2,7 @@
 #include <bave/core/enum_flags.hpp>
 #include <bave/core/inclusive_range.hpp>
 #include <bave/core/time.hpp>
-#include <bave/graphics/shape.hpp>
+#include <bave/graphics/sprite.hpp>
 
 namespace bave {
 /// \brief Configuration for a particle emitter.
@@ -32,7 +32,7 @@ struct ParticleConfig {
 };
 
 /// \brief Particle Emitter.
-class ParticleEmitter : public QuadShape {
+class ParticleEmitter : public Sprite {
   public:
 	enum class Modifier : int { eTranslate, eRotate, eScale, eTint, eCOUNT_ };
 	using Modifiers = EnumFlags<Modifier>;
@@ -78,5 +78,29 @@ class ParticleEmitter : public QuadShape {
 	[[nodiscard]] auto make_particle() const -> Particle;
 
 	std::vector<Particle> m_particles{};
+};
+
+/// \brief Container of ParticleEmitter instances.
+class ParticleSystem : public IDrawable {
+  public:
+	/// \brief Draw all emitters using a given shader.
+	/// \param shader Shader instance to use.
+	void draw(Shader& shader) const final {
+		for (auto const& emitter : emitters) { emitter.draw(shader); }
+	}
+
+	/// \brief Tick all emitters.
+	/// \param dt Delta time since last call.
+	void tick(Seconds const dt) {
+		for (auto& emitter : emitters) { emitter.tick(dt); }
+	}
+
+	/// \brief Respawn all emitters.
+	void respawn_all() {
+		for (auto& emitter : emitters) { emitter.respawn_all(); }
+	}
+
+	/// \brief Vector of emitters.
+	std::vector<ParticleEmitter> emitters{};
 };
 } // namespace bave
