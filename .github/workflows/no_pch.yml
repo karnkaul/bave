@@ -1,4 +1,4 @@
-name: no-pch
+name: ci
 on: [pull_request]
 jobs:
   build-linux-no-pch:

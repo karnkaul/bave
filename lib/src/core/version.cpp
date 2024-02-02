@@ -1,5 +1,5 @@
-#include <bave/core/version.hpp>
 #include <fmt/format.h>
+#include <bave/core/version.hpp>
 #include <sstream>
 
 namespace bave {

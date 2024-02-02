@@ -1,0 +1,11 @@
+name: ci
+on: [push]
+jobs:
+  format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: format code
+        run: tools/format_code.sh
+      - name: check diff
+        run: .github/format_check_diff.sh
