@@ -6,6 +6,7 @@
 namespace bave::tools {
 class NineSlicer : public Applet {
 	void tick() final;
+	void render(Shader& shader) const final;
 
 	void file_menu_items() final;
 	auto load_new_uri(std::string_view uri) -> bool final;
@@ -30,11 +31,11 @@ class NineSlicer : public Applet {
 	Logger m_log{"NineSlicer"};
 	Loader m_loader;
 
-	Ptr<NineQuadShape> m_image_quad{};
-	Ptr<QuadShape> m_top{};
-	Ptr<QuadShape> m_bottom{};
-	Ptr<QuadShape> m_left{};
-	Ptr<QuadShape> m_right{};
+	NineQuadShape m_image_quad{};
+	QuadShape m_top{};
+	QuadShape m_bottom{};
+	QuadShape m_left{};
+	QuadShape m_right{};
 
 	std::string m_image_uri{};
 	std::string m_json_uri{};
