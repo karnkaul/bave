@@ -40,7 +40,7 @@ class Animator : public Applet {
 	Logger m_log{"Animator"};
 	Loader m_loader;
 
-	CustomShape m_rect{};
+	LineRectShape m_rect{};
 	QuadShape m_separator{};
 	QuadShape m_image_quad{};
 	SpriteAnim m_sprite{};

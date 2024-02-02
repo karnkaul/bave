@@ -35,16 +35,18 @@ void Drawable::Primitive::write(Geometry const& geometry) {
 
 	verts = static_cast<std::uint32_t>(geometry.vertices.size());
 	indices = static_cast<std::uint32_t>(geometry.indices.size());
+	topology = geometry.topology;
 }
 
 void Drawable::Primitive::clear() {
 	bytes.clear();
 	ibo_offset = 0;
 	verts = indices = 0;
+	topology = Topology::eTriangleStrip;
 }
 
 Drawable::Primitive::operator RenderPrimitive() const {
-	return RenderPrimitive{.bytes = bytes, .ibo_offset = ibo_offset, .vertices = verts, .indices = indices};
+	return RenderPrimitive{.bytes = bytes, .ibo_offset = ibo_offset, .vertices = verts, .indices = indices, .topology = topology};
 }
 
 void Drawable::draw(Shader& shader) const {

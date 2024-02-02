@@ -6,10 +6,11 @@
 namespace bave::tools {
 namespace fs = std::filesystem;
 
-// TODO: colliders
 Tiler::Tiler(App& app, NotNull<std::shared_ptr<State>> const& state)
 	: Applet(app, state), m_loader(&get_app().get_data_store(), &get_app().get_render_device()) {
 	load_previous();
+
+	Shader::default_line_width = 3.0f;
 }
 
 void Tiler::tick() {
@@ -32,15 +33,11 @@ void Tiler::tick() {
 void Tiler::render(Shader& shader) const {
 	m_sprite.draw(shader);
 
-	shader.set_line_strip(m_outline_width);
-
 	glm::ivec2 const size = m_sprite.get_size();
 	auto const origin_offset = 0.5f * glm::vec2{-size.x, size.y};
 
-	auto tile_rect = CustomShape{};
-	tile_rect.tint = m_tile_rgba;
-	auto collider_rect = CustomShape{};
-	collider_rect.tint = m_collider_rgba;
+	auto outline = LineRectShape{};
+	outline.tint = m_tile_rgba;
 
 	for (auto const& block : m_blocks) {
 		auto local_origin = 0.5f * glm::vec2{block.tile.image_rect.lt + block.tile.image_rect.rb};
@@ -48,10 +45,11 @@ void Tiler::render(Shader& shader) const {
 		auto rect = LineRect{};
 		rect.origin = origin_offset + local_origin;
 		rect.size = glm::vec2{block.tile.image_rect.rb - block.tile.image_rect.lt};
-		tile_rect.set_geometry(rect.to_geometry());
-		tile_rect.draw(shader);
+		outline.set_shape(rect);
+		outline.draw(shader);
 	}
 
+	outline.tint = m_collider_rgba;
 	for (auto const& block : m_blocks) {
 		for (auto const& collider : block.tile.colliders) {
 			auto local_origin = 0.5f * glm::vec2{collider.lt + collider.rb};
@@ -59,8 +57,8 @@ void Tiler::render(Shader& shader) const {
 			auto rect = LineRect{};
 			rect.origin = origin_offset + local_origin;
 			rect.size = glm::vec2{collider.rb - collider.lt};
-			collider_rect.set_geometry(rect.to_geometry());
-			collider_rect.draw(shader);
+			outline.set_shape(rect);
+			outline.draw(shader);
 		}
 	}
 }

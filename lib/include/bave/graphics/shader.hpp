@@ -11,10 +11,9 @@ class Shader {
   public:
 	static constexpr auto max_textures_v = detail::SetLayout::max_textures_v;
 
-	explicit Shader(NotNull<class Renderer const*> renderer, vk::ShaderModule vertex, vk::ShaderModule fragment);
+	inline static auto default_line_width{1.0f}; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-	void set_line_strip(float line_width);
-	void set_tri_strip();
+	explicit Shader(NotNull<class Renderer const*> renderer, vk::ShaderModule vertex, vk::ShaderModule fragment);
 
 	auto update_texture(CombinedImageSampler cis, std::uint32_t binding = 0) -> bool;
 	void update_textures(std::span<CombinedImageSampler const, max_textures_v> cis);
@@ -24,8 +23,7 @@ class Shader {
 
 	void draw(RenderPrimitive const& primitive, std::span<RenderInstance::Baked const> instances);
 
-	float line_width{1.0f};
-	vk::PrimitiveTopology topology{vk::PrimitiveTopology::eTriangleList};
+	float line_width{default_line_width};
 	vk::PolygonMode polygon_mode{vk::PolygonMode::eFill};
 
   private:

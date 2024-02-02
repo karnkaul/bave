@@ -49,6 +49,7 @@ class Drawable : public IDrawable {
 		std::uint32_t verts{};
 		std::uint32_t indices{};
 		std::size_t ibo_offset{};
+		Topology topology{};
 
 		void write(Geometry const& geometry);
 		void clear();

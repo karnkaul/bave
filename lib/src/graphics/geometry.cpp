@@ -69,6 +69,7 @@ struct QuadWriter {
 			0, 1, 2, 3, 0,
 		};
 		out.append(vertices, indices);
+		out.topology = Topology::eLineStrip;
 	}
 
 	[[nodiscard]] static auto make_vertices(Quad const& quad) -> std::array<Vertex, 4> {

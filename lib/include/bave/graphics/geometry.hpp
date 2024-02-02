@@ -2,6 +2,7 @@
 #include <bave/core/radians.hpp>
 #include <bave/graphics/rect.hpp>
 #include <bave/graphics/rgba.hpp>
+#include <bave/graphics/topology.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -26,6 +27,7 @@ struct LineRect;
 struct Geometry {
 	std::vector<Vertex> vertices{};
 	std::vector<std::uint32_t> indices{};
+	Topology topology{Topology::eTriangleStrip};
 
 	auto append(std::span<Vertex const> vs, std::span<std::uint32_t const> is) -> Geometry&;
 
@@ -112,5 +114,7 @@ struct NineQuad {
 	auto operator==(NineQuad const&) const -> bool = default;
 };
 
-struct LineRect : Quad {};
+struct LineRect : Quad {
+	[[nodiscard]] auto to_geometry() const -> Geometry { return Geometry::from(*this); }
+};
 } // namespace bave
