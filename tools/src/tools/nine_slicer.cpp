@@ -28,7 +28,7 @@ void NineSlicer::tick() {
 		if (ImGui::CollapsingHeader("Misc")) {
 			clear_colour_control();
 			zoom_control("Zoom", main_view.scale);
-			wireframe_control();
+			ImGui::Checkbox("Wireframe", &m_wireframe);
 		}
 	}
 	ImGui::End();
@@ -40,8 +40,13 @@ void NineSlicer::tick() {
 }
 
 void NineSlicer::render(Shader& shader) const {
+	if (m_wireframe) {
+		shader.line_width = 3.0f;
+		shader.polygon_mode = vk::PolygonMode::eLine;
+	}
 	m_image_quad.draw(shader);
 
+	shader.polygon_mode = vk::PolygonMode::eFill;
 	m_top.draw(shader);
 	m_bottom.draw(shader);
 	m_left.draw(shader);

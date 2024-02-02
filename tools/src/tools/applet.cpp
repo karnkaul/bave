@@ -115,8 +115,6 @@ void Applet::zoom_control(CString label, glm::vec2& out_scale) {
 	if (ImGui::SmallButton("Reset")) { out_scale = glm::vec2{1.0f}; }
 }
 
-void Applet::wireframe_control() { ImGui::Checkbox("Wireframe", &wireframe); }
-
 void Applet::clear_colour_control() {
 	auto rgba = clear_colour.to_vec4();
 	if (ImGui::ColorEdit3("clear colour", &rgba.x)) { clear_colour = Rgba::from(rgba); }

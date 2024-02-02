@@ -52,7 +52,6 @@ class Applet : public Polymorphic {
 	static auto drag_ivec2(CString label, glm::ivec2& out, InclusiveRange<glm::ivec2> range = {}, float width = 50.0f) -> bool;
 	static auto drag_irect(Rect<int>& out, InclusiveRange<Rect<int>> range = {}, bool positional = true) -> bool;
 
-	void wireframe_control();
 	void clear_colour_control();
 	static void zoom_control(CString label, glm::vec2& out_scale);
 	static void image_meta_control(std::string_view image_uri, glm::ivec2 size);
@@ -71,7 +70,6 @@ class Applet : public Polymorphic {
 
 	float zoom_scroll_rate{0.1f};
 	Transform main_view{};
-	bool wireframe{};
 
   private:
 	Logger m_log{"Applet"};

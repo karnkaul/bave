@@ -40,6 +40,7 @@ class NineSlicer : public Applet {
 	std::string m_image_uri{};
 	std::string m_json_uri{};
 
+	bool m_wireframe{};
 	bool m_unsaved{};
 
   public:
