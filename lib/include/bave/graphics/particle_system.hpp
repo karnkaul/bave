@@ -67,15 +67,18 @@ class ParticleEmitter : public Sprite {
 		Transform transform{};
 		Rgba tint{};
 		Seconds elapsed{};
-		float alpha{};
 
 		void translate(Seconds dt);
 		void rotate(Seconds dt);
-		void scaleify();
-		void tintify();
+		void scaleify(float alpha);
+		void tintify(float alpha);
 	};
 
 	[[nodiscard]] auto make_particle() const -> Particle;
+
+	void refresh_particles();
+	void tick_particles(Seconds dt);
+	void sync_instances();
 
 	std::vector<Particle> m_particles{};
 };

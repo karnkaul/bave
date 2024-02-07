@@ -15,8 +15,24 @@ auto random_vec2(InclusiveRange<glm::vec2> const& range) {
 
 void ParticleEmitter::Particle::translate(Seconds const dt) { transform.position += velocity.linear * dt.count(); }
 void ParticleEmitter::Particle::rotate(Seconds const dt) { transform.rotation.value += velocity.angular.value * dt.count(); }
-void ParticleEmitter::Particle::scaleify() { transform.scale = glm::mix(lerp.scale.lo, lerp.scale.hi, alpha); }
-void ParticleEmitter::Particle::tintify() { tint.channels = glm::mix(lerp.tint.lo.channels, lerp.tint.hi.channels, alpha); }
+void ParticleEmitter::Particle::scaleify(float const alpha) { transform.scale = glm::mix(lerp.scale.lo, lerp.scale.hi, alpha); }
+void ParticleEmitter::Particle::tintify(float const alpha) { tint.channels = glm::mix(lerp.tint.lo.channels, lerp.tint.hi.channels, alpha); }
+
+void ParticleEmitter::respawn_all() {
+	m_particles.clear();
+	m_particles.reserve(config.count);
+	auto respawn = config.respawn;
+	config.respawn = true;
+	refresh_particles();
+	config.respawn = respawn;
+}
+
+void ParticleEmitter::tick(Seconds dt) {
+	refresh_particles();
+	tick_particles(dt);
+	sync_instances();
+	set_shape(Quad{.size = config.quad_size});
+}
 
 auto ParticleEmitter::make_particle() const -> Particle {
 	auto ret = Particle{};
@@ -39,42 +55,36 @@ auto ParticleEmitter::make_particle() const -> Particle {
 	return ret;
 }
 
-void ParticleEmitter::respawn_all() {
-	m_particles.clear();
-	m_particles.reserve(config.count);
-	auto respawn = config.respawn;
-	config.respawn = true;
-	tick({});
-	config.respawn = respawn;
-}
-
-void ParticleEmitter::tick(Seconds dt) {
+void ParticleEmitter::refresh_particles() {
 	std::erase_if(m_particles, [](Particle const& p) { return p.elapsed >= p.ttl; });
 
 	if (config.respawn) {
 		m_particles.reserve(config.count);
 		while (m_particles.size() < config.count) { m_particles.push_back(make_particle()); }
 	}
+}
 
+void ParticleEmitter::tick_particles(Seconds const dt) {
 	auto const do_translate = modifiers.test(Modifier::eTranslate);
 	auto const do_rotate = modifiers.test(Modifier::eRotate);
 	auto const do_scale = modifiers.test(Modifier::eScale);
 	auto const do_tint = modifiers.test(Modifier::eTint);
 
-	instances.resize(m_particles.size());
-	for (std::size_t index = 0; index < m_particles.size(); ++index) {
-		auto& particle = m_particles.at(index);
-		auto& instance = instances.at(index);
+	for (auto& particle : m_particles) {
 		particle.elapsed += dt;
-		particle.alpha = std::clamp(particle.elapsed / particle.ttl, 0.0f, 1.0f);
+		auto const alpha = std::clamp(particle.elapsed / particle.ttl, 0.0f, 1.0f);
 		if (do_translate) { particle.translate(dt); }
 		if (do_rotate) { particle.rotate(dt); }
-		if (do_scale) { particle.scaleify(); }
-		if (do_tint) { particle.tintify(); }
-		instance.transform = particle.transform;
-		instance.tint = particle.tint;
+		if (do_scale) { particle.scaleify(alpha); }
+		if (do_tint) { particle.tintify(alpha); }
 	}
+}
 
-	set_shape(Quad{.size = config.quad_size});
+void ParticleEmitter::sync_instances() {
+	instances.resize(m_particles.size());
+	for (std::size_t index = 0; index < m_particles.size(); ++index) {
+		auto const& particle = m_particles.at(index);
+		instances.at(index) = RenderInstance{.transform = particle.transform, .tint = particle.tint};
+	}
 }
 } // namespace bave
