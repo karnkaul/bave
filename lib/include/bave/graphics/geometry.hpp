@@ -27,7 +27,7 @@ struct LineRect;
 struct Geometry {
 	std::vector<Vertex> vertices{};
 	std::vector<std::uint32_t> indices{};
-	Topology topology{Topology::eTriangleStrip};
+	Topology topology{Topology::eTriangleList};
 
 	auto append(std::span<Vertex const> vs, std::span<std::uint32_t const> is) -> Geometry&;
 

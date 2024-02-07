@@ -125,7 +125,7 @@ auto make_buffer_bindings(detail::BufferCache& scratch_buffer_cache, Ptr<detail:
 [[nodiscard]] constexpr auto to_topology(Topology const in) {
 	switch (in) {
 	case Topology::eLineStrip: return vk::PrimitiveTopology::eLineStrip;
-	default: return vk::PrimitiveTopology::eTriangleStrip;
+	default: return vk::PrimitiveTopology::eTriangleList;
 	}
 }
 } // namespace

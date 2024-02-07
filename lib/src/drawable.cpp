@@ -42,7 +42,7 @@ void Drawable::Primitive::clear() {
 	bytes.clear();
 	ibo_offset = 0;
 	verts = indices = 0;
-	topology = Topology::eTriangleStrip;
+	topology = Topology::eTriangleList;
 }
 
 Drawable::Primitive::operator RenderPrimitive() const {
