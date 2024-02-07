@@ -73,7 +73,7 @@ auto Font::Pen::generate_quads(Geometry& out, std::string_view line) -> Pen& {
 			.rgba = vertex_colour,
 			.origin = rect.centre(),
 		};
-		out.append(quad);
+		out.vertex_array.append(quad);
 		cursor += m_scale * glm::vec2{glyph.advance};
 	});
 	return *this;

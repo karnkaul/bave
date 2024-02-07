@@ -32,7 +32,7 @@ void Animator::tick() {
 
 		auto outline = LineRect{};
 		outline.size = glm::vec2{tile->get_size()} * size_ratio;
-		m_rect.set_geometry(Geometry::from(outline));
+		m_rect.set_shape(outline);
 
 		auto const top_left = (glm::vec2{glm::ivec2{tile->image_rect.lt.x, -tile->image_rect.lt.y} + glm::ivec2{-tex_size.x / 2, tex_size.y / 2}}) * size_ratio;
 		auto const centre = top_left + 0.5f * glm::vec2{outline.size.x, -outline.size.y};
@@ -60,7 +60,6 @@ void Animator::render(Shader& shader) const {
 
 	render_view.transform = m_top_view;
 	render_view.n_scissor = top_scissor;
-	shader.set_line_strip(2.0f);
 	m_rect.draw(shader);
 }
 
@@ -256,7 +255,9 @@ void Animator::new_timeline() {
 	m_sprite.set_timeline(m_timeline);
 	m_sprite.set_uv(uv_rect_v);
 
-	m_rect.set_geometry({});
+	auto rect = LineRect{};
+	rect.size = {};
+	m_rect.set_shape(rect);
 	m_unsaved = false;
 
 	state->animator.last_timeline.clear();

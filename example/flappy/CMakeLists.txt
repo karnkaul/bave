@@ -26,7 +26,7 @@ if(BAVE_BUILD_SHADERS)
   if("${glslc}" STREQUAL "glslc-NOTFOUND")
     message(WARNING "Cannot build shaders: glslc not found")
   else()
-    add_custom_target(glsl2spirv ALL
+    add_custom_target(bave-glsl2spirv ALL
       COMMENT "Building shaders"
       WORKING_DIRECTORY .
 
@@ -38,6 +38,6 @@ if(BAVE_BUILD_SHADERS)
       VERBATIM USES_TERMINAL
     )
 
-    add_dependencies(${PROJECT_NAME} glsl2spirv)
+    add_dependencies(${PROJECT_NAME} bave-glsl2spirv)
   endif()
 endif()

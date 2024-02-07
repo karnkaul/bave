@@ -21,7 +21,7 @@ class CustomShape : public BasicShape {
 	void set_geometry(Geometry geometry) { Drawable::set_geometry(std::move(geometry)); }
 };
 
-/// \brief Class template for all shape specs.
+/// \brief Class template for all shapes.
 template <typename ShapeT>
 class Shape : public BasicShape {
   public:
@@ -45,4 +45,5 @@ using QuadShape = Shape<Quad>;
 using CircleShape = Shape<Circle>;
 using RoundedQuadShape = Shape<RoundedQuad>;
 using NineQuadShape = Shape<NineQuad>;
+using LineRectShape = Shape<LineRect>;
 } // namespace bave

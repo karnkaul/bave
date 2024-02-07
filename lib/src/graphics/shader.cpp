@@ -121,18 +121,18 @@ auto make_buffer_bindings(detail::BufferCache& scratch_buffer_cache, Ptr<detail:
 		BufferBinding{.resource = custom_ssbo, .binding = 1},
 	};
 }
+
+[[nodiscard]] constexpr auto to_topology(Topology const in) {
+	switch (in) {
+	case Topology::eLineStrip: return vk::PrimitiveTopology::eLineStrip;
+	default: return vk::PrimitiveTopology::eTriangleList;
+	}
+}
 } // namespace
 
 Shader::Shader(NotNull<Renderer const*> renderer, vk::ShaderModule vertex, vk::ShaderModule fragment) : m_renderer(renderer), m_vert(vertex), m_frag(fragment) {
 	set_viewport();
 }
-
-void Shader::set_line_strip(float const line_width) {
-	this->line_width = line_width;
-	topology = vk::PrimitiveTopology::eLineStrip;
-}
-
-void Shader::set_tri_strip() { topology = vk::PrimitiveTopology::eTriangleStrip; }
 
 auto Shader::update_texture(CombinedImageSampler const cis, std::uint32_t binding) -> bool {
 	if (binding >= m_sets.cis.size()) { return false; }
@@ -164,6 +164,7 @@ void Shader::draw(RenderPrimitive const& primitive, std::span<RenderInstance::Ba
 	if (!command_buffer || primitive.bytes.empty() || instances.empty()) { return; }
 
 	auto& pipeline_cache = m_renderer->get_pipeline_cache();
+	auto const topology = to_topology(primitive.topology);
 	auto const pipeline_state = detail::PipelineCache::State{.line_width = line_width, .topology = topology, .polygon_mode = polygon_mode};
 	auto pipeline = pipeline_cache.load_pipeline({.vertex = m_vert, .fragment = m_frag}, pipeline_state);
 	if (!pipeline) { return; }

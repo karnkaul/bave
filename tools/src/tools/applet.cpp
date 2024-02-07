@@ -52,14 +52,6 @@ void Applet::save_state() {
 	}
 }
 
-void Applet::render(Shader& shader) const {
-	if (wireframe) {
-		shader.polygon_mode = vk::PolygonMode::eLine;
-		shader.line_width = 3.0f;
-	}
-	for (auto const& drawable : drawables) { drawable->draw(shader); }
-}
-
 void Applet::change_zoom(float delta, glm::vec2 /*cursor_position*/) { main_view.scale = zoom_scale_range_v.clamp(main_view.scale + delta); }
 
 auto Applet::auto_zoom(glm::vec2 const content_area, glm::vec2 const pad) const -> glm::vec2 {
@@ -122,8 +114,6 @@ void Applet::zoom_control(CString label, glm::vec2& out_scale) {
 	ImGui::SameLine();
 	if (ImGui::SmallButton("Reset")) { out_scale = glm::vec2{1.0f}; }
 }
-
-void Applet::wireframe_control() { ImGui::Checkbox("Wireframe", &wireframe); }
 
 void Applet::clear_colour_control() {
 	auto rgba = clear_colour.to_vec4();

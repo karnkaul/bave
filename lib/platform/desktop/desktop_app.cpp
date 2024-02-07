@@ -19,6 +19,7 @@
 namespace bave {
 namespace fs = std::filesystem;
 
+namespace {
 class FileLogger {
   public:
 	FileLogger(FileLogger const&) = delete;
@@ -81,6 +82,7 @@ class FileLogger {
 };
 
 auto g_file_logger = std::unique_ptr<FileLogger>{}; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+} // namespace
 
 void log::internal::log_message(char level, CString tag, CString message) {
 	auto const formatted = format_full(level, tag, message);
@@ -109,13 +111,13 @@ constexpr auto to_action(int const glfw_action) {
 
 constexpr auto to_mods(int const glfw_mods) {
 	auto ret = KeyMods{};
-	if ((glfw_mods & GLFW_MOD_SHIFT) != 0) { ret.set(mod::shift); }
-	if ((glfw_mods & GLFW_MOD_CONTROL) != 0) { ret.set(mod::ctrl); }
-	if ((glfw_mods & GLFW_MOD_CONTROL) != 0) { ret.set(mod::ctrl); }
-	if ((glfw_mods & GLFW_MOD_ALT) != 0) { ret.set(mod::alt); }
-	if ((glfw_mods & GLFW_MOD_SUPER) != 0) { ret.set(mod::super); }
-	if ((glfw_mods & GLFW_MOD_CAPS_LOCK) != 0) { ret.set(mod::capslock); }
-	if ((glfw_mods & GLFW_MOD_NUM_LOCK) != 0) { ret.set(mod::numlock); }
+	if ((glfw_mods & GLFW_MOD_SHIFT) != 0) { ret.set(Mod::eShift); }
+	if ((glfw_mods & GLFW_MOD_CONTROL) != 0) { ret.set(Mod::eCtrl); }
+	if ((glfw_mods & GLFW_MOD_CONTROL) != 0) { ret.set(Mod::eCtrl); }
+	if ((glfw_mods & GLFW_MOD_ALT) != 0) { ret.set(Mod::eAlt); }
+	if ((glfw_mods & GLFW_MOD_SUPER) != 0) { ret.set(Mod::eSuper); }
+	if ((glfw_mods & GLFW_MOD_CAPS_LOCK) != 0) { ret.set(Mod::eCapsLock); }
+	if ((glfw_mods & GLFW_MOD_NUM_LOCK) != 0) { ret.set(Mod::eNumLock); }
 	return ret;
 }
 } // namespace
@@ -160,6 +162,7 @@ auto DesktopApp::setup() -> std::optional<ErrCode> {
 
 void DesktopApp::poll_events() {
 	glfwPollEvents();
+	update_gamepads();
 	m_driver->handle_events(get_events());
 	if (auto const drops = get_file_drops(); !drops.empty()) { m_driver->on_drop(drops); }
 }
@@ -181,9 +184,7 @@ void DesktopApp::render() {
 
 void DesktopApp::do_shutdown() { glfwSetWindowShouldClose(m_window.get(), GLFW_TRUE); }
 
-auto DesktopApp::do_get_native_features() const -> FeatureFlags {
-	return make_bitset<FeatureFlags>(Feature::resizeable, Feature::has_title, Feature::has_icon);
-}
+auto DesktopApp::do_get_native_features() const -> FeatureFlags { return FeatureFlags{Feature::eResizeable, Feature::eHasTitle, Feature::eHasIcon}; }
 
 auto DesktopApp::do_get_window_size() const -> glm::ivec2 {
 	auto ret = glm::ivec2{};
@@ -332,5 +333,33 @@ void DesktopApp::init_graphics() {
 	m_render_device = std::make_unique<RenderDevice>(this, RenderDevice::CreateInfo{.validation_layers = m_create_info.validation_layers});
 	m_renderer = std::make_unique<Renderer>(m_render_device.get(), &get_data_store());
 	m_dear_imgui = std::make_unique<detail::DearImGui>(m_window.get(), *m_render_device, m_renderer->get_render_pass());
+}
+
+void DesktopApp::update_gamepads() {
+	for (auto& gamepad : m_gamepads) {
+		auto state = GLFWgamepadstate{};
+		if (glfwGetGamepadState(static_cast<int>(gamepad.id), &state) != GLFW_TRUE) {
+			gamepad = Gamepad{.id = gamepad.id};
+			continue;
+		}
+
+		gamepad.connected = true;
+		gamepad.name = glfwGetGamepadName(static_cast<int>(gamepad.id));
+
+		auto const buttons = std::span{state.buttons};
+		auto const axes = std::span{state.axes};
+		std::memcpy(gamepad.axes.data(), axes.data(), axes.size_bytes());
+		// adjust triggers to be in [0, 1], otherwise the rest value is -1.
+		static constexpr auto project_trigger = [](float& out) { out = (out + 1.0f) * 0.5f; };
+		project_trigger(gamepad.axes.at(GamepadAxis::eLeftTrigger));
+		project_trigger(gamepad.axes.at(GamepadAxis::eRightTrigger));
+		gamepad.button_states = {};
+		for (std::size_t b = 0; b < buttons.size(); ++b) {
+			if (buttons[b] == 0x1) { gamepad.button_states.set(static_cast<GamepadButton>(b)); }
+		}
+
+		static constexpr auto active_axis = [](float const value) { return value > 0.2f; };
+		if (gamepad.button_states != 0 || std::any_of(gamepad.axes.begin(), gamepad.axes.end(), active_axis)) { m_most_recent_gamepad = gamepad.id; }
+	}
 }
 } // namespace bave

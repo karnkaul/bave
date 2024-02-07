@@ -8,13 +8,7 @@ namespace fs = std::filesystem;
 
 NineSlicer::NineSlicer(App& app, NotNull<std::shared_ptr<State>> const& state)
 	: Applet(app, state), m_loader(&get_app().get_data_store(), &get_app().get_render_device()) {
-	m_image_quad = push(std::make_unique<NineQuadShape>());
-	m_top = push(std::make_unique<QuadShape>());
-	m_bottom = push(std::make_unique<QuadShape>());
-	m_left = push(std::make_unique<QuadShape>());
-	m_right = push(std::make_unique<QuadShape>());
-
-	m_top->tint = m_bottom->tint = m_left->tint = m_right->tint = red_v;
+	m_top.tint = m_bottom.tint = m_left.tint = m_right.tint = red_v;
 
 	load_previous();
 }
@@ -22,7 +16,7 @@ NineSlicer::NineSlicer(App& app, NotNull<std::shared_ptr<State>> const& state)
 void NineSlicer::tick() {
 	Applet::tick();
 
-	auto nine_quad = m_image_quad->get_shape();
+	auto nine_quad = m_image_quad.get_shape();
 	begin_sidepanel_window("Nine Slice");
 	{
 		if (ImGui::CollapsingHeader("Nine Slice", ImGuiTreeNodeFlags_DefaultOpen)) { slice_control(nine_quad.slice); }
@@ -34,15 +28,29 @@ void NineSlicer::tick() {
 		if (ImGui::CollapsingHeader("Misc")) {
 			clear_colour_control();
 			zoom_control("Zoom", main_view.scale);
-			wireframe_control();
+			ImGui::Checkbox("Wireframe", &m_wireframe);
 		}
 	}
 	ImGui::End();
 
-	m_image_quad->set_shape(nine_quad);
+	m_image_quad.set_shape(nine_quad);
 
 	resize_guides();
 	position_guides();
+}
+
+void NineSlicer::render(Shader& shader) const {
+	if (m_wireframe) {
+		shader.line_width = 3.0f;
+		shader.polygon_mode = vk::PolygonMode::eLine;
+	}
+	m_image_quad.draw(shader);
+
+	shader.polygon_mode = vk::PolygonMode::eFill;
+	m_top.draw(shader);
+	m_bottom.draw(shader);
+	m_left.draw(shader);
+	m_right.draw(shader);
 }
 
 void NineSlicer::file_menu_items() {
@@ -94,32 +102,32 @@ void NineSlicer::slice_control(NineSlice& out) {
 
 void NineSlicer::metadata_control() {
 	auto const size = [&]() -> glm::ivec2 {
-		if (auto const& texture = m_image_quad->get_texture()) { return texture->get_size(); }
+		if (auto const& texture = m_image_quad.get_texture()) { return texture->get_size(); }
 		return {};
 	}();
 	image_meta_control(m_image_uri, size);
 }
 
 void NineSlicer::resize_guides() {
-	auto const vert_size = glm::vec2{m_image_quad->get_shape().size.current.x + 100.0f, 3.0f};
-	auto const horz_size = glm::vec2{3.0f, m_image_quad->get_shape().size.current.y + 100.0f};
-	m_top->set_shape(Quad{.size = vert_size});
-	m_bottom->set_shape(Quad{.size = vert_size});
-	m_left->set_shape(Quad{.size = horz_size});
-	m_right->set_shape(Quad{.size = horz_size});
+	auto const vert_size = glm::vec2{m_image_quad.get_shape().size.current.x + 100.0f, 3.0f};
+	auto const horz_size = glm::vec2{3.0f, m_image_quad.get_shape().size.current.y + 100.0f};
+	m_top.set_shape(Quad{.size = vert_size});
+	m_bottom.set_shape(Quad{.size = vert_size});
+	m_left.set_shape(Quad{.size = horz_size});
+	m_right.set_shape(Quad{.size = horz_size});
 }
 
 void NineSlicer::position_guides() {
-	auto const& nine_slice = m_image_quad->get_shape();
+	auto const& nine_slice = m_image_quad.get_shape();
 	auto const sized_slice = NineSlice{
 		.n_left_top = nine_slice.slice.n_left_top * nine_slice.size.reference,
 		.n_right_bottom = (1.0f - nine_slice.slice.n_right_bottom) * nine_slice.size.reference,
 	};
 	auto const half_size = 0.5f * nine_slice.size.current;
-	m_top->transform.position.y = half_size.y - sized_slice.n_left_top.y;
-	m_bottom->transform.position.y = -half_size.y + sized_slice.n_right_bottom.y;
-	m_left->transform.position.x = half_size.x - sized_slice.n_right_bottom.x;
-	m_right->transform.position.x = -half_size.x + sized_slice.n_left_top.x;
+	m_top.transform.position.y = half_size.y - sized_slice.n_left_top.y;
+	m_bottom.transform.position.y = -half_size.y + sized_slice.n_right_bottom.y;
+	m_left.transform.position.x = half_size.x - sized_slice.n_right_bottom.x;
+	m_right.transform.position.x = -half_size.x + sized_slice.n_left_top.x;
 }
 
 auto NineSlicer::load_uri(std::string_view const uri) -> bool {
@@ -141,8 +149,8 @@ auto NineSlicer::load_image_at(std::string_view const uri) -> bool {
 	if (!texture) { return false; }
 
 	glm::vec2 const image_size = texture->get_size();
-	m_image_quad->set_texture(std::move(texture));
-	m_image_quad->set_shape(NineQuad{.size = image_size});
+	m_image_quad.set_texture(std::move(texture));
+	m_image_quad.set_shape(NineQuad{.size = image_size});
 
 	m_image_uri = uri;
 	m_json_uri.clear();
@@ -155,8 +163,8 @@ auto NineSlicer::load_image_at(std::string_view const uri) -> bool {
 }
 
 void NineSlicer::new_slice() {
-	m_image_quad->set_texture({});
-	m_image_quad->set_shape({});
+	m_image_quad.set_texture({});
+	m_image_quad.set_shape({});
 
 	m_image_uri.clear();
 	m_json_uri.clear();
@@ -165,7 +173,7 @@ void NineSlicer::new_slice() {
 	state->nine_slicer.last_loaded.clear();
 	save_state();
 
-	main_view.scale = auto_zoom(m_image_quad->get_shape().size.current);
+	main_view.scale = auto_zoom(m_image_quad.get_shape().size.current);
 	set_title();
 }
 
@@ -175,9 +183,9 @@ auto NineSlicer::load_slice(std::string_view const uri) -> bool {
 
 	if (!load_image_at(json["image"].as_string())) { return false; }
 
-	auto nine_quad = m_image_quad->get_shape();
+	auto nine_quad = m_image_quad.get_shape();
 	from_json(json["nine_slice"], nine_quad.slice);
-	m_image_quad->set_shape(nine_quad);
+	m_image_quad.set_shape(nine_quad);
 	m_unsaved = false;
 
 	m_json_uri = uri;
@@ -192,7 +200,7 @@ void NineSlicer::save_slice() {
 	auto json = dj::Json{};
 	json["asset_type"] = get_asset_type<Texture9Slice>();
 	json["image"] = m_image_uri;
-	to_json(json["nine_slice"], m_image_quad->get_shape().slice);
+	to_json(json["nine_slice"], m_image_quad.get_shape().slice);
 
 	if (!save_json(json, m_json_uri)) {
 		m_log.error("failed to save NineSlice to '{}'", m_json_uri);

@@ -2,6 +2,7 @@
 #include <bave/core/radians.hpp>
 #include <bave/graphics/rect.hpp>
 #include <bave/graphics/rgba.hpp>
+#include <bave/graphics/topology.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -23,22 +24,32 @@ struct NineQuad;
 struct LineRect;
 
 /// \brief Collection of vertices and indices representing a graphics draw primitive.
-struct Geometry {
+struct VertexArray {
 	std::vector<Vertex> vertices{};
 	std::vector<std::uint32_t> indices{};
 
-	auto append(std::span<Vertex const> vs, std::span<std::uint32_t const> is) -> Geometry&;
+	auto append(std::span<Vertex const> vs, std::span<std::uint32_t const> is) -> VertexArray&;
 
-	auto append(Quad const& quad) -> Geometry&;
-	auto append(Circle const& circle) -> Geometry&;
-	auto append(RoundedQuad const& rounded_quad) -> Geometry&;
-	auto append(NineQuad const& nine_quad) -> Geometry&;
-	auto append(LineRect const& rect) -> Geometry&;
+	auto append(Quad const& quad) -> VertexArray&;
+	auto append(Circle const& circle) -> VertexArray&;
+	auto append(RoundedQuad const& rounded_quad) -> VertexArray&;
+	auto append(NineQuad const& nine_quad) -> VertexArray&;
+	auto append(LineRect const& rect) -> VertexArray&;
+
+	[[nodiscard]] auto is_empty() const -> bool { return vertices.empty(); }
+	[[nodiscard]] auto has_indices() const -> bool { return !indices.empty(); }
+};
+
+/// \brief VertexArray and its Topology.
+struct Geometry {
+	VertexArray vertex_array{};
+	Topology topology{Topology::eTriangleList};
 
 	template <typename ShapeT>
-	static auto from(ShapeT const& shape) -> Geometry {
+	static auto from(ShapeT const& shape, Topology const toplogy = Topology::eTriangleList) -> Geometry {
 		auto ret = Geometry{};
-		ret.append(shape);
+		ret.vertex_array.append(shape);
+		ret.topology = toplogy;
 		return ret;
 	}
 };
@@ -96,7 +107,7 @@ struct NineQuad {
 		glm::vec2 reference{Quad::size_v};
 		glm::vec2 current{Quad::size_v};
 
-		constexpr Size(glm::vec2 const size = Quad::size_v) : reference(size), current(size) {}
+		constexpr Size(glm::vec2 const size = Quad::size_v) : Size(size, size) {}
 		constexpr Size(glm::vec2 const reference, glm::vec2 const current) : reference(reference), current(current) {}
 
 		auto operator==(Size const&) const -> bool = default;
@@ -112,5 +123,8 @@ struct NineQuad {
 	auto operator==(NineQuad const&) const -> bool = default;
 };
 
-struct LineRect : Quad {};
+/// \brief Spec for a quad as a line strip.
+struct LineRect : Quad {
+	[[nodiscard]] auto to_geometry() const -> Geometry { return Geometry::from(*this, Topology::eLineStrip); }
+};
 } // namespace bave

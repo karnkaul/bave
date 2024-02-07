@@ -8,6 +8,8 @@ App::App(std::string tag)
 	: m_log{std::move(tag)}, m_bootloader([](App& app) { return std::make_unique<Driver>(app); }), m_audio_device(std::make_unique<AudioDevice>()),
 	  m_audio_streamer(std::make_unique<AudioStreamer>(*m_audio_device)) {
 	log::get_thread_id(); // set thread 0
+
+	for (int i = 0; i < static_cast<int>(m_gamepads.size()); ++i) { m_gamepads.at(static_cast<GamepadId>(i)).id = GamepadId{i}; }
 }
 
 void App::set_bootloader(Bootloader bootloader) {
@@ -88,7 +90,7 @@ auto App::change_mount_point(std::string_view const directory) -> bool {
 
 auto App::get_features() const -> FeatureFlags {
 	auto ret = do_get_native_features();
-	if (get_render_device().validation_layers_enabled()) { ret.set(Feature::validation_layers); }
+	if (get_render_device().validation_layers_enabled()) { ret.set(Feature::eValidationLayers); }
 	return ret;
 }
 
@@ -113,7 +115,16 @@ void App::pre_tick() {
 }
 
 void App::push_event(Event event) {
-	if (auto const* pointer_tap = std::get_if<PointerTap>(&event)) { m_gesture_recognizer.on_tap(*pointer_tap); }
+	if (auto const* pointer_tap = std::get_if<PointerTap>(&event)) {
+		m_gesture_recognizer.on_tap(*pointer_tap);
+	} else if (auto const* key_input = std::get_if<KeyInput>(&event)) {
+		auto key_state = m_key_state.held_keys[key_input->key];
+		switch (key_input->action) {
+		case Action::ePress: key_state = true; break;
+		case Action::eRelease: key_state = false; break;
+		default: break;
+		}
+	}
 	m_events.push_back(event);
 }
 

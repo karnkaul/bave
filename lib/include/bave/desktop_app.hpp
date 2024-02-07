@@ -93,6 +93,8 @@ class DesktopApp : public App, public detail::IWsi {
 	void make_window();
 	void init_graphics();
 
+	void update_gamepads();
+
 	CreateInfo m_create_info{};
 	ScopedResource<LogFile, LogFile::Deleter> m_log_file{};
 	ScopedResource<Glfw, Glfw::Deleter> m_glfw{};

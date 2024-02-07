@@ -30,9 +30,9 @@ void Background::create_quad() {
 	m_top = m_config->background_rgba_top;
 	m_bottom = m_config->background_rgba_bottom;
 	auto geometry = bave::Quad{.size = m_config->world_space}.to_geometry();
-	geometry.vertices[0].rgba = geometry.vertices[1].rgba = bave::Rgba::to_linear(m_top.to_vec4());
-	geometry.vertices[2].rgba = geometry.vertices[3].rgba = bave::Rgba::to_linear(m_bottom.to_vec4());
-	quad.set_geometry(geometry);
+	geometry.vertex_array.vertices[0].rgba = geometry.vertex_array.vertices[1].rgba = bave::Rgba::to_linear(m_top.to_vec4());
+	geometry.vertex_array.vertices[2].rgba = geometry.vertex_array.vertices[3].rgba = bave::Rgba::to_linear(m_bottom.to_vec4());
+	quad.set_geometry(std::move(geometry));
 }
 
 auto Background::make_cloud(bool beyond_edge) const -> CloudInstance {

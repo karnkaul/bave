@@ -19,7 +19,7 @@ struct Sector {
 	UvRect uv{uv_rect_v};
 };
 
-auto append_sector(Geometry& out, Sector const& sector) -> void {
+auto append_sector(VertexArray& out, Sector const& sector) -> void {
 	auto const& o = sector.origin;
 	auto const uvo = sector.uv.centre();
 	auto const uvhe = 0.5f * sector.uv.size();
@@ -49,7 +49,7 @@ auto append_sector(Geometry& out, Sector const& sector) -> void {
 }
 
 struct QuadWriter {
-	Geometry& out; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+	VertexArray& out; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 
 	void append_quad(Quad const& quad) const {
 		if (!is_positive(quad.size)) { return; }
@@ -69,6 +69,8 @@ struct QuadWriter {
 			0, 1, 2, 3, 0,
 		};
 		out.append(vertices, indices);
+		// TODO: fixup
+		// out.topology = Topology::eLineStrip;
 	}
 
 	[[nodiscard]] static auto make_vertices(Quad const& quad) -> std::array<Vertex, 4> {
@@ -131,7 +133,7 @@ struct QuadSlicer {
 		}
 	}
 
-	void append_five_quad(Geometry& out) {
+	void append_five_quad(VertexArray& out) {
 		auto const x_horz = nine_quad.origin.x + 0.5f * (corner_sizes[0].x - corner_sizes[1].x);
 		// 01
 		quads[0][1].size = {
@@ -190,7 +192,7 @@ struct QuadSlicer {
 	}
 
 	// corner cells: 00, 02, 20, 22 (these retain their size and UVs on size.current changing)
-	void append_nine_quad(Geometry& out) {
+	void append_nine_quad(VertexArray& out) {
 		// 00
 		quads[0][0].size = corner_sizes[0];
 		quads[0][0].origin = corner_origins[0];
@@ -218,7 +220,7 @@ struct QuadSlicer {
 		append_five_quad(out);
 	}
 
-	void append_rounded_quad(Geometry& out, int const corner_resolution) {
+	void append_rounded_quad(VertexArray& out, int const corner_resolution) {
 		auto const corner_arcs = std::array{
 			Arc{.start = Degrees{0.0f}, .finish = Degrees{90.0f}},	  // 00
 			Arc{.start = Degrees{270.0f}, .finish = Degrees{360.0f}}, // 02
@@ -264,7 +266,7 @@ struct QuadSlicer {
 };
 } // namespace
 
-auto Geometry::append(std::span<Vertex const> vs, std::span<std::uint32_t const> is) -> Geometry& {
+auto VertexArray::append(std::span<Vertex const> vs, std::span<std::uint32_t const> is) -> VertexArray& {
 	auto const i_offset = static_cast<std::uint32_t>(vertices.size());
 	vertices.reserve(vertices.size() + vs.size());
 	std::copy(vs.begin(), vs.end(), std::back_inserter(vertices));
@@ -272,12 +274,12 @@ auto Geometry::append(std::span<Vertex const> vs, std::span<std::uint32_t const>
 	return *this;
 }
 
-auto Geometry::append(Quad const& quad) -> Geometry& {
+auto VertexArray::append(Quad const& quad) -> VertexArray& {
 	QuadWriter{*this}.append_quad(quad);
 	return *this;
 }
 
-auto Geometry::append(Circle const& circle) -> Geometry& {
+auto VertexArray::append(Circle const& circle) -> VertexArray& {
 	if (circle.diameter <= 0.0f) { return *this; }
 	auto const finish = Degrees{360.0f};
 	auto const resolution = circle.resolution;
@@ -292,7 +294,7 @@ auto Geometry::append(Circle const& circle) -> Geometry& {
 	return *this;
 }
 
-auto Geometry::append(RoundedQuad const& rounded_quad) -> Geometry& {
+auto VertexArray::append(RoundedQuad const& rounded_quad) -> VertexArray& {
 	if (rounded_quad.size.x <= 0.0f || rounded_quad.size.y <= 0.0f) { return *this; }
 	if (rounded_quad.corner_radius <= 0.0f) { return append(static_cast<Quad const&>(rounded_quad)); }
 	auto const corner_size = glm::vec2{rounded_quad.corner_radius};
@@ -303,13 +305,13 @@ auto Geometry::append(RoundedQuad const& rounded_quad) -> Geometry& {
 	return *this;
 }
 
-auto Geometry::append(NineQuad const& nine_quad) -> Geometry& {
+auto VertexArray::append(NineQuad const& nine_quad) -> VertexArray& {
 	if (nine_quad.size.current.x <= 0.0f || nine_quad.size.current.y <= 0.0f) { return *this; }
 	QuadSlicer{nine_quad}.append_nine_quad(*this);
 	return *this;
 }
 
-auto Geometry::append(LineRect const& rect) -> Geometry& {
+auto VertexArray::append(LineRect const& rect) -> VertexArray& {
 	QuadWriter{*this}.append_line_rect(rect);
 	return *this;
 }
