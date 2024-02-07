@@ -20,21 +20,23 @@ namespace {
 } // namespace
 
 void Drawable::Primitive::write(Geometry const& geometry) {
-	if (geometry.vertices.empty()) {
+	if (geometry.vertex_array.is_empty()) {
 		clear();
 		return;
 	}
 
-	ibo_offset = std::span{geometry.vertices}.size_bytes();
-	auto const ibo_size = std::span{geometry.indices}.size_bytes();
+	auto const vs = std::span{geometry.vertex_array.vertices};
+	auto const is = std::span{geometry.vertex_array.indices};
+	ibo_offset = vs.size_bytes();
+	auto const ibo_size = is.size_bytes();
 	bytes.resize(ibo_offset + ibo_size);
-	std::memcpy(bytes.data(), geometry.vertices.data(), ibo_offset);
+	std::memcpy(bytes.data(), vs.data(), vs.size_bytes());
 	if (ibo_size > 0) {
-		std::memcpy(bytes.data() + ibo_offset, geometry.indices.data(), ibo_size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		std::memcpy(bytes.data() + ibo_offset, is.data(), is.size_bytes()); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 	}
 
-	verts = static_cast<std::uint32_t>(geometry.vertices.size());
-	indices = static_cast<std::uint32_t>(geometry.indices.size());
+	verts = static_cast<std::uint32_t>(vs.size());
+	indices = static_cast<std::uint32_t>(is.size());
 	topology = geometry.topology;
 }
 
@@ -55,7 +57,7 @@ void Drawable::draw(Shader& shader) const {
 	shader.draw(m_primitive, m_baked_instances);
 }
 
-auto Drawable::get_bounds() const -> Rect<> { return make_bounds(m_geometry.vertices, transform); }
+auto Drawable::get_bounds() const -> Rect<> { return make_bounds(m_geometry.vertex_array.vertices, transform); }
 
 void Drawable::set_geometry(Geometry geometry) {
 	m_geometry = std::move(geometry);
