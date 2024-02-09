@@ -14,6 +14,8 @@ auto Font::load_from_bytes(std::vector<std::byte> file_bytes, float scale) -> bo
 	return true;
 }
 
+auto Font::create_font_atlas(TextHeight const height) -> bool { return get_font_atlas(height) != nullptr; }
+
 auto Font::glyph_for(TextHeight height, Codepoint codepoint) -> Glyph {
 	if (auto const* atlas = get_font_atlas(height)) {
 		auto ret = atlas->glyph_for(codepoint);

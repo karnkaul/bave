@@ -77,8 +77,8 @@ class FileLogger {
 	fs::path m_path{};
 	std::mutex m_mutex{};
 	std::string m_buffer{};
-	std::thread m_thread{};
 	std::atomic<bool> m_stop{};
+	std::thread m_thread{};
 };
 
 auto g_file_logger = std::unique_ptr<FileLogger>{}; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)

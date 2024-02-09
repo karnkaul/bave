@@ -64,8 +64,9 @@ class Loader {
 	[[nodiscard]] auto load_texture_atlas(std::string_view uri, bool mip_map = false) const -> std::shared_ptr<TextureAtlas>;
 	/// \brief Try to load a Font.
 	/// \param uri URI to load from.
+	/// \param preload List of TextHeights to preload glyph atlases for.
 	/// \returns Font on success, nullptr on failure.
-	[[nodiscard]] auto load_font(std::string_view uri) const -> std::shared_ptr<Font>;
+	[[nodiscard]] auto load_font(std::string_view uri, std::span<TextHeight const> preload = {}) const -> std::shared_ptr<Font>;
 	/// \brief Try to load an AudioClip.
 	/// \param uri URI to load from.
 	/// \returns AudioClip on success, nullptr on failure.

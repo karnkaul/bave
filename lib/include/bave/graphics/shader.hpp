@@ -24,6 +24,10 @@ class Shader {
 	auto write_ubo(void const* data, vk::DeviceSize size) -> bool;
 	auto write_ssbo(void const* data, vk::DeviceSize size) -> bool;
 
+	/// \brief Set the render view.
+	/// \param render_view View to set.
+	void set_render_view(RenderView const& render_view);
+
 	/// \brief Draw intsances of a primitive.
 	/// \param primitive Primitive to draw.
 	/// \param instances Instances to draw.
