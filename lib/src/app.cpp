@@ -55,7 +55,6 @@ auto App::run() -> ErrCode {
 
 void App::shutdown() {
 	m_log.info("shutdown requested");
-	m_shutting_down = true;
 	do_shutdown();
 }
 

@@ -178,6 +178,8 @@ void AndroidApp::render() {
 
 void AndroidApp::do_shutdown() { ANativeActivity_finish(m_app.activity); }
 
+auto AndroidApp::get_is_shutting_down() const -> bool { return m_app.destroyRequested == 1; }
+
 auto AndroidApp::do_get_framebuffer_size() const -> glm::ivec2 {
 	if (!m_app.window) { return {}; }
 	return {ANativeWindow_getWidth(m_app.window), ANativeWindow_getHeight(m_app.window)};
