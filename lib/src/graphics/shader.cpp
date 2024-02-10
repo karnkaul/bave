@@ -159,6 +159,8 @@ auto Shader::write_ssbo(void const* data, vk::DeviceSize const size) -> bool {
 	return true;
 }
 
+void Shader::set_render_view(RenderView const& render_view) { m_renderer->get_render_device().render_view = render_view; }
+
 void Shader::draw(RenderPrimitive const& primitive, std::span<RenderInstance::Baked const> instances) {
 	auto const command_buffer = m_renderer->get_command_buffer();
 	if (!command_buffer || primitive.bytes.empty() || instances.empty()) { return; }

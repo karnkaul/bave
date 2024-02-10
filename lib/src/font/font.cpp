@@ -4,7 +4,7 @@
 #include <algorithm>
 
 namespace bave {
-Font::Font(NotNull<RenderDevice*> render_device) : m_render_device(render_device) {}
+Font::Font(NotNull<RenderDevice*> render_device) : m_render_device(render_device) { create_font_atlas(TextHeight::eDefault); }
 
 auto Font::load_from_bytes(std::vector<std::byte> file_bytes, float scale) -> bool {
 	auto slot_factory = m_render_device->get_font_library().load(std::move(file_bytes));
@@ -13,6 +13,8 @@ auto Font::load_from_bytes(std::vector<std::byte> file_bytes, float scale) -> bo
 	m_scale = std::clamp(scale, scale_limit_v.lo, scale_limit_v.hi);
 	return true;
 }
+
+auto Font::create_font_atlas(TextHeight const height) -> bool { return get_font_atlas(height) != nullptr; }
 
 auto Font::glyph_for(TextHeight height, Codepoint codepoint) -> Glyph {
 	if (auto const* atlas = get_font_atlas(height)) {

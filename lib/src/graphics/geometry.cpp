@@ -69,14 +69,12 @@ struct QuadWriter {
 			0, 1, 2, 3, 0,
 		};
 		out.append(vertices, indices);
-		// TODO: fixup
-		// out.topology = Topology::eLineStrip;
 	}
 
 	[[nodiscard]] static auto make_vertices(Quad const& quad) -> std::array<Vertex, 4> {
 		auto const half_size = 0.5f * quad.size;
 		auto const& o = quad.origin;
-		auto const rgba = quad.rgba.to_vec4();
+		auto const rgba = Rgba::to_linear(quad.rgba.to_vec4());
 		return std::array{
 			Vertex{{o.x - half_size.x, o.y + half_size.y}, quad.uv.top_left(), rgba},
 			Vertex{{o.x + half_size.x, o.y + half_size.y}, quad.uv.top_right(), rgba},
@@ -285,7 +283,7 @@ auto VertexArray::append(Circle const& circle) -> VertexArray& {
 	auto const resolution = circle.resolution;
 	auto const sector = Sector{
 		.origin = circle.origin,
-		.rgba = circle.rgba.to_vec4(),
+		.rgba = Rgba::to_linear(circle.rgba.to_vec4()),
 		.radius = 0.5f * circle.diameter,
 		.arc = {.finish = finish},
 		.step = Degrees{finish / static_cast<float>(resolution)},

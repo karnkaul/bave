@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.4.1
+
+- Fixed bave::Rgba::to_hex_str(). Previously it would skip leading zeroes for each byte.
+- Add some convenience functions on bave::EnumFlags.
+- Linearize vertex RGBA in bave::Geometry.
+- Preload font atlas for default bave::TextHeight.
+
 ## v0.4
 
 ### Features

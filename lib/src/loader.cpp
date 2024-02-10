@@ -125,7 +125,7 @@ auto Loader::load_texture_atlas(std::string_view uri, bool mip_map) const -> std
 	return ret;
 }
 
-auto Loader::load_font(std::string_view const uri) const -> std::shared_ptr<Font> {
+auto Loader::load_font(std::string_view const uri, std::span<TextHeight const> preload) const -> std::shared_ptr<Font> {
 	auto const bytes = load_bytes(uri);
 	if (bytes.empty()) { return {}; }
 
@@ -134,6 +134,8 @@ auto Loader::load_font(std::string_view const uri) const -> std::shared_ptr<Font
 		m_log.warn("failed to load Font: '{}'", uri);
 		return {};
 	}
+
+	for (auto const height : preload) { [[maybe_unused]] auto const glyph = ret->glyph_for(height, {}); }
 
 	m_log.info("loaded Font: '{}'", uri);
 	return ret;
