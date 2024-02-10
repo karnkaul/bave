@@ -29,8 +29,8 @@ struct KeyState {
 	/// \returns true if all keys have been pressed but not yet released.
 	/// \pre key must be non-negative and less than Key::eCOUNT_.
 	template <std::same_as<Key>... Ks>
-	[[nodiscard]] auto all_pressed(Ks const... key) const -> bool {
-		return held_keys.test_all(EnumFlags<Key>{key...});
+	[[nodiscard]] auto all_pressed(Ks const... keys) const -> bool {
+		return held_keys.test_all(EnumFlags<Key>{keys...});
 	}
 };
 } // namespace bave
