@@ -25,6 +25,8 @@ class CustomShape : public BasicShape {
 template <typename ShapeT>
 class Shape : public BasicShape {
   public:
+	Shape() { set_shape(ShapeT{}); }
+
 	void set_shape(ShapeT const& shape) {
 		m_shape = shape;
 		set_geometry(m_shape.to_geometry());
