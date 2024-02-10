@@ -31,5 +31,5 @@ auto Rgba::from(std::string_view hex) -> Rgba {
 	return out;
 }
 
-auto Rgba::to_hex_str() const -> std::string { return fmt::format("#{:x}{:x}{:x}{:x}", channels.x, channels.y, channels.z, channels.w); }
+auto Rgba::to_hex_str() const -> std::string { return fmt::format("#{:02x}{:02x}{:02x}{:02x}", channels.x, channels.y, channels.z, channels.w); }
 } // namespace bave
