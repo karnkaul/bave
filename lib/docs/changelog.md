@@ -1,15 +1,21 @@
 # Changelog
 
-## v0.4.1
+## v0.4
+
+### v0.4.2
+
+- Fixed app shutdown/restart flow on Android.
+
+### v0.4.1
 
 - Fixed bave::Rgba::to_hex_str(). Previously it would skip leading zeroes for each byte.
 - Add some convenience functions on bave::EnumFlags.
 - Linearize vertex RGBA in bave::Geometry.
 - Preload font atlas for default bave::TextHeight.
 
-## v0.4
+### v0.4.0
 
-### Features
+#### Features
 
 - Added bave::Gamepad support, queried through bave::App::get_gamepad() and bave::App::get_gamepads().
   - Not yet supported on Android.
@@ -18,7 +24,7 @@
 - Added bave::ParticleSystem.
 - Added bave::LineRectShape (specialization of bave::Shape).
 
-### Changes
+#### Changes
 
 - Unified all bit flags to be bave::EnumFlags.
 - Renamed `particle_emitter.?pp` to `particle_system.?pp`.
