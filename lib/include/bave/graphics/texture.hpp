@@ -38,7 +38,7 @@ class Texture {
 	/// \param mip_map Whether to enable mip-mapping.
 	explicit Texture(NotNull<RenderDevice*> render_device, BitmapView bitmap, bool mip_map = false);
 
-	~Texture();
+	virtual ~Texture();
 
 	[[nodiscard]] auto get_size() const -> glm::ivec2;
 
