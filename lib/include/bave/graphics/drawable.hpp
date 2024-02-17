@@ -1,5 +1,6 @@
 #pragma once
 #include <bave/core/polymorphic.hpp>
+#include <bave/graphics/detail/get_bounds.hpp>
 #include <bave/graphics/geometry.hpp>
 #include <bave/graphics/shader.hpp>
 #include <bave/graphics/texture.hpp>
@@ -23,7 +24,7 @@ class Drawable : public IDrawable {
 	void draw(Shader& shader) const final;
 
 	/// \brief Get the bounding rectangle of this instance.
-	[[nodiscard]] auto get_bounds() const -> Rect<>;
+	[[nodiscard]] auto get_bounds() const -> Rect<> { return detail::get_bounds(*this); }
 	/// \brief Get the Geometry of this instance.
 	[[nodiscard]] auto get_geometry() const -> Geometry const& { return m_geometry; }
 

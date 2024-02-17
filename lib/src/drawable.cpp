@@ -2,23 +2,6 @@
 #include <bave/graphics/shader.hpp>
 
 namespace bave {
-namespace {
-[[nodiscard]] auto make_bounds(std::span<bave::Vertex const> vertices, bave::Transform const& transform) {
-	auto const matrix = transform.matrix();
-	auto ret = Rect<>{};
-	ret.lt.x = ret.rb.y = std::numeric_limits<float>::max();
-	ret.lt.y = ret.rb.x = -std::numeric_limits<float>::max();
-	for (auto const& vertex : vertices) {
-		auto const position = glm::vec2{matrix * glm::vec4{vertex.position, 0.0f, 1.0f}};
-		ret.lt.x = std::min(ret.lt.x, position.x);
-		ret.lt.y = std::max(ret.lt.y, position.y);
-		ret.rb.y = std::min(ret.rb.y, position.y);
-		ret.rb.x = std::max(ret.rb.x, position.x);
-	}
-	return ret;
-}
-} // namespace
-
 void Drawable::Primitive::write(Geometry const& geometry) {
 	if (geometry.vertex_array.is_empty()) {
 		clear();
@@ -56,8 +39,6 @@ void Drawable::draw(Shader& shader) const {
 	update_textures(shader);
 	shader.draw(m_primitive, m_baked_instances);
 }
-
-auto Drawable::get_bounds() const -> Rect<> { return make_bounds(m_geometry.vertex_array.vertices, transform); }
 
 void Drawable::set_geometry(Geometry geometry) {
 	m_geometry = std::move(geometry);

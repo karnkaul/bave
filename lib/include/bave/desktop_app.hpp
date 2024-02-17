@@ -71,6 +71,7 @@ class DesktopApp : public App, public detail::IWsi {
 	void render() final;
 
 	void do_shutdown() final;
+	[[nodiscard]] auto get_is_shutting_down() const -> bool final;
 
 	[[nodiscard]] auto do_get_native_features() const -> FeatureFlags final;
 	[[nodiscard]] auto do_get_window_size() const -> glm::ivec2 final;

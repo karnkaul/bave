@@ -184,6 +184,8 @@ void DesktopApp::render() {
 
 void DesktopApp::do_shutdown() { glfwSetWindowShouldClose(m_window.get(), GLFW_TRUE); }
 
+auto DesktopApp::get_is_shutting_down() const -> bool { return glfwWindowShouldClose(m_window.get()) == GLFW_TRUE; }
+
 auto DesktopApp::do_get_native_features() const -> FeatureFlags { return FeatureFlags{Feature::eResizeable, Feature::eHasTitle, Feature::eHasIcon}; }
 
 auto DesktopApp::do_get_window_size() const -> glm::ivec2 {

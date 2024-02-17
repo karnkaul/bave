@@ -66,7 +66,7 @@ class App : public PolyPinned {
 	void shutdown();
 	/// \brief Check if shutting down.
 	/// \returns true if shutting down.
-	[[nodiscard]] auto is_shutting_down() const { return m_shutting_down; }
+	[[nodiscard]] auto is_shutting_down() const { return get_is_shutting_down(); }
 
 	/// \brief Set window size.
 	/// \returns true if success.
@@ -165,6 +165,7 @@ class App : public PolyPinned {
 	virtual void render() = 0;
 
 	virtual void do_shutdown() = 0;
+	[[nodiscard]] virtual auto get_is_shutting_down() const -> bool = 0;
 
 	[[nodiscard]] virtual auto do_get_native_features() const -> FeatureFlags { return {}; }
 	[[nodiscard]] virtual auto do_get_window_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }
@@ -189,7 +190,5 @@ class App : public PolyPinned {
 	std::vector<Event> m_events{};
 	DeltaTime m_dt{};
 	Timer m_timer{};
-
-	bool m_shutting_down{};
 };
 } // namespace bave

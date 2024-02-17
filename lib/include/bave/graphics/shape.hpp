@@ -25,6 +25,8 @@ class CustomShape : public BasicShape {
 template <typename ShapeT>
 class Shape : public BasicShape {
   public:
+	Shape() { set_shape(ShapeT{}); }
+
 	void set_shape(ShapeT const& shape) {
 		m_shape = shape;
 		set_geometry(m_shape.to_geometry());
@@ -36,6 +38,9 @@ class Shape : public BasicShape {
 	}
 
 	[[nodiscard]] auto get_shape() const -> ShapeT const& { return m_shape; }
+
+	/// \brief Get the bounding rectangle of this instance.
+	[[nodiscard]] auto get_bounds() const -> Rect<> { return detail::get_bounds(*this); }
 
   private:
 	ShapeT m_shape{};
