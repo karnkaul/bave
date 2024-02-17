@@ -5,6 +5,7 @@
 ### v0.4.2
 
 - Fixed app shutdown/restart flow on Android.
+- Made bave::Texture polymorphic. (Marked its destructor as `virtual`.)
 
 ### v0.4.1
 
