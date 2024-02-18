@@ -2,6 +2,10 @@
 
 ## v0.4
 
+### v0.4.3
+
+- Added bave::to_uv_rect() and bave::RenderView::to_n_scissor.
+
 ### v0.4.2
 
 - Fixed app shutdown/restart flow on Android.
