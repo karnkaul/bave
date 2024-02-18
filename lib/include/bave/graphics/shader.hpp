@@ -24,6 +24,9 @@ class Shader {
 	auto write_ubo(void const* data, vk::DeviceSize size) -> bool;
 	auto write_ssbo(void const* data, vk::DeviceSize size) -> bool;
 
+	/// \brief Get the render view.
+	/// \returns The current render view.
+	[[nodiscard]] auto get_render_view() const -> RenderView;
 	/// \brief Set the render view.
 	/// \param render_view View to set.
 	void set_render_view(RenderView const& render_view);
