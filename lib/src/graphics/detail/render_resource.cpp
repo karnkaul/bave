@@ -286,30 +286,4 @@ auto RenderImage::overwrite(BitmapView const bitmap, glm::ivec2 top_left) -> boo
 
 	return true;
 }
-
-void RenderImage::resize(vk::Extent2D extent) {
-	assert(extent.width < 40960 && extent.height < 40960);
-	auto const mip_levels = m_create_info.mip_map ? compute_mip_levels(extent) : 1;
-	auto new_image = VmaImage::make(*m_render_device, m_create_info, extent, mip_levels);
-	auto const copy_src = CopyImage{
-		.image = m_image,
-		.layout = vk::ImageLayout::eShaderReadOnlyOptimal,
-		.extent = m_extent,
-	};
-	auto const copy_dst = CopyImage{
-		.image = new_image.image,
-		.layout = vk::ImageLayout::eUndefined,
-		.extent = extent,
-	};
-
-	auto cmd = detail::CommandBuffer{*m_render_device};
-	CopyImageToImage{
-		.source = copy_src,
-		.target = copy_dst,
-		.array_layers = m_create_info.view_type == vk::ImageViewType::eCube ? cubemap_layers_v : 1,
-		.mip_levels = mip_levels,
-	}(cmd);
-
-	cmd.submit(*m_render_device);
-}
 } // namespace bave::detail

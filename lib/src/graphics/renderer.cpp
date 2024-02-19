@@ -7,25 +7,32 @@ namespace {
 auto make_framebuffer(vk::Device device, vk::RenderPass render_pass, detail::RenderTarget const& render_target) -> vk::UniqueFramebuffer {
 	auto fci = vk::FramebufferCreateInfo{};
 	fci.renderPass = render_pass;
-	fci.attachmentCount = 1;
-	auto const attachments = std::array{render_target.view};
+	auto attachments = std::array<vk::ImageView, 2>{};
+	if (render_target.msaa) {
+		attachments = {render_target.msaa, render_target.swapchain};
+	} else {
+		attachments[0] = render_target.swapchain;
+	}
 	fci.pAttachments = attachments.data();
+	fci.attachmentCount = render_target.msaa ? 2 : 1;
 	fci.width = render_target.extent.width;
 	fci.height = render_target.extent.height;
 	fci.layers = 1;
 	return device.createFramebufferUnique(fci);
 }
 
-auto make_single_render_pass(vk::Device device, vk::Format colour) -> vk::UniqueRenderPass {
+auto make_single_render_pass(vk::Device device, vk::Format colour, vk::SampleCountFlagBits samples) -> vk::UniqueRenderPass {
 	auto rpci = vk::RenderPassCreateInfo{};
 
 	auto const attachment_refs = std::array{
 		vk::AttachmentReference{0, vk::ImageLayout::eColorAttachmentOptimal},
+		vk::AttachmentReference{1, vk::ImageLayout::eColorAttachmentOptimal},
 	};
 	auto sd = vk::SubpassDescription{};
 	sd.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
 	sd.colorAttachmentCount = 1;
 	sd.pColorAttachments = &attachment_refs[0]; // NOLINT (readability-container-data-pointer)
+	if (samples > vk::SampleCountFlagBits::e1) { sd.pResolveAttachments = &attachment_refs[1]; }
 
 	auto attachment_descs = std::array<vk::AttachmentDescription, 2>{};
 	attachment_descs[0].format = colour;
@@ -33,6 +40,17 @@ auto make_single_render_pass(vk::Device device, vk::Format colour) -> vk::Unique
 	attachment_descs[0].storeOp = vk::AttachmentStoreOp::eStore;
 	attachment_descs[0].initialLayout = vk::ImageLayout::eUndefined;
 	attachment_descs[0].finalLayout = vk::ImageLayout::ePresentSrcKHR;
+	attachment_descs[0].samples = samples;
+
+	if (samples > vk::SampleCountFlagBits::e1) {
+		attachment_descs[0].storeOp = vk::AttachmentStoreOp::eDontCare;
+		attachment_descs[1].format = colour;
+		attachment_descs[1].loadOp = vk::AttachmentLoadOp::eClear;
+		attachment_descs[1].storeOp = vk::AttachmentStoreOp::eStore;
+		attachment_descs[1].initialLayout = vk::ImageLayout::eUndefined;
+		attachment_descs[1].finalLayout = vk::ImageLayout::ePresentSrcKHR;
+		attachment_descs[1].samples = vk::SampleCountFlagBits::e1;
+	}
 
 	auto dep = vk::SubpassDependency{};
 	dep.srcSubpass = 0;
@@ -41,7 +59,7 @@ auto make_single_render_pass(vk::Device device, vk::Format colour) -> vk::Unique
 	dep.srcAccessMask = dep.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
 
 	rpci.pAttachments = attachment_descs.data();
-	rpci.attachmentCount = 1;
+	rpci.attachmentCount = samples == vk::SampleCountFlagBits::e1 ? 1 : 2;
 	rpci.pSubpasses = &sd;
 	rpci.subpassCount = 1;
 	rpci.pDependencies = &dep;
@@ -72,7 +90,18 @@ auto Renderer::Frame::make(RenderDevice& render_device) -> Frame {
 		sync.drawn = device.createFenceUnique({vk::FenceCreateFlagBits::eSignaled});
 	}
 
-	ret.render_pass = make_single_render_pass(render_device.get_device(), render_device.get_swapchain_format());
+	ret.render_pass = make_single_render_pass(render_device.get_device(), render_device.get_swapchain_format(), render_device.get_sample_count());
+
+	if (render_device.get_sample_count() > vk::SampleCountFlagBits::e1) {
+		auto const ici = detail::RenderImage::CreateInfo{
+			.format = render_device.get_swapchain_format(),
+			.usage = detail::RenderImage::CreateInfo::usage_v | vk::ImageUsageFlagBits::eColorAttachment,
+			.aspect = vk::ImageAspectFlagBits::eColor,
+			.samples = render_device.get_sample_count(),
+			.mip_map = false,
+		};
+		ret.msaa_image.emplace(&render_device, ici);
+	}
 
 	return ret;
 }
@@ -86,6 +115,11 @@ auto Renderer::start_render(Rgba clear_colour) -> bool {
 	auto& sync = m_frame.syncs.at(get_frame_index());
 	m_frame.render_target = m_render_device->acquire_next_image(*sync.drawn, *sync.draw);
 	if (!m_frame.render_target) { return {}; }
+
+	if (m_frame.msaa_image) {
+		m_frame.msaa_image->recreate(m_frame.render_target->extent);
+		m_frame.render_target->msaa = m_frame.msaa_image->get_image_view();
+	}
 
 	m_pipeline_cache->get_descriptor_cache().next_frame();
 	sync.command_buffer.begin(vk::CommandBufferBeginInfo{vk::CommandBufferUsageFlagBits::eOneTimeSubmit});

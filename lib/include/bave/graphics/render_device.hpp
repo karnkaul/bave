@@ -24,6 +24,7 @@ struct GLFWwindow;
 namespace bave {
 struct RenderDeviceCreateInfo {
 	detail::ColourSpace swapchain_colour_space{detail::ColourSpace::eSrgb};
+	vk::SampleCountFlagBits desired_samples{vk::SampleCountFlagBits::e1};
 	bool validation_layers{debug_v};
 };
 
@@ -50,6 +51,7 @@ class RenderDevice {
 	[[nodiscard]] auto get_swapchain_extent() const -> vk::Extent2D { return m_swapchain.create_info.imageExtent; }
 
 	[[nodiscard]] auto get_line_width_limits() const -> InclusiveRange<float> { return m_line_width_limits; }
+	[[nodiscard]] auto get_sample_count() const -> vk::SampleCountFlagBits { return m_samples; }
 	[[nodiscard]] auto get_frame_index() const -> detail::FrameIndex { return m_frame_index; }
 	[[nodiscard]] auto get_default_view() const -> RenderView;
 
@@ -106,6 +108,7 @@ class RenderDevice {
 	detail::DeviceBlocker m_blocker{};
 
 	InclusiveRange<float> m_line_width_limits{};
+	vk::SampleCountFlagBits m_samples{};
 	detail::FrameIndex m_frame_index{};
 };
 

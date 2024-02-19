@@ -80,7 +80,6 @@ class RenderImage : public RenderResource {
 
 	void recreate(vk::Extent2D extent);
 	auto overwrite(BitmapView bitmap, glm::ivec2 top_left) -> bool;
-	void resize(vk::Extent2D extent);
 
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return *m_render_device; }
 

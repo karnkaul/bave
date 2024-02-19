@@ -65,6 +65,7 @@ class PipelineCache {
 	ShaderCache m_shader_cache;
 	DescriptorCache m_descriptor_cache;
 	vk::RenderPass m_render_pass{};
+	vk::SampleCountFlagBits m_samples{};
 	std::unordered_map<Key, vk::UniquePipeline, Hasher> m_pipelines{};
 	std::vector<vk::UniqueDescriptorSetLayout> m_descriptor_set_layouts{};
 	std::vector<vk::DescriptorSetLayout> m_descriptor_set_layouts_view{};

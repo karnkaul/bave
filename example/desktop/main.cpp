@@ -9,6 +9,7 @@ auto main(int argc, char** argv) -> int {
 		.args = bave::make_args(argc, argv),
 		.title = "BaveExample",
 		.mode = bave::Windowed{.extent = {720, 1280}},
+		.msaa = vk::SampleCountFlagBits::e4,
 		.assets_patterns = "assets,example/assets",
 	};
 

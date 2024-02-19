@@ -34,6 +34,7 @@ class DesktopApp : public App, public detail::IWsi {
 		CString title{"BaveApp"};
 		DisplayMode mode{Windowed{}};
 		std::function<Gpu(std::span<Gpu const>)> select_gpu{};
+		vk::SampleCountFlagBits msaa{vk::SampleCountFlagBits::e1};
 		std::string_view assets_patterns{"assets"};
 		bool validation_layers{debug_v};
 	};

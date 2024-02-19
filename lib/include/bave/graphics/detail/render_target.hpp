@@ -5,8 +5,8 @@ namespace bave::detail {
 enum class ColourSpace : int { eSrgb, eLinear };
 
 struct RenderTarget {
-	vk::Image image{};
-	vk::ImageView view{};
+	vk::ImageView swapchain{};
+	vk::ImageView msaa{};
 	vk::Extent2D extent{};
 	vk::Format format{};
 };
