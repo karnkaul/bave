@@ -259,6 +259,11 @@ auto DesktopApp::do_set_window_icon(std::span<BitmapView const> bitmaps) -> bool
 	return true;
 }
 
+void DesktopApp::do_wait_render_device_idle() {
+	if (!m_render_device) { return; }
+	m_render_device->get_device().waitIdle();
+}
+
 auto DesktopApp::self(Ptr<GLFWwindow> window) -> DesktopApp& {
 	auto* ret = static_cast<DesktopApp*>(glfwGetWindowUserPointer(window));
 	if (ret == nullptr) { throw Error{"Dereferencing null GLFW Window User Pointer"}; }

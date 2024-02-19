@@ -42,7 +42,7 @@ auto App::run() -> ErrCode {
 			render();
 		}
 
-		get_render_device().get_device().waitIdle();
+		do_wait_render_device_idle();
 		return ErrCode::eSuccess;
 	} catch (std::exception const& e) {
 		m_log.error("FATAL: {}", e.what());

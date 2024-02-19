@@ -217,6 +217,11 @@ auto AndroidApp::get_framebuffer_extent() const -> vk::Extent2D {
 	return {size.x, size.y};
 }
 
+void AndroidApp::do_wait_render_device_idle() {
+	if (!m_render_device) { return; }
+	m_render_device->get_device().waitIdle();
+}
+
 auto AndroidApp::self(Ptr<android_app> app) -> AndroidApp& {
 	auto* ret = static_cast<AndroidApp*>(app->userData);
 	if (ret == nullptr) { throw Error{"Dereferencing null GLFW Window User Pointer"}; }
@@ -285,7 +290,7 @@ void AndroidApp::start() {
 }
 
 void AndroidApp::destroy() {
-	get_render_device().get_device().waitIdle();
+	do_wait_render_device_idle();
 	m_driver.reset();
 	m_renderer.reset();
 	m_render_device.reset();

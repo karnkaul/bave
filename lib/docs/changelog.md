@@ -5,6 +5,7 @@
 ### v0.4.3
 
 - Added bave::to_uv_rect() and bave::RenderView::to_n_scissor.
+- Added MSAA (multi sampled anti aliasing) support.
 - Fixed potential overflow in the general constructor of bave::FixedString.
 
 ### v0.4.2

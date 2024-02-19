@@ -43,6 +43,7 @@ class AndroidApp : public App, public detail::IWsi {
 	[[nodiscard]] auto get_framebuffer_extent() const -> vk::Extent2D final;
 
 	auto do_set_window_size(glm::ivec2 /*size*/) -> bool final { return false; }
+	void do_wait_render_device_idle() final;
 
 	void setup_event_callbacks();
 

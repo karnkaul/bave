@@ -19,6 +19,9 @@ struct VmaImage {
 		auto ret = VmaImage{};
 		auto vaci = VmaAllocationCreateInfo{};
 		vaci.usage = VMA_MEMORY_USAGE_AUTO;
+		if constexpr (bave::platform_v == Platform::eAndroid) {
+			if (m_create_info.lazily_allocated) { vaci.usage = VMA_MEMORY_USAGE_GPU_LAZILY_ALLOCATED; }
+		}
 		auto ici = vk::ImageCreateInfo{};
 		ici.usage = m_create_info.usage;
 		ici.imageType = vk::ImageType::e2D;
@@ -32,9 +35,13 @@ struct VmaImage {
 		auto const vici = static_cast<VkImageCreateInfo>(ici);
 
 		auto* image = VkImage{};
-		if (vmaCreateImage(render_device.get_allocator(), &vici, &vaci, &image, &ret.allocation, {}) != VK_SUCCESS) {
-			throw Error{"Failed to allocate Vulkan Image"};
+		auto create_image = [&] { return vmaCreateImage(render_device.get_allocator(), &vici, &vaci, &image, &ret.allocation, {}) == VK_SUCCESS; };
+		auto res = create_image();
+		if (!res && vaci.usage == VMA_MEMORY_USAGE_GPU_LAZILY_ALLOCATED) {
+			vaci.usage = VMA_MEMORY_USAGE_AUTO;
+			res = create_image();
 		}
+		if (!res) { throw Error{"Failed to allocate Vulkan Image"}; }
 		ret.image = image;
 
 		auto const isr = vk::ImageSubresourceRange{m_create_info.aspect, 0, ici.mipLevels, 0, ici.arrayLayers};

@@ -91,6 +91,8 @@ class DesktopApp : public App, public detail::IWsi {
 	auto do_set_title(CString title) -> bool final;
 	auto do_set_window_icon(std::span<BitmapView const> bitmaps) -> bool final;
 
+	void do_wait_render_device_idle() final;
+
 	void init_data_store();
 	void make_window();
 	void init_graphics();

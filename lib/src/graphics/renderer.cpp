@@ -95,10 +95,11 @@ auto Renderer::Frame::make(RenderDevice& render_device) -> Frame {
 	if (render_device.get_sample_count() > vk::SampleCountFlagBits::e1) {
 		auto const ici = detail::RenderImage::CreateInfo{
 			.format = render_device.get_swapchain_format(),
-			.usage = detail::RenderImage::CreateInfo::usage_v | vk::ImageUsageFlagBits::eColorAttachment,
+			.usage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransientAttachment,
 			.aspect = vk::ImageAspectFlagBits::eColor,
 			.samples = render_device.get_sample_count(),
 			.mip_map = false,
+			.lazily_allocated = true,
 		};
 		ret.msaa_image.emplace(&render_device, ici);
 	}

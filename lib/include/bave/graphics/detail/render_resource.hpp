@@ -65,6 +65,7 @@ class RenderImage : public RenderResource {
 		vk::SampleCountFlagBits samples{vk::SampleCountFlagBits::e1};
 		vk::ImageViewType view_type{vk::ImageViewType::e2D};
 		bool mip_map{true};
+		bool lazily_allocated{false};
 	};
 
 	using Layer = std::span<std::byte const>;
