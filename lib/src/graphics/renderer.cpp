@@ -97,6 +97,7 @@ auto Renderer::Frame::make(RenderDevice& render_device) -> Frame {
 			.format = render_device.get_swapchain_format(),
 			.usage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransientAttachment,
 			.aspect = vk::ImageAspectFlagBits::eColor,
+			.layout = vk::ImageLayout::eColorAttachmentOptimal,
 			.samples = render_device.get_sample_count(),
 			.mip_map = false,
 			.lazily_allocated = true,
