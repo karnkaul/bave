@@ -14,11 +14,14 @@ class AInputEvent;
 }
 
 namespace bave {
-class AndroidApp : public App, public detail::IWsi {
+class AndroidApp : private App, private detail::IWsi {
   public:
 	static constexpr auto msaa_v = vk::SampleCountFlagBits{vk::SampleCountFlagBits::e1};
 
 	explicit AndroidApp(android_app& app, vk::SampleCountFlagBits msaa = msaa_v, bool validation_layers = debug_v);
+
+	using App::run;
+	using App::set_bootloader;
 
   private:
 	static auto self(Ptr<android_app> app) -> AndroidApp&;

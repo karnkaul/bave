@@ -26,7 +26,7 @@ struct BorderlessFullscreen {};
 using DisplayMode = std::variant<Windowed, BorderlessFullscreen>;
 
 /// \brief Concrete App for desktop.
-class DesktopApp : public App, public detail::IWsi {
+class DesktopApp : private App, private detail::IWsi {
   public:
 	/// \brief Data needed during construction.
 	struct CreateInfo {
@@ -42,6 +42,9 @@ class DesktopApp : public App, public detail::IWsi {
 	/// \brief Constructor.
 	/// \param create_info CreateInfo for this instance.
 	explicit DesktopApp(CreateInfo create_info);
+
+	using App::run;
+	using App::set_bootloader;
 
   private:
 	struct LogFile {

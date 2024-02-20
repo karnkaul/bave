@@ -36,23 +36,24 @@ constexpr auto image_extent(vk::SurfaceCapabilitiesKHR const& caps, vk::Extent2D
 }
 
 constexpr auto composite_alpha(vk::SurfaceCapabilitiesKHR const& caps) -> vk::CompositeAlphaFlagBitsKHR {
-	if (caps.supportedCompositeAlpha & vk::CompositeAlphaFlagBitsKHR::eOpaque) { return vk::CompositeAlphaFlagBitsKHR::eOpaque; }
-	if (caps.supportedCompositeAlpha & vk::CompositeAlphaFlagBitsKHR::eInherit) { return vk::CompositeAlphaFlagBitsKHR::eInherit; }
-	if (caps.supportedCompositeAlpha & vk::CompositeAlphaFlagBitsKHR::ePreMultiplied) { return vk::CompositeAlphaFlagBitsKHR::ePreMultiplied; }
+	using enum vk::CompositeAlphaFlagBitsKHR;
+	if (caps.supportedCompositeAlpha & eOpaque) { return eOpaque; }
+	if (caps.supportedCompositeAlpha & eInherit) { return eInherit; }
+	if (caps.supportedCompositeAlpha & ePreMultiplied) { return ePreMultiplied; }
 	// according to the spec, at least one bit must be set
-	return vk::CompositeAlphaFlagBitsKHR::ePostMultiplied;
+	return ePostMultiplied;
 }
 
 constexpr auto sample_count(vk::SampleCountFlags const supported, vk::SampleCountFlagBits const desired) {
 	if (supported & desired) { return desired; }
+	using enum vk::SampleCountFlagBits;
 	constexpr auto values_v = std::array{
-		vk::SampleCountFlagBits::e64, vk::SampleCountFlagBits::e32, vk::SampleCountFlagBits::e16,
-		vk::SampleCountFlagBits::e8,  vk::SampleCountFlagBits::e4,	vk::SampleCountFlagBits::e2,
+		e64, e32, e16, e8, e4, e2,
 	};
 	for (auto const value : values_v) {
 		if (desired >= value && (supported & value)) { return value; }
 	}
-	return vk::SampleCountFlagBits::e1;
+	return e1;
 }
 } // namespace
 

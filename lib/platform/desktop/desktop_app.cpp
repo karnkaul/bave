@@ -341,7 +341,7 @@ void DesktopApp::init_graphics() {
 		.desired_samples = m_create_info.msaa,
 		.validation_layers = m_create_info.validation_layers,
 	};
-	m_render_device = std::make_unique<RenderDevice>(this, rdci);
+	m_render_device = std::make_unique<RenderDevice>(static_cast<detail::IWsi*>(this), rdci);
 	m_renderer = std::make_unique<Renderer>(m_render_device.get(), &get_data_store());
 	m_dear_imgui = std::make_unique<detail::DearImGui>(m_window.get(), *m_render_device, m_renderer->get_render_pass());
 }

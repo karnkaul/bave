@@ -260,7 +260,7 @@ void AndroidApp::init_graphics() {
 		.desired_samples = m_msaa,
 		.validation_layers = m_validation_layers,
 	};
-	m_render_device = std::make_unique<RenderDevice>(this, rdci);
+	m_render_device = std::make_unique<RenderDevice>(static_cast<detail::IWsi*>(this), rdci);
 	m_renderer = std::make_unique<Renderer>(m_render_device.get(), &get_data_store());
 }
 
