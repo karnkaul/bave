@@ -19,6 +19,9 @@ struct VmaImage {
 		auto ret = VmaImage{};
 		auto vaci = VmaAllocationCreateInfo{};
 		vaci.usage = VMA_MEMORY_USAGE_AUTO;
+		if constexpr (bave::platform_v == Platform::eAndroid) {
+			if (m_create_info.lazily_allocated) { vaci.usage = VMA_MEMORY_USAGE_GPU_LAZILY_ALLOCATED; }
+		}
 		auto ici = vk::ImageCreateInfo{};
 		ici.usage = m_create_info.usage;
 		ici.imageType = vk::ImageType::e2D;
@@ -32,9 +35,13 @@ struct VmaImage {
 		auto const vici = static_cast<VkImageCreateInfo>(ici);
 
 		auto* image = VkImage{};
-		if (vmaCreateImage(render_device.get_allocator(), &vici, &vaci, &image, &ret.allocation, {}) != VK_SUCCESS) {
-			throw Error{"Failed to allocate Vulkan Image"};
+		auto create_image = [&] { return vmaCreateImage(render_device.get_allocator(), &vici, &vaci, &image, &ret.allocation, {}) == VK_SUCCESS; };
+		auto res = create_image();
+		if (!res && vaci.usage == VMA_MEMORY_USAGE_GPU_LAZILY_ALLOCATED) {
+			vaci.usage = VMA_MEMORY_USAGE_AUTO;
+			res = create_image();
 		}
+		if (!res) { throw Error{"Failed to allocate Vulkan Image"}; }
 		ret.image = image;
 
 		auto const isr = vk::ImageSubresourceRange{m_create_info.aspect, 0, ici.mipLevels, 0, ici.arrayLayers};
@@ -121,14 +128,14 @@ struct CopyBufferToImage {
 	std::uint32_t array_layers{1};
 	std::uint32_t mip_levels{1};
 
-	auto operator()(vk::CommandBuffer cmd) const {
+	auto operator()(vk::CommandBuffer const cmd, vk::ImageLayout const layout) const {
 		auto const isrl = vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, array_layers);
 		auto const vk_extent = vk::Extent3D{source_extent, 1u};
 		auto const bic = vk::BufferImageCopy({}, {}, {}, isrl, vk::Offset3D{target_offset, 0}, vk_extent);
 		auto barrier = ImageBarrier{target_image, mip_levels, array_layers};
 		barrier.set_full_barrier(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal).transition(cmd);
 		cmd.copyBufferToImage(source_bytes, target_image, vk::ImageLayout::eTransferDstOptimal, bic);
-		barrier.set_full_barrier(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal).transition(cmd);
+		barrier.set_full_barrier(vk::ImageLayout::eTransferDstOptimal, layout).transition(cmd);
 
 		if (mip_levels > 1) { MipMapWriter{barrier, image_extent, cmd, mip_levels, array_layers}(); }
 	}
@@ -148,7 +155,7 @@ struct CopyImageToImage {
 	std::uint32_t array_layers{1};
 	std::uint32_t mip_levels{1};
 
-	auto operator()(vk::CommandBuffer cmd) const {
+	auto operator()(vk::CommandBuffer const cmd, vk::ImageLayout const layout) const {
 		auto const isrl = vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, 0, 0, array_layers);
 		auto source_barrier = ImageBarrier{source.image, mip_levels, array_layers};
 		auto target_barrier = ImageBarrier{target.image, mip_levels, array_layers};
@@ -156,8 +163,8 @@ struct CopyImageToImage {
 		target_barrier.set_full_barrier(target.layout, vk::ImageLayout::eTransferDstOptimal).transition(cmd);
 		auto image_copy = vk::ImageCopy{isrl, vk::Offset3D{source.offset, 0}, isrl, vk::Offset3D{target.offset, 0}, vk::Extent3D{source.extent, 1}};
 		cmd.copyImage(source.image, vk::ImageLayout::eTransferSrcOptimal, target.image, vk::ImageLayout::eTransferDstOptimal, image_copy);
-		source_barrier.set_full_barrier(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal).transition(cmd);
-		target_barrier.set_full_barrier(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal).transition(cmd);
+		source_barrier.set_full_barrier(vk::ImageLayout::eTransferSrcOptimal, layout).transition(cmd);
+		target_barrier.set_full_barrier(vk::ImageLayout::eTransferDstOptimal, layout).transition(cmd);
 
 		if (mip_levels > 1) { MipMapWriter{target_barrier, target.extent, cmd, mip_levels, array_layers}(); }
 	}
@@ -235,7 +242,7 @@ auto RenderImage::copy_from(BitmapView const bitmap) -> bool {
 		.source_extent = extent,
 		.array_layers = 1,
 		.mip_levels = m_mip_levels,
-	}(cmd.get());
+	}(cmd.get(), m_create_info.layout);
 
 	cmd.submit(*m_render_device);
 
@@ -243,7 +250,8 @@ auto RenderImage::copy_from(BitmapView const bitmap) -> bool {
 }
 
 void RenderImage::recreate(vk::Extent2D extent) {
-	if (extent.width == 0 || extent.height == 0 || extent == m_extent) { return; }
+	if (extent.width == 0 || extent.height == 0) { return; }
+	if (extent == m_extent) { return; }
 
 	auto const mip_levels = m_create_info.mip_map ? compute_mip_levels(extent) : 1;
 	auto vma_image = VmaImage::make(*m_render_device, m_create_info, extent, mip_levels);
@@ -251,12 +259,11 @@ void RenderImage::recreate(vk::Extent2D extent) {
 	m_image = {vma_image.image, Deleter{.allocator = m_render_device->get_allocator(), .allocation = vma_image.allocation}};
 	m_view = std::move(vma_image.image_view);
 	m_extent = extent;
-	m_layout = vk::ImageLayout::eUndefined;
 	m_mip_levels = mip_levels;
 
 	auto cmd = detail::CommandBuffer{*m_render_device};
 	auto barrier = ImageBarrier{m_image, mip_levels, 1};
-	barrier.set_full_barrier(vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal).transition(cmd);
+	barrier.set_full_barrier(vk::ImageLayout::eUndefined, m_create_info.layout).transition(cmd);
 	cmd.submit(*m_render_device);
 }
 
@@ -280,36 +287,10 @@ auto RenderImage::overwrite(BitmapView const bitmap, glm::ivec2 top_left) -> boo
 		.source_extent = to_vk_extent(bitmap.extent),
 		.array_layers = 1,
 		.mip_levels = m_mip_levels,
-	}(cmd.get());
+	}(cmd.get(), m_create_info.layout);
 
 	cmd.submit(*m_render_device);
 
 	return true;
-}
-
-void RenderImage::resize(vk::Extent2D extent) {
-	assert(extent.width < 40960 && extent.height < 40960);
-	auto const mip_levels = m_create_info.mip_map ? compute_mip_levels(extent) : 1;
-	auto new_image = VmaImage::make(*m_render_device, m_create_info, extent, mip_levels);
-	auto const copy_src = CopyImage{
-		.image = m_image,
-		.layout = vk::ImageLayout::eShaderReadOnlyOptimal,
-		.extent = m_extent,
-	};
-	auto const copy_dst = CopyImage{
-		.image = new_image.image,
-		.layout = vk::ImageLayout::eUndefined,
-		.extent = extent,
-	};
-
-	auto cmd = detail::CommandBuffer{*m_render_device};
-	CopyImageToImage{
-		.source = copy_src,
-		.target = copy_dst,
-		.array_layers = m_create_info.view_type == vk::ImageViewType::eCube ? cubemap_layers_v : 1,
-		.mip_levels = mip_levels,
-	}(cmd);
-
-	cmd.submit(*m_render_device);
 }
 } // namespace bave::detail

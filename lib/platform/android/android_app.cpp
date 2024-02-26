@@ -146,7 +146,10 @@ auto find_index(Ptr<AInputEvent const> event, Pointer::Id id) -> std::optional<s
 }
 } // namespace
 
-AndroidApp::AndroidApp(android_app& app, bool validation_layers) : m_app(app), m_validation_layers(validation_layers) { m_app.userData = this; }
+AndroidApp::AndroidApp(android_app& app, vk::SampleCountFlagBits msaa, bool validation_layers)
+	: m_app(app), m_msaa(msaa), m_validation_layers(validation_layers) {
+	m_app.userData = this;
+}
 
 auto AndroidApp::setup() -> std::optional<ErrCode> {
 	app_dummy();
@@ -214,6 +217,11 @@ auto AndroidApp::get_framebuffer_extent() const -> vk::Extent2D {
 	return {size.x, size.y};
 }
 
+void AndroidApp::do_wait_render_device_idle() {
+	if (!m_render_device) { return; }
+	m_render_device->get_device().waitIdle();
+}
+
 auto AndroidApp::self(Ptr<android_app> app) -> AndroidApp& {
 	auto* ret = static_cast<AndroidApp*>(app->userData);
 	if (ret == nullptr) { throw Error{"Dereferencing null GLFW Window User Pointer"}; }
@@ -248,7 +256,11 @@ void AndroidApp::setup_event_callbacks() {
 }
 
 void AndroidApp::init_graphics() {
-	m_render_device = std::make_unique<RenderDevice>(this, RenderDevice::CreateInfo{.validation_layers = m_validation_layers});
+	auto const rdci = RenderDevice::CreateInfo{
+		.desired_samples = m_msaa,
+		.validation_layers = m_validation_layers,
+	};
+	m_render_device = std::make_unique<RenderDevice>(static_cast<detail::IWsi*>(this), rdci);
 	m_renderer = std::make_unique<Renderer>(m_render_device.get(), &get_data_store());
 }
 
@@ -278,7 +290,7 @@ void AndroidApp::start() {
 }
 
 void AndroidApp::destroy() {
-	get_render_device().get_device().waitIdle();
+	do_wait_render_device_idle();
 	m_driver.reset();
 	m_renderer.reset();
 	m_render_device.reset();

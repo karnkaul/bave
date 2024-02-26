@@ -36,11 +36,24 @@ constexpr auto image_extent(vk::SurfaceCapabilitiesKHR const& caps, vk::Extent2D
 }
 
 constexpr auto composite_alpha(vk::SurfaceCapabilitiesKHR const& caps) -> vk::CompositeAlphaFlagBitsKHR {
-	if (caps.supportedCompositeAlpha & vk::CompositeAlphaFlagBitsKHR::eOpaque) { return vk::CompositeAlphaFlagBitsKHR::eOpaque; }
-	if (caps.supportedCompositeAlpha & vk::CompositeAlphaFlagBitsKHR::eInherit) { return vk::CompositeAlphaFlagBitsKHR::eInherit; }
-	if (caps.supportedCompositeAlpha & vk::CompositeAlphaFlagBitsKHR::ePreMultiplied) { return vk::CompositeAlphaFlagBitsKHR::ePreMultiplied; }
+	using enum vk::CompositeAlphaFlagBitsKHR;
+	if (caps.supportedCompositeAlpha & eOpaque) { return eOpaque; }
+	if (caps.supportedCompositeAlpha & eInherit) { return eInherit; }
+	if (caps.supportedCompositeAlpha & ePreMultiplied) { return ePreMultiplied; }
 	// according to the spec, at least one bit must be set
-	return vk::CompositeAlphaFlagBitsKHR::ePostMultiplied;
+	return ePostMultiplied;
+}
+
+constexpr auto sample_count(vk::SampleCountFlags const supported, vk::SampleCountFlagBits const desired) {
+	if (supported & desired) { return desired; }
+	using enum vk::SampleCountFlagBits;
+	constexpr auto values_v = std::array{
+		e64, e32, e16, e8, e4, e2,
+	};
+	for (auto const value : values_v) {
+		if (desired >= value && (supported & value)) { return value; }
+	}
+	return e1;
 }
 } // namespace
 
@@ -59,6 +72,7 @@ RenderDevice::RenderDevice(NotNull<detail::IWsi*> wsi, CreateInfo create_info) :
 
 	auto device_builder = detail::DeviceBuilder{*m_instance, *m_surface};
 	m_gpu = m_wsi->select_gpu(device_builder.get_gpus());
+	m_samples = sample_count(m_gpu.device.getProperties().limits.sampledImageColorSampleCounts, create_info.desired_samples);
 
 	auto device = device_builder.build();
 	if (!device.device) { throw Error{"Failed to create Vulkan Device"}; }
@@ -82,6 +96,8 @@ RenderDevice::RenderDevice(NotNull<detail::IWsi*> wsi, CreateInfo create_info) :
 	m_line_width_limits = {line_width_range[0], line_width_range[1]};
 
 	render_view = get_default_view();
+
+	m_log.info("using MSAA: {}x", static_cast<int>(m_samples));
 }
 
 auto RenderDevice::get_default_view() const -> RenderView {
@@ -218,8 +234,7 @@ auto RenderDevice::recreate_swapchain(vk::Extent2D framebuffer) -> bool {
 	for (auto const image : images) {
 		m_swapchain.active.views.push_back(detail::MakeImageView{.image = image, .format = m_swapchain.create_info.imageFormat}(get_device()));
 		m_swapchain.active.render_targets.push_back({
-			.image = image,
-			.view = *m_swapchain.active.views.back(),
+			.swapchain = *m_swapchain.active.views.back(),
 			.extent = m_swapchain.create_info.imageExtent,
 			.format = m_swapchain.create_info.imageFormat,
 		});

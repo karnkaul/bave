@@ -6,7 +6,7 @@ extern "C" {
 void android_main(android_app* andr_app) {
 	// we will use bave::AndroidApp.
 	// create the App instance.
-	auto app = bave::AndroidApp{*andr_app};
+	auto app = bave::AndroidApp{*andr_app, vk::SampleCountFlagBits::e4};
 	// setup the entry point (Flappy).
 	app.set_bootloader([](bave::App& app) { return std::make_unique<Flappy>(app); });
 	// run App and return its exit code.

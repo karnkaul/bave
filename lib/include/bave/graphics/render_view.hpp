@@ -26,5 +26,14 @@ struct RenderView {
 	/// \param ndc Point in normalized device coordinates.
 	/// \returns Unprojected point in view space.
 	[[nodiscard]] auto unproject(glm::vec2 ndc) const -> glm::vec2;
+
+	/// \brief Convert a viewport Rect to normalized scissor (UV coordinates).
+	/// \param viewport_rect Rect in viewport space.
+	/// \returns Corresponding scissor rect.
+	[[nodiscard]] constexpr auto to_n_scissor(Rect<> viewport_rect) const -> Rect<> {
+		viewport_rect.lt /= viewport;
+		viewport_rect.rb /= viewport;
+		return to_uv_rect(viewport_rect);
+	}
 };
 } // namespace bave

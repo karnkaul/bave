@@ -2,6 +2,13 @@
 
 ## v0.4
 
+### v0.4.3
+
+- Added bave::to_uv_rect() and bave::RenderView::to_n_scissor.
+- Added MSAA (multi sampled anti aliasing) support.
+- Fixed potential overflow in the general constructor of bave::FixedString.
+- Made bave::DesktopApp and bave::AndroidApp inherit privately from bave::App. This tightens the API available to either platform's main: they can only call bave::App::set_bootloader() and bave::App::run().
+
 ### v0.4.2
 
 - Fixed app shutdown/restart flow on Android.

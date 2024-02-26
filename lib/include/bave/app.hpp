@@ -120,6 +120,9 @@ class App : public PolyPinned {
 
 	[[nodiscard]] auto get_features() const -> FeatureFlags;
 
+	/// \brief Wait until RenderDevice is idle.
+	void wait_render_device_idle() { do_wait_render_device_idle(); }
+
 	[[nodiscard]] auto get_data_store() const -> DataStore& { return *m_data_store; }
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return do_get_render_device(); }
 	[[nodiscard]] auto get_renderer() const -> Renderer const& { return do_get_renderer(); }
@@ -178,6 +181,8 @@ class App : public PolyPinned {
 	virtual auto do_set_window_size(glm::ivec2 size) -> bool = 0;
 	virtual auto do_set_title(CString /*title*/) -> bool { return false; }
 	virtual auto do_set_window_icon(std::span<BitmapView const> /*bitmaps*/) -> bool { return false; }
+
+	virtual void do_wait_render_device_idle() = 0;
 
 	void pre_tick();
 

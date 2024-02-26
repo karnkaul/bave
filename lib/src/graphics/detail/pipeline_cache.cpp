@@ -49,7 +49,8 @@ PipelineCache::Key::Key(Program shader, State state)
 	: shader(shader), state(state), cached_hash(make_combined_hash(shader.vertex, shader.fragment, state.topology, state.polygon_mode)) {}
 
 PipelineCache::PipelineCache(vk::RenderPass render_pass, NotNull<RenderDevice*> render_device, NotNull<DataStore const*> data_store)
-	: m_shader_cache(render_device->get_device(), data_store), m_descriptor_cache(render_device), m_render_pass(render_pass) {
+	: m_shader_cache(render_device->get_device(), data_store), m_descriptor_cache(render_device), m_render_pass(render_pass),
+	  m_samples(render_device->get_sample_count()) {
 	auto pipeline_shader_layout = PipelineShaderLayout::make(render_device->get_device());
 
 	m_descriptor_set_layouts = std::move(pipeline_shader_layout).descriptor_set_layouts;
@@ -157,8 +158,8 @@ auto PipelineCache::build(Key const& key) -> vk::UniquePipeline {
 	gpci.pViewportState = &pvsci;
 
 	auto pmsci = vk::PipelineMultisampleStateCreateInfo{};
-	pmsci.rasterizationSamples = vk::SampleCountFlagBits::e1;
-	pmsci.sampleShadingEnable = 0;
+	pmsci.rasterizationSamples = m_samples;
+	pmsci.sampleShadingEnable = vk::False;
 	gpci.pMultisampleState = &pmsci;
 
 	gpci.renderPass = m_render_pass;

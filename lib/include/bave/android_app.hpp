@@ -14,9 +14,14 @@ class AInputEvent;
 }
 
 namespace bave {
-class AndroidApp : public App, public detail::IWsi {
+class AndroidApp : private App, private detail::IWsi {
   public:
-	explicit AndroidApp(android_app& app, bool validation_layers = debug_v);
+	static constexpr auto msaa_v = vk::SampleCountFlagBits{vk::SampleCountFlagBits::e1};
+
+	explicit AndroidApp(android_app& app, vk::SampleCountFlagBits msaa = msaa_v, bool validation_layers = debug_v);
+
+	using App::run;
+	using App::set_bootloader;
 
   private:
 	static auto self(Ptr<android_app> app) -> AndroidApp&;
@@ -41,6 +46,7 @@ class AndroidApp : public App, public detail::IWsi {
 	[[nodiscard]] auto get_framebuffer_extent() const -> vk::Extent2D final;
 
 	auto do_set_window_size(glm::ivec2 /*size*/) -> bool final { return false; }
+	void do_wait_render_device_idle() final;
 
 	void setup_event_callbacks();
 
@@ -58,6 +64,7 @@ class AndroidApp : public App, public detail::IWsi {
 	void handle_focus(bool gained);
 
 	android_app& m_app; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+	vk::SampleCountFlagBits m_msaa;
 	bool m_validation_layers;
 
 	std::unique_ptr<RenderDevice> m_render_device{};

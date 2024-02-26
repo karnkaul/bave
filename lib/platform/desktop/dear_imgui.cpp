@@ -60,7 +60,7 @@ DearImGui::DearImGui(Ptr<GLFWwindow> window, RenderDevice& render_device, vk::Re
 	init_info.Subpass = 0;
 	init_info.MinImageCount = 2;
 	init_info.ImageCount = 2;
-	init_info.MSAASamples = static_cast<VkSampleCountFlagBits>(vk::SampleCountFlagBits::e1);
+	init_info.MSAASamples = static_cast<VkSampleCountFlagBits>(render_device.get_sample_count());
 	init_info.ColorAttachmentFormat = static_cast<VkFormat>(render_device.get_swapchain_format());
 
 	ImGui_ImplVulkan_Init(&init_info, render_pass);

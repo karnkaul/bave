@@ -43,6 +43,7 @@ class Renderer : public Pinned {
 		};
 
 		detail::Buffered<Sync> syncs{};
+		std::optional<detail::RenderImage> msaa_image{};
 		vk::UniqueRenderPass render_pass{};
 
 		detail::Buffered<vk::UniqueFramebuffer> framebuffers{};

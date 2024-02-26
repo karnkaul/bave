@@ -26,7 +26,7 @@ struct BorderlessFullscreen {};
 using DisplayMode = std::variant<Windowed, BorderlessFullscreen>;
 
 /// \brief Concrete App for desktop.
-class DesktopApp : public App, public detail::IWsi {
+class DesktopApp : private App, private detail::IWsi {
   public:
 	/// \brief Data needed during construction.
 	struct CreateInfo {
@@ -34,6 +34,7 @@ class DesktopApp : public App, public detail::IWsi {
 		CString title{"BaveApp"};
 		DisplayMode mode{Windowed{}};
 		std::function<Gpu(std::span<Gpu const>)> select_gpu{};
+		vk::SampleCountFlagBits msaa{vk::SampleCountFlagBits::e1};
 		std::string_view assets_patterns{"assets"};
 		bool validation_layers{debug_v};
 	};
@@ -41,6 +42,9 @@ class DesktopApp : public App, public detail::IWsi {
 	/// \brief Constructor.
 	/// \param create_info CreateInfo for this instance.
 	explicit DesktopApp(CreateInfo create_info);
+
+	using App::run;
+	using App::set_bootloader;
 
   private:
 	struct LogFile {
@@ -89,6 +93,8 @@ class DesktopApp : public App, public detail::IWsi {
 	auto do_set_window_size(glm::ivec2 size) -> bool final;
 	auto do_set_title(CString title) -> bool final;
 	auto do_set_window_icon(std::span<BitmapView const> bitmaps) -> bool final;
+
+	void do_wait_render_device_idle() final;
 
 	void init_data_store();
 	void make_window();

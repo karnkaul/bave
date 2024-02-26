@@ -62,9 +62,11 @@ class RenderImage : public RenderResource {
 		vk::ImageUsageFlags usage{usage_v};
 		vk::ImageAspectFlagBits aspect{vk::ImageAspectFlagBits::eColor};
 		vk::ImageTiling tiling{vk::ImageTiling::eOptimal};
+		vk::ImageLayout layout{vk::ImageLayout::eShaderReadOnlyOptimal};
 		vk::SampleCountFlagBits samples{vk::SampleCountFlagBits::e1};
 		vk::ImageViewType view_type{vk::ImageViewType::e2D};
 		bool mip_map{true};
+		bool lazily_allocated{false};
 	};
 
 	using Layer = std::span<std::byte const>;
@@ -80,7 +82,6 @@ class RenderImage : public RenderResource {
 
 	void recreate(vk::Extent2D extent);
 	auto overwrite(BitmapView bitmap, glm::ivec2 top_left) -> bool;
-	void resize(vk::Extent2D extent);
 
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return *m_render_device; }
 
@@ -89,7 +90,7 @@ class RenderImage : public RenderResource {
 	[[nodiscard]] auto get_format() const -> vk::Format { return m_create_info.format; }
 	[[nodiscard]] auto get_image_view() const -> vk::ImageView { return *m_view; }
 	[[nodiscard]] auto get_view_type() const -> vk::ImageViewType { return m_create_info.view_type; }
-	[[nodiscard]] auto get_layout() const -> vk::ImageLayout { return m_layout; }
+	[[nodiscard]] auto get_layout() const -> vk::ImageLayout { return m_create_info.layout; }
 	[[nodiscard]] auto get_mip_levels() const -> std::uint32_t { return m_mip_levels; }
 
 	[[nodiscard]] auto get_create_info() const -> CreateInfo const& { return m_create_info; }
@@ -103,7 +104,6 @@ class RenderImage : public RenderResource {
 	ScopedResource<vk::Image, Deleter> m_image{};
 	vk::Extent2D m_extent{};
 	vk::UniqueImageView m_view{};
-	vk::ImageLayout m_layout{};
 	std::uint32_t m_mip_levels{};
 };
 

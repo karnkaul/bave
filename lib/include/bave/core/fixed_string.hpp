@@ -22,7 +22,7 @@ class FixedString {
 	template <std::convertible_to<std::string_view> T>
 	FixedString(T const& t) {
 		auto const str = std::string_view{t};
-		m_size = str.size();
+		m_size = std::min(Capacity, str.size());
 		std::memcpy(m_buffer.data(), str.data(), m_size);
 	}
 
