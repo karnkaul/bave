@@ -118,6 +118,10 @@ class App : public PolyPinned {
 	/// Currently gamepads are only processed on desktop.
 	[[nodiscard]] auto get_most_recent_gamepad() const -> Gamepad const& { return get_gamepad(m_most_recent_gamepad); }
 
+	/// \brief Update GLFW gamepad mappings.
+	/// \param text contents in SDL game controller DB format.
+	void update_gamepad_mappings(CString const text) { do_update_gamepad_mappings(text); }
+
 	[[nodiscard]] auto get_features() const -> FeatureFlags;
 
 	/// \brief Wait until RenderDevice is idle.
@@ -181,6 +185,7 @@ class App : public PolyPinned {
 	virtual auto do_set_window_size(glm::ivec2 size) -> bool = 0;
 	virtual auto do_set_title(CString /*title*/) -> bool { return false; }
 	virtual auto do_set_window_icon(std::span<BitmapView const> /*bitmaps*/) -> bool { return false; }
+	virtual void do_update_gamepad_mappings(CString /*text*/) {}
 
 	virtual void do_wait_render_device_idle() = 0;
 

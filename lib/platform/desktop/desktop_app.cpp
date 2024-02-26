@@ -259,6 +259,8 @@ auto DesktopApp::do_set_window_icon(std::span<BitmapView const> bitmaps) -> bool
 	return true;
 }
 
+void DesktopApp::do_update_gamepad_mappings(CString text) { glfwUpdateGamepadMappings(text.c_str()); }
+
 void DesktopApp::do_wait_render_device_idle() {
 	if (!m_render_device) { return; }
 	m_render_device->get_device().waitIdle();
