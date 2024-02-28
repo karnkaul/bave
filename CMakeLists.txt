@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(project_prefix bave)
-project(${project_prefix} VERSION 0.4.3)
+project(${project_prefix} VERSION 0.4.4)
 
 set(is_root_project FALSE)
 

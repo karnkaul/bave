@@ -93,6 +93,7 @@ class DesktopApp : private App, private detail::IWsi {
 	auto do_set_window_size(glm::ivec2 size) -> bool final;
 	auto do_set_title(CString title) -> bool final;
 	auto do_set_window_icon(std::span<BitmapView const> bitmaps) -> bool final;
+	void do_update_gamepad_mappings(CString text) final;
 
 	void do_wait_render_device_idle() final;
 

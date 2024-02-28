@@ -259,6 +259,8 @@ auto DesktopApp::do_set_window_icon(std::span<BitmapView const> bitmaps) -> bool
 	return true;
 }
 
+void DesktopApp::do_update_gamepad_mappings(CString text) { glfwUpdateGamepadMappings(text.c_str()); }
+
 void DesktopApp::do_wait_render_device_idle() {
 	if (!m_render_device) { return; }
 	m_render_device->get_device().waitIdle();
@@ -362,8 +364,11 @@ void DesktopApp::update_gamepads() {
 		std::memcpy(gamepad.axes.data(), axes.data(), axes.size_bytes());
 		// adjust triggers to be in [0, 1], otherwise the rest value is -1.
 		static constexpr auto project_trigger = [](float& out) { out = (out + 1.0f) * 0.5f; };
+		static constexpr auto invert_axis = [](float& out) { out = -out; };
 		project_trigger(gamepad.axes.at(GamepadAxis::eLeftTrigger));
 		project_trigger(gamepad.axes.at(GamepadAxis::eRightTrigger));
+		invert_axis(gamepad.axes.at(GamepadAxis::eLeftY));
+		invert_axis(gamepad.axes.at(GamepadAxis::eRightY));
 		gamepad.button_states = {};
 		for (std::size_t b = 0; b < buttons.size(); ++b) {
 			if (buttons[b] == 0x1) { gamepad.button_states.set(static_cast<GamepadButton>(b)); }

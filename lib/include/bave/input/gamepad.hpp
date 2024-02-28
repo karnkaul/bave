@@ -85,6 +85,10 @@ struct Gamepad {
 	///
 	/// eLeftTrigger and eRightTrigger have a range of [0, 1].
 	/// All other axes have a range of [-1, 1].
-	[[nodiscard]] auto get_axis(Axis const axis) const -> float { return axes.at(axis); }
+	[[nodiscard]] auto get_axis(Axis const axis, float const dead_zone = 0.05f) const -> float {
+		auto const ret = axes.at(axis);
+		if (std::abs(ret) < dead_zone) { return 0.0f; }
+		return ret;
+	}
 };
 } // namespace bave

@@ -2,6 +2,12 @@
 
 ## v0.4
 
+### v0.4.4
+
+- Added bave::App::update_gamepad_mappings() for custom GLFW gamepad mappings.
+- Inverted GLFW gamepad left and right axis Y values.
+- Added `dead_zone` argument to bave::Gamepad::get_axis().
+
 ### v0.4.3
 
 - Added bave::to_uv_rect() and bave::RenderView::to_n_scissor.
