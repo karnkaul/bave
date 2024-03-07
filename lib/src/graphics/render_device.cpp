@@ -119,8 +119,8 @@ auto RenderDevice::wait_for(vk::Fence const fence, std::uint64_t const timeout) 
 	return get_device().waitForFences(fence, vk::True, timeout) == vk::Result::eSuccess;
 }
 
-auto RenderDevice::reset_fence(vk::Fence const fence, bool wait_first) const -> bool {
-	if (wait_first && !wait_for(fence)) { return false; }
+auto RenderDevice::reset_fence(vk::Fence const fence, std::optional<std::uint64_t> wait_timeout) const -> bool {
+	if (wait_timeout && !wait_for(fence, *wait_timeout)) { return false; }
 	get_device().resetFences(fence);
 	return true;
 }
@@ -134,25 +134,31 @@ auto RenderDevice::request_present_mode(vk::PresentModeKHR present_mode) -> bool
 	return true;
 }
 
-auto RenderDevice::acquire_next_image(vk::Fence wait, vk::Semaphore signal) -> std::optional<detail::RenderTarget> {
+auto RenderDevice::acquire_next_image(vk::Fence wait, vk::Semaphore signal) -> AcquireResult {
 	auto const framebuffer = m_wsi->get_framebuffer_extent();
 	if (framebuffer.width == 0 || framebuffer.height == 0) { return {}; }
 
-	reset_fence(wait);
+	static constexpr auto wait_timeout_v = std::chrono::nanoseconds{std::chrono::seconds{3}};
+	if (!reset_fence(wait, wait_timeout_v.count())) { throw Error{"failed to wait for render fence"}; }
 	m_defer_queue.next_frame();
 
 	if (m_swapchain.desired_present_mode != m_swapchain.create_info.presentMode || framebuffer != m_swapchain.create_info.imageExtent) {
-		if (!recreate_swapchain(framebuffer)) { return {}; }
+		recreate_swapchain(framebuffer);
+		return RecreateSync{};
 	}
 
-	if (!m_swapchain.active.image_index) {
-		auto image_index = std::uint32_t{};
-		auto lock = std::scoped_lock{m_queue_mutex};
-		auto const result = get_device().acquireNextImageKHR(*m_swapchain.active.swapchain, RenderDevice::max_timeout_v, signal, {}, &image_index);
-		if (!handle_swapchain_result(result, framebuffer, "acquire_next_image")) { return {}; }
-
-		m_swapchain.active.image_index = image_index;
+	auto image_index = std::uint32_t{};
+	auto lock = std::unique_lock{m_queue_mutex};
+	auto const result = get_device().acquireNextImageKHR(*m_swapchain.active.swapchain, RenderDevice::max_timeout_v, signal, {}, &image_index);
+	if (result == vk::Result::eErrorOutOfDateKHR) {
+		lock.unlock();
+		recreate_swapchain(framebuffer);
+		return RecreateSync{};
 	}
+	if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR) { throw Error{"failed to acquire next image"}; }
+	lock.unlock();
+
+	m_swapchain.active.image_index = image_index;
 
 	assert(m_swapchain.active.image_index.has_value());
 	return m_swapchain.active.render_targets.at(*m_swapchain.active.image_index);
@@ -216,7 +222,6 @@ auto RenderDevice::recreate_swapchain(vk::Extent2D framebuffer) -> bool {
 	info.presentMode = m_swapchain.desired_present_mode;
 	info.minImageCount = image_count(caps);
 	info.oldSwapchain = m_swapchain.active.swapchain.get();
-	get_device().waitIdle();
 	auto new_swapchain = get_device().createSwapchainKHRUnique(info);
 
 	auto count = std::uint32_t{};
