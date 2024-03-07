@@ -195,7 +195,14 @@ auto RenderDevice::submit_and_present(vk::SubmitInfo const& submit_info, vk::Fen
 	m_swapchain.active.image_index.reset();
 	m_buffer_cache->next_frame();
 
-	return handle_swapchain_result(result, framebuffer, "present");
+	switch (result) {
+	case vk::Result::eSuccess:
+	case vk::Result::eSuboptimalKHR: return true;
+	case vk::Result::eErrorOutOfDateKHR: recreate_swapchain(framebuffer); return false;
+	default: break;
+	}
+
+	throw Error{"failed to present swapchain image"};
 }
 
 auto RenderDevice::recreate_surface() -> bool {
@@ -252,17 +259,5 @@ auto RenderDevice::recreate_swapchain(vk::Extent2D framebuffer) -> bool {
 			   detail::Swapchain::is_srgb_format(info.imageFormat) ? "sRGB" : "linear", to_vsync_string(info.presentMode));
 
 	return true;
-}
-
-auto RenderDevice::handle_swapchain_result(vk::Result const result, vk::Extent2D framebuffer, std::string_view const op) -> bool {
-	switch (result) {
-	case vk::Result::eSuccess: return true;
-	// TODO: check suboptimal against Android auto-surface transform
-	case vk::Result::eSuboptimalKHR: return true;
-	case vk::Result::eErrorOutOfDateKHR: return recreate_swapchain(framebuffer);
-	default: break;
-	}
-
-	throw Error{"{} failed", op};
 }
 } // namespace bave

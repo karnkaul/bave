@@ -87,7 +87,6 @@ class RenderDevice {
 	};
 
 	auto recreate_swapchain(vk::Extent2D framebuffer) -> bool;
-	auto handle_swapchain_result(vk::Result result, vk::Extent2D framebuffer, std::string_view op) -> bool;
 
 	Logger m_log{"RenderDevice"};
 
