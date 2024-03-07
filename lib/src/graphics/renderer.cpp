@@ -53,8 +53,8 @@ auto make_single_render_pass(vk::Device device, vk::Format colour, vk::SampleCou
 	}
 
 	auto dep = vk::SubpassDependency{};
-	dep.srcSubpass = 0;
-	dep.dstSubpass = VK_SUBPASS_EXTERNAL;
+	dep.srcSubpass = VK_SUBPASS_EXTERNAL;
+	dep.dstSubpass = 0;
 	dep.srcStageMask = dep.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 	dep.srcAccessMask = dep.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
 
