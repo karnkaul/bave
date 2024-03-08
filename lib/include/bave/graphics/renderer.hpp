@@ -50,6 +50,7 @@ class Renderer : public Pinned {
 		std::optional<detail::RenderTarget> render_target{};
 
 		static auto make(RenderDevice& render_device) -> Frame;
+		void make_syncs(vk::Device device, std::uint32_t queue_family);
 	};
 
 	Logger m_log{"FrameRenderer"};

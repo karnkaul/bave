@@ -1,4 +1,5 @@
 #include <bave/core/error.hpp>
+#include <bave/core/visitor.hpp>
 #include <bave/graphics/detail/image_barrier.hpp>
 #include <bave/graphics/renderer.hpp>
 
@@ -53,8 +54,8 @@ auto make_single_render_pass(vk::Device device, vk::Format colour, vk::SampleCou
 	}
 
 	auto dep = vk::SubpassDependency{};
-	dep.srcSubpass = 0;
-	dep.dstSubpass = VK_SUBPASS_EXTERNAL;
+	dep.srcSubpass = VK_SUBPASS_EXTERNAL;
+	dep.dstSubpass = 0;
 	dep.srcStageMask = dep.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 	dep.srcAccessMask = dep.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
 
@@ -80,15 +81,7 @@ auto Renderer::Frame::make(RenderDevice& render_device) -> Frame {
 
 	auto const device = render_device.get_device();
 
-	for (auto& sync : ret.syncs) {
-		sync.command_pool = device.createCommandPoolUnique(vk::CommandPoolCreateInfo{
-			vk::CommandPoolCreateFlagBits::eTransient | vk::CommandPoolCreateFlagBits::eResetCommandBuffer, render_device.get_gpu().queue_family});
-		auto const cbai = vk::CommandBufferAllocateInfo{*sync.command_pool, vk::CommandBufferLevel::ePrimary, 1};
-		if (device.allocateCommandBuffers(&cbai, &sync.command_buffer) != vk::Result::eSuccess) { throw Error{"Failed to allocate Vulkan Command Buffer"}; }
-		sync.draw = device.createSemaphoreUnique({});
-		sync.present = device.createSemaphoreUnique({});
-		sync.drawn = device.createFenceUnique({vk::FenceCreateFlagBits::eSignaled});
-	}
+	ret.make_syncs(device, render_device.get_gpu().queue_family);
 
 	ret.render_pass = make_single_render_pass(render_device.get_device(), render_device.get_swapchain_format(), render_device.get_sample_count());
 
@@ -108,6 +101,19 @@ auto Renderer::Frame::make(RenderDevice& render_device) -> Frame {
 	return ret;
 }
 
+void Renderer::Frame::make_syncs(vk::Device device, std::uint32_t queue_family) {
+	for (auto& sync : syncs) {
+		sync.command_pool = device.createCommandPoolUnique(
+			vk::CommandPoolCreateInfo{vk::CommandPoolCreateFlagBits::eTransient | vk::CommandPoolCreateFlagBits::eResetCommandBuffer, queue_family});
+		auto const cbai = vk::CommandBufferAllocateInfo{*sync.command_pool, vk::CommandBufferLevel::ePrimary, 1};
+		if (device.allocateCommandBuffers(&cbai, &sync.command_buffer) != vk::Result::eSuccess) { throw Error{"Failed to allocate Vulkan Command Buffer"}; }
+		sync.draw = device.createSemaphoreUnique({});
+		sync.present = device.createSemaphoreUnique({});
+		sync.drawn = device.createFenceUnique({vk::FenceCreateFlagBits::eSignaled});
+	}
+	render_target.reset();
+}
+
 Renderer::Renderer(NotNull<RenderDevice*> render_device, NotNull<DataStore const*> data_store)
 	: m_render_device(render_device), m_frame(Frame::make(*m_render_device)),
 	  m_pipeline_cache(std::make_unique<detail::PipelineCache>(*m_frame.render_pass, render_device, data_store)), m_white(render_device, white_bitmap()),
@@ -115,7 +121,16 @@ Renderer::Renderer(NotNull<RenderDevice*> render_device, NotNull<DataStore const
 
 auto Renderer::start_render(Rgba clear_colour) -> bool {
 	auto& sync = m_frame.syncs.at(get_frame_index());
-	m_frame.render_target = m_render_device->acquire_next_image(*sync.drawn, *sync.draw);
+	auto const acquire_result = m_render_device->acquire_next_image(*sync.drawn, *sync.draw);
+	auto const visitor = Visitor{
+		[this](std::monostate) { m_frame.render_target.reset(); },
+		[this](detail::RenderTarget render_target) { m_frame.render_target = render_target; },
+		[this](RenderDevice::RecreateSync) {
+			m_render_device->get_device().waitIdle();
+			m_frame.make_syncs(m_render_device->get_device(), m_render_device->get_gpu().queue_family);
+		},
+	};
+	std::visit(visitor, acquire_result);
 	if (!m_frame.render_target) { return {}; }
 
 	if (m_frame.msaa_image) {

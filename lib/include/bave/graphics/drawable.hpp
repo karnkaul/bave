@@ -37,8 +37,12 @@ class Drawable : public IDrawable {
 
 	/// \brief Instanced rendering.
 	///
-	/// transform and tint are ignored if instances is not empty.
+	/// tint is ignored if instances is not empty.
 	std::vector<RenderInstance> instances{};
+	/// \brief Whether to parent RenderInstance transforms on transform.
+	///
+	/// If true, transform will affect each instance.transform.
+	bool parented_instances{true};
 
   protected:
 	void set_geometry(Geometry geometry);

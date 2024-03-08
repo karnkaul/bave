@@ -12,7 +12,7 @@ struct RenderInstance {
 	Transform transform{};
 	Rgba tint{};
 
-	[[nodiscard]] auto bake() const -> Baked;
+	[[nodiscard]] auto bake(glm::mat4 const& parent = glm::identity<glm::mat4>()) const -> Baked;
 };
 
 /// \brief Baked render instance (ready to upload to GPU).
@@ -30,5 +30,7 @@ struct RenderPrimitive {
 	Topology topology{Topology::eTriangleList};
 };
 
-inline auto RenderInstance::bake() const -> Baked { return Baked{.transform = transform.matrix(), .rgba = Rgba::to_linear(tint.to_vec4())}; }
+inline auto RenderInstance::bake(glm::mat4 const& parent) const -> Baked {
+	return Baked{.transform = parent * transform.matrix(), .rgba = Rgba::to_linear(tint.to_vec4())};
+}
 } // namespace bave

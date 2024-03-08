@@ -45,7 +45,7 @@ auto ParticleEmitter::make_particle() const -> Particle {
 	ret.lerp.scale = config.lerp.scale;
 	ret.lerp.tint = config.lerp.tint;
 
-	ret.transform.position = random_vec2(config.initial.position);
+	ret.transform.position = m_position + random_vec2(config.initial.position);
 	ret.transform.rotation = random_in_range(config.initial.rotation.lo.value, config.initial.rotation.hi.value);
 	ret.transform.scale = config.lerp.scale.lo;
 
@@ -81,6 +81,7 @@ void ParticleEmitter::tick_particles(Seconds const dt) {
 }
 
 void ParticleEmitter::sync_instances() {
+	parented_instances = false;
 	instances.resize(m_particles.size());
 	for (std::size_t index = 0; index < m_particles.size(); ++index) {
 		auto const& particle = m_particles.at(index);

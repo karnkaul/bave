@@ -18,6 +18,7 @@
 #include <bave/platform.hpp>
 #include <limits>
 #include <mutex>
+#include <variant>
 
 struct GLFWwindow;
 
@@ -36,6 +37,9 @@ class RenderDevice {
 	static constexpr auto iv_v = vk::ImageViewType::e2D;
 
 	using CreateInfo = RenderDeviceCreateInfo;
+
+	struct RecreateSync {};
+	using AcquireResult = std::variant<std::monostate, detail::RenderTarget, RecreateSync>;
 
 	explicit RenderDevice(NotNull<detail::IWsi*> wsi, CreateInfo create_info = {});
 
@@ -59,11 +63,11 @@ class RenderDevice {
 	[[nodiscard]] auto project_to(glm::vec2 target_space, glm::vec2 point) const -> glm::vec2;
 
 	auto wait_for(vk::Fence fence, std::uint64_t timeout = max_timeout_v) const -> bool;
-	auto reset_fence(vk::Fence fence, bool wait_first = true) const -> bool;
+	auto reset_fence(vk::Fence fence, std::optional<std::uint64_t> wait_timeout) const -> bool;
 
 	auto request_present_mode(vk::PresentModeKHR present_mode) -> bool;
 
-	[[nodiscard]] auto acquire_next_image(vk::Fence wait, vk::Semaphore signal) -> std::optional<detail::RenderTarget>;
+	[[nodiscard]] auto acquire_next_image(vk::Fence wait, vk::Semaphore signal) -> AcquireResult;
 	auto queue_submit(vk::SubmitInfo const& submit_info, vk::Fence signal) -> bool;
 	auto submit_and_present(vk::SubmitInfo const& submit_info, vk::Fence draw_signal, vk::Semaphore present_wait) -> bool;
 
@@ -83,7 +87,6 @@ class RenderDevice {
 	};
 
 	auto recreate_swapchain(vk::Extent2D framebuffer) -> bool;
-	auto handle_swapchain_result(vk::Result result, vk::Extent2D framebuffer, std::string_view op) -> bool;
 
 	Logger m_log{"RenderDevice"};
 
