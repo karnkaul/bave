@@ -48,7 +48,11 @@ class ParticleEmitter : public Sprite {
 
 	void tick(Seconds dt);
 
-	void respawn_all();
+	/// \brief Pre-warm particles by simulating ticks.
+	/// \param dt Delta time to use per tick.
+	/// \param ticks Number of ticks to simulate.
+	void pre_warm(Seconds dt = 50ms, int ticks = 100);
+
 	/// \brief Set emitter position. Does not affect already spawned particles.
 	void set_position(glm::vec2 position) { m_position = position; }
 	/// \brief Get the emitter's position.
@@ -105,9 +109,11 @@ class ParticleSystem : public IDrawable {
 		for (auto& emitter : emitters) { emitter.tick(dt); }
 	}
 
-	/// \brief Respawn all emitters.
-	void respawn_all() {
-		for (auto& emitter : emitters) { emitter.respawn_all(); }
+	/// \brief Pre-warm particles of all emitters by simulating ticks.
+	/// \param dt Delta time to use per tick.
+	/// \param ticks Number of ticks to simulate.
+	void pre_warm(Seconds const dt = 50ms, int const ticks = 100) {
+		for (auto& emitter : emitters) { emitter.pre_warm(dt, ticks); }
 	}
 
 	/// \brief Vector of emitters.

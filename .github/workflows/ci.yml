@@ -1,6 +1,14 @@
 name: ci
 on: [push]
 jobs:
+  format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: format code
+        run: tools/format_code.sh
+      - name: check diff
+        run: .github/format_check_diff.sh
   build-linux:
     runs-on: ubuntu-latest
     steps:
@@ -39,3 +47,16 @@ jobs:
         run: cmake --build build --config=Release -- -d explain
       - name: test
         run: cd build && ctest -C Release
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: init
+        run: |
+            wget https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.tar.gz
+            tar xvzf jdk-17_linux-x64_bin.tar.gz -C /opt
+      - name: build
+        run: |
+            export JAVA_HOME=$(find /opt -name "jdk-17.*")
+            cd example/android
+            ./gradlew assembleDebug

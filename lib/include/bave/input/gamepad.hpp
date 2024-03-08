@@ -81,6 +81,7 @@ struct Gamepad {
 
 	/// \brief Obtain an axis value.
 	/// \param axis Axis to obtain value of.
+	/// \param dead_zone Minimum absolute value of axis below which returned value will be 0.
 	/// \returns Normalized value of axis.
 	///
 	/// eLeftTrigger and eRightTrigger have a range of [0, 1].

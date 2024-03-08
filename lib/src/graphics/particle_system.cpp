@@ -18,13 +18,12 @@ void ParticleEmitter::Particle::rotate(Seconds const dt) { transform.rotation.va
 void ParticleEmitter::Particle::scaleify(float const alpha) { transform.scale = glm::mix(lerp.scale.lo, lerp.scale.hi, alpha); }
 void ParticleEmitter::Particle::tintify(float const alpha) { tint.channels = glm::mix(lerp.tint.lo.channels, lerp.tint.hi.channels, alpha); }
 
-void ParticleEmitter::respawn_all() {
+void ParticleEmitter::pre_warm(Seconds const dt, int ticks) {
 	m_particles.clear();
-	m_particles.reserve(config.count);
-	auto respawn = config.respawn;
-	config.respawn = true;
-	refresh_particles();
-	config.respawn = respawn;
+	for (; ticks > 0; --ticks) {
+		refresh_particles();
+		tick_particles(dt);
+	}
 }
 
 void ParticleEmitter::tick(Seconds dt) {
@@ -59,7 +58,6 @@ void ParticleEmitter::refresh_particles() {
 	std::erase_if(m_particles, [](Particle const& p) { return p.elapsed >= p.ttl; });
 
 	if (config.respawn) {
-		m_particles.reserve(config.count);
 		while (m_particles.size() < config.count) { m_particles.push_back(make_particle()); }
 	}
 }
