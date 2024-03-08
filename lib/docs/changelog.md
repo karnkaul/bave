@@ -2,6 +2,12 @@
 
 ## v0.4
 
+### v0.4.5
+
+- Fixed Vulkan RenderPass synchronization and Swapchain recreation bugs.
+- Added support for parenting transforms of each bave::RenderInstance in a bave::Drawable.
+- Fixed positioning of bave::ParticleEmitter. Annotated that its bave::Transform will be ignored.
+
 ### v0.4.4
 
 - Added bave::App::update_gamepad_mappings() for custom GLFW gamepad mappings.

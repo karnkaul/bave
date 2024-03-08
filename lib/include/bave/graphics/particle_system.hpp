@@ -32,6 +32,8 @@ struct ParticleConfig {
 };
 
 /// \brief Particle Emitter.
+///
+/// An emitter's transform member is ignored.
 class ParticleEmitter : public Sprite {
   public:
 	enum class Modifier : int { eTranslate, eRotate, eScale, eTint, eCOUNT_ };
@@ -47,6 +49,10 @@ class ParticleEmitter : public Sprite {
 	void tick(Seconds dt);
 
 	void respawn_all();
+	/// \brief Set emitter position. Does not affect already spawned particles.
+	void set_position(glm::vec2 position) { m_position = position; }
+	/// \brief Get the emitter's position.
+	[[nodiscard]] auto get_position() const -> glm::vec2 { return m_position; }
 
 	[[nodiscard]] auto active_particles() const -> std::size_t { return m_particles.size(); }
 
@@ -81,6 +87,7 @@ class ParticleEmitter : public Sprite {
 	void sync_instances();
 
 	std::vector<Particle> m_particles{};
+	glm::vec2 m_position{};
 };
 
 /// \brief Container of ParticleEmitter instances.

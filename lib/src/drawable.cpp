@@ -50,8 +50,9 @@ void Drawable::bake_instances() const {
 	if (instances.empty()) {
 		m_baked_instances.push_back(RenderInstance{.transform = transform, .tint = tint}.bake());
 	} else {
+		auto const parent = parented_instances ? transform.matrix() : glm::identity<glm::mat4>();
 		m_baked_instances.reserve(instances.size());
-		for (auto const& instance : instances) { m_baked_instances.push_back(instance.bake()); }
+		for (auto const& instance : instances) { m_baked_instances.push_back(instance.bake(parent)); }
 	}
 }
 
