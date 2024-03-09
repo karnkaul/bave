@@ -32,7 +32,7 @@ Documentation is located [here](https://karnkaul.github.io/bave-docs/).
 ### Runtime
 
 - Windows, Linux on X11, or Android targets.
-  - MacOS support is experimental, and requires MoltenVK.
+  - MacOS support is experimental, and requires Vulkan SDK (it includes MoltenVK).
   - Wayland is untested and may have some edge cases.
 - Vulkan 1.1+ capable GPU, loader, and driver.
 - C++ runtime.
