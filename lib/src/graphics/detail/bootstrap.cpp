@@ -37,6 +37,7 @@ auto make_instance(std::vector<char const*> extensions, bool& out_validation) ->
 	ici.pApplicationInfo = &vai;
 #if defined(__APPLE__)
 	ici.flags |= vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR;
+	extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 #endif
 	ici.enabledExtensionCount = static_cast<std::uint32_t>(extensions.size());
 	ici.ppEnabledExtensionNames = extensions.data();
@@ -126,9 +127,8 @@ auto make_device(Gpu const& gpu) -> vk::UniqueDevice {
 	static constexpr float priority_v = 1.0f;
 	static constexpr std::array required_extensions_v = {
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-
 #if defined(__APPLE__)
-		"VK_KHR_portability_subset",
+		VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME
 #endif
 	};
 
