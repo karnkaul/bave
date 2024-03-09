@@ -53,6 +53,11 @@ class ParticleEmitter : public Sprite {
 	/// \param ticks Number of ticks to simulate.
 	void pre_warm(Seconds dt = 50ms, int ticks = 100);
 
+	/// \brief Respawn particles.
+	///
+	/// Has no effect if config.respawn is true.
+	void respawn();
+
 	/// \brief Set emitter position. Does not affect already spawned particles.
 	void set_position(glm::vec2 position) { m_position = position; }
 	/// \brief Get the emitter's position.
@@ -86,12 +91,13 @@ class ParticleEmitter : public Sprite {
 
 	[[nodiscard]] auto make_particle() const -> Particle;
 
-	void refresh_particles();
+	void refresh_particles(bool respawn);
 	void tick_particles(Seconds dt);
 	void sync_instances();
 
 	std::vector<Particle> m_particles{};
 	glm::vec2 m_position{};
+	bool m_ticked{};
 };
 
 /// \brief Container of ParticleEmitter instances.
@@ -114,6 +120,13 @@ class ParticleSystem : public IDrawable {
 	/// \param ticks Number of ticks to simulate.
 	void pre_warm(Seconds const dt = 50ms, int const ticks = 100) {
 		for (auto& emitter : emitters) { emitter.pre_warm(dt, ticks); }
+	}
+
+	/// \brief Respawn particles for all emitters.
+	///
+	/// Has no effect if emitter's config.respawn is true.
+	void respawn() {
+		for (auto& emitter : emitters) { emitter.respawn(); }
 	}
 
 	/// \brief Vector of emitters.

@@ -21,16 +21,22 @@ void ParticleEmitter::Particle::tintify(float const alpha) { tint.channels = glm
 void ParticleEmitter::pre_warm(Seconds const dt, int ticks) {
 	m_particles.clear();
 	for (; ticks > 0; --ticks) {
-		refresh_particles();
+		refresh_particles(true);
 		tick_particles(dt);
 	}
 }
 
+void ParticleEmitter::respawn() {
+	if (config.respawn) { return; }
+	refresh_particles(true);
+}
+
 void ParticleEmitter::tick(Seconds dt) {
-	refresh_particles();
+	refresh_particles(config.respawn || !m_ticked);
 	tick_particles(dt);
 	sync_instances();
 	set_shape(Quad{.size = config.quad_size});
+	m_ticked = true;
 }
 
 auto ParticleEmitter::make_particle() const -> Particle {
@@ -54,10 +60,10 @@ auto ParticleEmitter::make_particle() const -> Particle {
 	return ret;
 }
 
-void ParticleEmitter::refresh_particles() {
+void ParticleEmitter::refresh_particles(bool const respawn) {
 	std::erase_if(m_particles, [](Particle const& p) { return p.elapsed >= p.ttl; });
 
-	if (config.respawn) {
+	if (respawn) {
 		while (m_particles.size() < config.count) { m_particles.push_back(make_particle()); }
 	}
 }
