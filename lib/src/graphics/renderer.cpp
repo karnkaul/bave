@@ -119,7 +119,7 @@ Renderer::Renderer(NotNull<RenderDevice*> render_device, NotNull<DataStore const
 	  m_pipeline_cache(std::make_unique<detail::PipelineCache>(*m_frame.render_pass, render_device, data_store)), m_white(render_device, white_bitmap()),
 	  m_blocker(render_device->get_device()) {}
 
-auto Renderer::start_render(Rgba clear_colour) -> bool {
+auto Renderer::start_render(Rgba const clear_colour) -> bool {
 	auto& sync = m_frame.syncs.at(get_frame_index());
 	auto const acquire_result = m_render_device->acquire_next_image(*sync.drawn, *sync.draw);
 	auto const visitor = Visitor{
@@ -145,7 +145,7 @@ auto Renderer::start_render(Rgba clear_colour) -> bool {
 	fb = make_framebuffer(m_render_device->get_device(), *m_frame.render_pass, *m_frame.render_target);
 	auto const ra = vk::Rect2D{vk::Offset2D{}, m_frame.render_target->extent};
 
-	auto const vec4_clear_colour = clear_colour.to_vec4();
+	auto const vec4_clear_colour = Rgba::to_linear(clear_colour.to_vec4());
 	auto const vk_clear_colour = vk::ClearColorValue{vec4_clear_colour.x, vec4_clear_colour.y, vec4_clear_colour.z, vec4_clear_colour.w};
 	auto const clear_values = std::array<vk::ClearValue, 2>{
 		vk_clear_colour,
