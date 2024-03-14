@@ -12,7 +12,7 @@ class ImInputText : public Polymorphic {
   public:
 	static constexpr std::size_t init_size_v{64};
 
-	auto update(CString name) -> bool;
+	virtual auto update(CString name) -> bool;
 	void set_text(std::string_view text);
 
 	auto operator()(CString name) -> bool { return update(name); }
@@ -28,5 +28,13 @@ class ImInputText : public Polymorphic {
 	void resize_buffer(ImGuiInputTextCallbackData& data);
 
 	std::vector<char> m_buffer{};
+};
+
+/// \brief Expandable ImGui multi-line input text buffer.
+class ImInputTextMultiLine : public ImInputText {
+  public:
+	auto update(CString name) -> bool override;
+
+	ImVec2 size{};
 };
 } // namespace bave
