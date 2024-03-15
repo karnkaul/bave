@@ -2,6 +2,16 @@
 
 ## v0.4
 
+### v0.4.7
+
+- Linearized render pass clear colour.
+- Added bave::ImInputTextMultiLine.
+
+### v0.4.6
+
+- Fixed MoltenVk flow, targets now run on MacOS with VulkanSDK installed.
+- Updated bave::ParticleEmitter to spawn particles at least once.
+
 ### v0.4.5
 
 - Fixed Vulkan RenderPass synchronization and Swapchain recreation bugs.
