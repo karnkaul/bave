@@ -6,6 +6,7 @@
 
 - Linearized render pass clear colour.
 - Added bave::ImInputTextMultiLine.
+- Added bave::Driver::should_close(), called on desktop when the user attempts to close the window.
 
 ### v0.4.6
 

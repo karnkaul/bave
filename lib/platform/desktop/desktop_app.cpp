@@ -314,7 +314,7 @@ void DesktopApp::make_window() {
 	if (m_window == nullptr) { throw Error{"Failed to create Window"}; }
 	glfwSetWindowUserPointer(m_window.get(), this);
 
-	glfwSetWindowCloseCallback(m_window.get(), [](Ptr<GLFWwindow> window) { self(window).shutdown(); });
+	glfwSetWindowCloseCallback(m_window.get(), [](Ptr<GLFWwindow> window) { self(window).handle_window_close(); });
 	glfwSetWindowFocusCallback(m_window.get(), [](Ptr<GLFWwindow> window, int v) { push(window, FocusChange{.in_focus = v == GLFW_TRUE}); });
 	glfwSetWindowSizeCallback(m_window.get(), [](Ptr<GLFWwindow> window, int x, int y) { push(window, WindowResize{.extent = {x, y}}); });
 	glfwSetFramebufferSizeCallback(m_window.get(), [](Ptr<GLFWwindow> window, int x, int y) { push(window, FramebufferResize{.extent = {x, y}}); });
@@ -377,5 +377,13 @@ void DesktopApp::update_gamepads() {
 		static constexpr auto active_axis = [](float const value) { return value > 0.2f; };
 		if (gamepad.button_states != 0 || std::any_of(gamepad.axes.begin(), gamepad.axes.end(), active_axis)) { m_most_recent_gamepad = gamepad.id; }
 	}
+}
+
+void DesktopApp::handle_window_close() {
+	if (m_driver && !m_driver->should_close()) {
+		glfwSetWindowShouldClose(m_window.get(), GLFW_FALSE);
+		return;
+	}
+	shutdown();
 }
 } // namespace bave

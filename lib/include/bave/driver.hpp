@@ -38,6 +38,8 @@ class Driver : public PolyPinned {
 
 	virtual void on_drop(std::span<std::string const> /*paths*/) {}
 
+	virtual auto should_close() -> bool { return true; }
+
 	/// \brief Background colour for the next render pass.
 	Rgba clear_colour{black_v};
 

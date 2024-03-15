@@ -102,6 +102,7 @@ class DesktopApp : private App, private detail::IWsi {
 	void init_graphics();
 
 	void update_gamepads();
+	void handle_window_close();
 
 	CreateInfo m_create_info{};
 	ScopedResource<LogFile, LogFile::Deleter> m_log_file{};
