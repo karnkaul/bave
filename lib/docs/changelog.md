@@ -2,6 +2,10 @@
 
 ## v0.4
 
+### v0.4.8
+
+- Added JSON serialization for bave::ParticleConfig.
+
 ### v0.4.7
 
 - Linearized render pass clear colour.
