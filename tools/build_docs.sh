@@ -1,7 +1,7 @@
 #!/bin/bash
 
 script_path=${0%/*}
-project_root=${script_path%/*}
+project_root="$script_path/.."
 commit=false
 publish=false
 

@@ -2,6 +2,17 @@
 
 ## v0.4
 
+### v0.4.7
+
+- Linearized render pass clear colour.
+- Added bave::ImInputTextMultiLine.
+- Added bave::Driver::should_close(), called on desktop when the user attempts to close the window.
+
+### v0.4.6
+
+- Fixed MoltenVk flow, targets now run on MacOS with VulkanSDK installed.
+- Updated bave::ParticleEmitter to spawn particles at least once.
+
 ### v0.4.5
 
 - Fixed Vulkan RenderPass synchronization and Swapchain recreation bugs.
