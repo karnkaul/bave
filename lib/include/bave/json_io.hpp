@@ -1,5 +1,6 @@
 #pragma once
 #include <bave/graphics/geometry.hpp>
+#include <bave/graphics/particle_config.hpp>
 #include <bave/graphics/rect.hpp>
 #include <bave/graphics/rgba.hpp>
 #include <bave/graphics/tile_sheet.hpp>
@@ -41,4 +42,7 @@ void from_json(dj::Json const& json, NineSlice& out);
 
 void to_json(dj::Json& out, TileSheet const& tile_sheet);
 void from_json(dj::Json const& json, TileSheet& out);
+
+void to_json(dj::Json& out, ParticleConfig const& particle_config);
+void from_json(dj::Json const& json, ParticleConfig& out);
 } // namespace bave
