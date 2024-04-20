@@ -2,6 +2,10 @@
 
 ## v0.4
 
+### v0.4.9
+
+- Fixed overflow bug in key events.
+
 ### v0.4.8
 
 - Added JSON serialization for bave::ParticleConfig.
