@@ -4,7 +4,7 @@
 
 ### v0.4.10
 
-- Added `bave::detail::DataStoreProvider` to circumvent dangling `bave::DataStore` pointers.
+- bave::DataStore now stores an ordered list of bave::DataLoader s, users can add their own loaders to the list.
 
 ### v0.4.9
 
