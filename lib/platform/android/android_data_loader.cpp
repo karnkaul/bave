@@ -28,9 +28,13 @@ auto do_read_data(android_app* app, Type& out, CString path) -> bool {
 }
 } // namespace
 
-auto AndroidDataLoader::exists(std::string_view const uri) const -> bool { return open_asset(m_app->activity->assetManager, std::string{uri}.c_str()) != nullptr; }
+auto AndroidDataLoader::exists(std::string_view const uri) const -> bool {
+	return open_asset(m_app->activity->assetManager, std::string{uri}.c_str()) != nullptr;
+}
 
-auto AndroidDataLoader::read_bytes(std::vector<std::byte>& out, std::string_view const uri) const -> bool { return do_read_data(m_app, out, std::string{uri}.c_str()); }
+auto AndroidDataLoader::read_bytes(std::vector<std::byte>& out, std::string_view const uri) const -> bool {
+	return do_read_data(m_app, out, std::string{uri}.c_str());
+}
 
 auto AndroidDataLoader::read_string(std::string& out, std::string_view const uri) const -> bool { return do_read_data(m_app, out, std::string{uri}.c_str()); }
 } // namespace bave
