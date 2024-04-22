@@ -1,6 +1,7 @@
 #pragma once
 #include <bave/core/not_null.hpp>
 #include <bave/core/pinned.hpp>
+#include <bave/detail/data_store_provider.hpp>
 #include <bave/graphics/detail/device_blocker.hpp>
 #include <bave/graphics/detail/pipeline_cache.hpp>
 #include <bave/graphics/detail/render_resource.hpp>
@@ -13,7 +14,7 @@
 namespace bave {
 class Renderer : public Pinned {
   public:
-	explicit Renderer(NotNull<RenderDevice*> render_device, NotNull<DataStore const*> data_store);
+	explicit Renderer(NotNull<RenderDevice*> render_device, NotNull<detail::DataStoreProvider const*> data_store_provider);
 
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return *m_render_device; }
 

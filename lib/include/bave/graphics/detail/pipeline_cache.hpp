@@ -18,7 +18,7 @@ class PipelineCache {
 		vk::ShaderModule fragment{};
 	};
 
-	explicit PipelineCache(vk::RenderPass render_pass, NotNull<RenderDevice*> render_device, NotNull<DataStore const*> data_store);
+	explicit PipelineCache(vk::RenderPass render_pass, NotNull<RenderDevice*> render_device, NotNull<DataStoreProvider const*> data_store);
 
 	[[nodiscard]] auto load_pipeline(Program shader, State state) -> vk::Pipeline;
 

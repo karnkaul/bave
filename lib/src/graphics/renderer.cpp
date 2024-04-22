@@ -114,10 +114,10 @@ void Renderer::Frame::make_syncs(vk::Device device, std::uint32_t queue_family) 
 	render_target.reset();
 }
 
-Renderer::Renderer(NotNull<RenderDevice*> render_device, NotNull<DataStore const*> data_store)
+Renderer::Renderer(NotNull<RenderDevice*> render_device, NotNull<detail::DataStoreProvider const*> data_store_provider)
 	: m_render_device(render_device), m_frame(Frame::make(*m_render_device)),
-	  m_pipeline_cache(std::make_unique<detail::PipelineCache>(*m_frame.render_pass, render_device, data_store)), m_white(render_device, white_bitmap()),
-	  m_blocker(render_device->get_device()) {}
+	  m_pipeline_cache(std::make_unique<detail::PipelineCache>(*m_frame.render_pass, render_device, data_store_provider)),
+	  m_white(render_device, white_bitmap()), m_blocker(render_device->get_device()) {}
 
 auto Renderer::start_render(Rgba const clear_colour) -> bool {
 	auto& sync = m_frame.syncs.at(get_frame_index());
