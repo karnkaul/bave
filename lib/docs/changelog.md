@@ -2,6 +2,10 @@
 
 ## v0.4
 
+### v0.4.10
+
+- Added `bave::detail::DataStoreProvider` to circumvent dangling `bave::DataStore` pointers.
+
 ### v0.4.9
 
 - Fixed overflow bug in key events.

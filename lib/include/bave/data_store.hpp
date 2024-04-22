@@ -1,6 +1,7 @@
 #pragma once
 #include <bave/core/c_string.hpp>
 #include <bave/core/polymorphic.hpp>
+#include <bave/data_loader.hpp>
 #include <bave/logger.hpp>
 #include <cstddef>
 #include <span>

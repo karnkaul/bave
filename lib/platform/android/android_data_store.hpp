@@ -12,8 +12,6 @@ struct android_app;
 namespace bave {
 class AndroidDataStore : public DataStore {
   public:
-	[[nodiscard]] static auto find_super_dir(std::string_view base, std::string_view pattern) -> std::string;
-
 	explicit AndroidDataStore(NotNull<android_app*> app) : m_app(app) {}
 
   private:
