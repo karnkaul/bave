@@ -7,7 +7,6 @@
 #include <bave/core/time.hpp>
 #include <bave/core/timer.hpp>
 #include <bave/data_store.hpp>
-#include <bave/detail/data_store_provider.hpp>
 #include <bave/graphics/renderer.hpp>
 #include <bave/graphics/shader.hpp>
 #include <bave/input/event.hpp>
@@ -30,7 +29,7 @@ enum struct ErrCode : int { eSuccess = EXIT_SUCCESS, eFailure = EXIT_FAILURE };
 ///
 /// Owns window, devices, game and event loops.
 /// Customized via Driver sub-class.
-class App : public PolyPinned, public detail::DataStoreProvider {
+class App : public PolyPinned {
   public:
 	/// \brief Individual feature flags.
 	enum class Feature : int {
@@ -125,7 +124,7 @@ class App : public PolyPinned, public detail::DataStoreProvider {
 	/// \brief Wait until RenderDevice is idle.
 	void wait_render_device_idle() { do_wait_render_device_idle(); }
 
-	[[nodiscard]] auto get_data_store() const -> DataStore& final { return *m_data_store; }
+	[[nodiscard]] auto get_data_store() const -> DataStore& { return *m_data_store; }
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return do_get_render_device(); }
 	[[nodiscard]] auto get_renderer() const -> Renderer const& { return do_get_renderer(); }
 	[[nodiscard]] auto get_audio_device() const -> AudioDevice& { return *m_audio_device; }
