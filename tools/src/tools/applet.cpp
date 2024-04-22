@@ -5,7 +5,7 @@
 namespace bave::tools {
 namespace fs = std::filesystem;
 
-Applet::Applet(App& app, NotNull<std::shared_ptr<State>> const& state) : m_app(&app), state(state) {
+Applet::Applet(App& app, NotNull<std::shared_ptr<State>> const& state) : state(state), m_app(&app) {
 	app.set_title("Bave Tools");
 	main_view.position.x = -150.0f;
 }
@@ -36,11 +36,6 @@ void Applet::on_drop(std::span<std::string const> paths) {
 }
 
 void Applet::file_menu_items() {
-	if (ImGui::MenuItem("Change mount point...")) {
-		auto result = pfd::select_folder("Select mount point").result();
-		if (!result.empty()) { get_app().change_mount_point(result); }
-	}
-	ImGui::Separator();
 	if (ImGui::MenuItem("Quit")) { get_app().shutdown(); }
 }
 
@@ -135,7 +130,7 @@ auto Applet::replace_extension(std::string_view uri, std::string_view extension)
 }
 
 auto Applet::truncate_to_uri(std::string_view const path) const -> std::string {
-	auto uri = get_app().get_data_store().make_uri(path);
+	auto uri = get_app().make_uri(path);
 	if (uri.empty() || uri.starts_with("..")) {
 		m_log.error("path located outside mount point: '{}'", path);
 		return {};
@@ -144,21 +139,18 @@ auto Applet::truncate_to_uri(std::string_view const path) const -> std::string {
 }
 
 auto Applet::dialog_open_file(CString const title) const -> std::string {
-	auto const mount_point = get_app().get_data_store().get_mount_point();
-	auto result = pfd::open_file(title.c_str(), fs::path{mount_point}.make_preferred().string()).result();
+	auto result = pfd::open_file(title.c_str(), std::string{state->assets_path}).result();
 	if (result.empty()) { return {}; }
 	return truncate_to_uri(result.front());
 }
 
 auto Applet::dialog_save_file(CString const title, std::string_view const uri) const -> std::string {
-	auto const mount_point = fs::path{get_app().get_data_store().get_mount_point()};
-	auto const path = (mount_point / uri).make_preferred().string();
+	auto const path = (fs::path{state->assets_path} / uri).make_preferred().string();
 	return truncate_to_uri(pfd::save_file(title.c_str(), path).result());
 }
 
 auto Applet::save_json(dj::Json const& json, std::string_view uri) const -> bool {
-	auto const mount_point = fs::path{get_app().get_data_store().get_mount_point()};
-	auto const path = (mount_point / uri).make_preferred().string();
+	auto const path = (fs::path{state->assets_path} / uri).make_preferred().string();
 	return json.to_file(path.c_str());
 }
 

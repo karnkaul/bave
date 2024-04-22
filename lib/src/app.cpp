@@ -2,8 +2,11 @@
 #include <bave/core/error.hpp>
 #include <bave/driver.hpp>
 #include <capo/error_handler.hpp>
+#include <filesystem>
 
 namespace bave {
+namespace fs = std::filesystem;
+
 App::App(std::string tag)
 	: m_log{std::move(tag)}, m_bootloader([](App& app) { return std::make_unique<Driver>(app); }), m_audio_device(std::make_unique<AudioDevice>()),
 	  m_audio_streamer(std::make_unique<AudioStreamer>(*m_audio_device)) {
@@ -80,11 +83,11 @@ auto App::load_shader(std::string_view vertex, std::string_view fragment) const 
 	return Shader{&get_renderer(), vert, frag};
 }
 
-// NOLINTNEXTLINE(readability-make-member-function-const)
-auto App::change_mount_point(std::string_view const directory) -> bool {
-	if (!get_data_store().set_mount_point(directory)) { return false; }
-	get_renderer().get_pipeline_cache().clear_loaded();
-	return true;
+auto App::make_uri(std::string_view const full_path) const -> std::string {
+	if (full_path.empty()) { return {}; }
+	auto const assets_path = get_assets_path();
+	if (assets_path.empty()) { return std::string{full_path}; }
+	return fs::path{full_path}.lexically_relative(assets_path).generic_string();
 }
 
 auto App::get_features() const -> FeatureFlags {

@@ -65,14 +65,15 @@ class Applet : public Polymorphic {
 	[[nodiscard]] auto save_json(dj::Json const& json, std::string_view uri) const -> bool;
 	[[nodiscard]] static auto format_title(std::string_view name, std::string_view uri, bool unsaved) -> std::string;
 
-	NotNull<App*> m_app;
 	NotNull<std::shared_ptr<State>> state;
 
 	float zoom_scroll_rate{0.1f};
 	Transform main_view{};
 
   private:
+	NotNull<App*> m_app;
 	Logger m_log{"Applet"};
+
 	float m_sidepanel_width{};
 	bool m_ctrl_pressed{};
 };

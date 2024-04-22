@@ -99,12 +99,13 @@ class App : public PolyPinned, public detail::DataStoreProvider {
 	/// A Shader instance is intended to be temporary, within a draw scope.
 	[[nodiscard]] auto load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader>;
 
-	/// \brief Change the data store mount point.
-	/// \param directory Directory to mount.
-	/// \returns true on success.
-	///
-	/// Mount point is fixed on Android.
-	auto change_mount_point(std::string_view directory) -> bool;
+	/// \brief Get the path to the assets directory. Only relevant for desktop platforms.
+	/// \returns Path to assets directory if any, else empty string.
+	[[nodiscard]] auto get_assets_path() const -> std::string_view { return do_get_assets_path(); }
+
+	/// \brief Create a URI relative to the assets path. Only relevant for desktop platforms.
+	/// \returns URI relative to the assets path.
+	[[nodiscard]] auto make_uri(std::string_view full_path) const -> std::string;
 
 	/// \brief Get a particular gamepad.
 	/// \param id ID of gamepad.
@@ -171,6 +172,8 @@ class App : public PolyPinned, public detail::DataStoreProvider {
 	virtual void poll_events() = 0;
 	virtual void tick() = 0;
 	virtual void render() = 0;
+
+	[[nodiscard]] virtual auto do_get_assets_path() const -> std::string_view { return {}; }
 
 	virtual void do_shutdown() = 0;
 	[[nodiscard]] virtual auto get_is_shutting_down() const -> bool = 0;
