@@ -24,15 +24,6 @@ void App::set_bootloader(Bootloader bootloader) {
 	m_bootloader = std::move(bootloader);
 }
 
-void App::set_data_store(std::unique_ptr<DataStore> data_store) {
-	if (!data_store) {
-		m_log.error("cannot set null DataStore");
-		return;
-	}
-
-	m_data_store = std::move(data_store);
-}
-
 auto App::run() -> ErrCode {
 	try {
 		if (auto const ret = setup()) { return *ret; }

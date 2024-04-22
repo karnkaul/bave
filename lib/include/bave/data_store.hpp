@@ -4,7 +4,6 @@
 #include <bave/data_loader.hpp>
 #include <bave/logger.hpp>
 #include <cstddef>
-#include <map>
 #include <memory>
 #include <span>
 #include <vector>
@@ -20,7 +19,9 @@ class DataStore : public Polymorphic {
 
 	[[nodiscard]] static auto as_string_view(std::span<std::byte const> bytes) -> std::string_view;
 
-	[[nodiscard]] auto exists(std::string_view uri) const -> bool { return !uri.empty() && do_exists(make_full_path(uri).c_str()); }
+	void add_loader(std::unique_ptr<DataLoader> loader, int priority = 0);
+
+	[[nodiscard]] auto exists(std::string_view uri) const -> bool;
 
 	[[nodiscard]] auto read_bytes(std::string_view uri) const -> std::vector<std::byte>;
 	[[nodiscard]] auto read_string(std::string_view uri) const -> std::string;
@@ -38,5 +39,12 @@ class DataStore : public Polymorphic {
 	[[nodiscard]] virtual auto do_exists(CString /*path*/) const -> bool { return false; }
 	[[nodiscard]] virtual auto do_read_bytes(std::vector<std::byte>& /*out*/, CString /*path*/) const -> bool { return false; }
 	[[nodiscard]] virtual auto do_read_string(std::string& out, CString path) const -> bool;
+
+	struct Entry {
+		std::unique_ptr<DataLoader> loader{};
+		int priority{};
+	};
+
+	std::vector<Entry> m_loaders{};
 };
 } // namespace bave

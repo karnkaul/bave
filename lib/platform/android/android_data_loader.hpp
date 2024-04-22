@@ -14,11 +14,11 @@ static_assert(platform_v == Platform::eAndroid);
 struct AndroidDataLoader : DataLoader {
 	explicit AndroidDataLoader(NotNull<android_app*> app) : m_app(app) {}
 
-	[[nodiscard]] auto exists(CString path) const -> bool final;
+	[[nodiscard]] auto exists(std::string_view uri) const -> bool final;
 
-	auto read_bytes(std::vector<std::byte>& out, CString path) const -> bool final;
+	auto read_bytes(std::vector<std::byte>& out, std::string_view uri) const -> bool final;
 
-	auto read_string(std::string& out, CString path) const -> bool final;
+	auto read_string(std::string& out, std::string_view uri) const -> bool final;
 
 	Logger m_log{"AndroidDataLoader"};
 	NotNull<android_app*> m_app;

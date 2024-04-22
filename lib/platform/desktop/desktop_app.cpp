@@ -5,7 +5,7 @@
 #include <bave/core/visitor.hpp>
 #include <bave/desktop_app.hpp>
 #include <bave/file_io.hpp>
-#include <platform/desktop/desktop_data_store.hpp>
+#include <platform/desktop/desktop_data_loader.hpp>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -280,8 +280,13 @@ auto DesktopApp::self(Ptr<GLFWwindow> window) -> DesktopApp& {
 void DesktopApp::push(Ptr<GLFWwindow> window, Event event) { self(window).push_event(event); }
 
 void DesktopApp::init_data_store() {
-	auto data_store = std::make_unique<DesktopDataStore>(m_assets_path);
-	set_data_store(std::move(data_store));
+	auto data_loader = std::make_unique<DesktopDataLoader>();
+	if (!data_loader->set_mount_point(m_assets_path)) {
+		m_log.warn("failed to mount assets directory: '{}'", m_assets_path);
+	} else {
+		m_log.info("mounted: '{}'", m_assets_path);
+	}
+	get_data_store().add_loader(std::move(data_loader));
 }
 
 void DesktopApp::make_window() {

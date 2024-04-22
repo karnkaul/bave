@@ -54,10 +54,6 @@ class App : public PolyPinned, public detail::DataStoreProvider {
 	///
 	/// App will create a Driver after successful initialization of the window and devices.
 	void set_bootloader(Bootloader bootloader);
-	/// \brief Set custom DataStore.
-	/// \param data_store store instance to use.
-	/// \pre data_store should not be null.
-	void set_data_store(std::unique_ptr<DataStore> data_store);
 
 	/// \brief Run the game loop.
 	/// \returns Error code.
