@@ -1,6 +1,9 @@
 #pragma once
 #include <bave/core/c_string.hpp>
 #include <bave/core/polymorphic.hpp>
+#include <cstddef>
+#include <string>
+#include <vector>
 
 namespace bave {
 class DataLoader : public Polymorphic {
