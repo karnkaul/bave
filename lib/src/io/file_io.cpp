@@ -43,6 +43,7 @@ auto file::find_super_dir(std::string_view base, std::string_view patterns) -> s
 	auto const base_paths = std::array{fs::absolute(base), fs::current_path()};
 
 	for (auto const& base_path : base_paths) {
+		if (base_path.empty()) { continue; }
 		auto parser = PatternParser{patterns};
 		auto pattern = std::string_view{};
 		while (parser.next(pattern)) {

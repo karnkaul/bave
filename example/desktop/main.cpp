@@ -5,12 +5,13 @@
 auto main(int argc, char** argv) -> int {
 	// we will use bave::DesktopApp.
 	// set up its CreateInfo:
+	auto const args = bave::MainArgs{argc, argv};
 	auto const create_info = bave::DesktopApp::CreateInfo{
-		.args = bave::make_args(argc, argv),
+		.args = args,
 		.title = "BaveExample",
 		.mode = bave::Windowed{.extent = {720, 1280}},
 		.msaa = vk::SampleCountFlagBits::e4,
-		.assets_patterns = "assets,example/assets",
+		.assets_dir = args.find_assets_super_dir("assets,example/assets"),
 	};
 
 	// create the App instance.

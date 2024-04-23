@@ -95,7 +95,7 @@ void App::add_data_loader(std::unique_ptr<IDataLoader> loader, int priority) { m
 
 auto App::make_uri(std::string_view const full_path) const -> std::string {
 	if (full_path.empty()) { return {}; }
-	auto const assets_path = get_assets_path();
+	auto const assets_path = get_assets_dir();
 	if (assets_path.empty()) { return std::string{full_path}; }
 	return fs::path{full_path}.lexically_relative(assets_path).generic_string();
 }

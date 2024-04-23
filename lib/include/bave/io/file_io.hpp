@@ -5,7 +5,7 @@
 
 namespace bave::file {
 /// \brief Find a super directory that contains a given file/directory pattern.
-/// \param base Directory to start search from.
+/// \param base Directory to start search from. The working directory is always searched.
 /// \param patterns Comma-separated list of file patterns to search for.
 /// \returns Path to super directory if found, else empty string.
 [[nodiscard]] auto find_super_dir(std::string_view base, std::string_view patterns) -> std::string;

@@ -96,7 +96,7 @@ class App : public PolyPinned {
 
 	/// \brief Get the path to the assets directory. Only relevant for desktop platforms.
 	/// \returns Path to assets directory if any, else empty string.
-	[[nodiscard]] auto get_assets_path() const -> std::string_view { return do_get_assets_path(); }
+	[[nodiscard]] auto get_assets_dir() const -> std::string_view { return do_get_assets_dir(); }
 	/// \brief Add a custom DataLoader at the given priority.
 	/// \param loader Custom DataLoader to add.
 	/// \param priority Priority to set.
@@ -181,7 +181,7 @@ class App : public PolyPinned {
 	virtual void tick() = 0;
 	virtual void render() = 0;
 
-	[[nodiscard]] virtual auto do_get_assets_path() const -> std::string_view { return {}; }
+	[[nodiscard]] virtual auto do_get_assets_dir() const -> std::string_view { return {}; }
 
 	virtual void do_shutdown() = 0;
 	[[nodiscard]] virtual auto get_is_shutting_down() const -> bool = 0;

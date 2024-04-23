@@ -25,23 +25,50 @@ struct BorderlessFullscreen {};
 /// \brief Variant of possible display modes.
 using DisplayMode = std::variant<Windowed, BorderlessFullscreen>;
 
+struct MainArgs {
+	std::span<char const* const> args{};
+
+	MainArgs() = default;
+
+	explicit constexpr MainArgs(int argc, char const* const* argv) : args(argv, static_cast<std::size_t>(argc)) {}
+
+	/// \brief Get the path to the executable (arg0).
+	/// \returns Path to the executable.
+	[[nodiscard]] auto get_exe_path() const -> std::string;
+	/// \brief Get the path to the executable's parent directory.
+	/// \returns Path to the executable's parent directory.
+	[[nodiscard]] auto get_exe_dir() const -> std::string;
+
+	/// \brief Find assets in a super directory of exe path / working directory.
+	/// \param patterns Comma-separated list of file patterns to search for.
+	/// \returns Path to super directory if found, else empty string.
+	[[nodiscard]] auto find_assets_super_dir(std::string_view patterns) const -> std::string;
+};
+
 /// \brief Concrete App for desktop.
 class DesktopApp : private App, private detail::IWsi {
   public:
 	/// \brief Data needed during construction.
 	struct CreateInfo {
-		std::span<char const* const> args{};
+		MainArgs args{};
 		CString title{"BaveApp"};
 		DisplayMode mode{Windowed{}};
 		std::function<Gpu(std::span<Gpu const>)> select_gpu{};
 		vk::SampleCountFlagBits msaa{vk::SampleCountFlagBits::e1};
-		std::string_view assets_patterns{"assets"};
+		std::string assets_dir{};
 		bool validation_layers{debug_v};
 	};
 
 	/// \brief Constructor.
 	/// \param create_info CreateInfo for this instance.
 	explicit DesktopApp(CreateInfo create_info);
+
+	/// \brief Get the path to the parent directory of the executable.
+	/// \returns Path to the parent directory of the executable.
+	[[nodiscard]] auto get_exe_dir() const -> std::string;
+
+	/// \brief Set the
+	void set_assets_dir(std::string path);
 
 	using App::run;
 	using App::set_bootloader;
@@ -74,7 +101,7 @@ class DesktopApp : private App, private detail::IWsi {
 	void tick() final;
 	void render() final;
 
-	[[nodiscard]] auto do_get_assets_path() const -> std::string_view final { return m_assets_path; }
+	[[nodiscard]] auto do_get_assets_dir() const -> std::string_view final { return m_create_info.assets_dir; }
 
 	void do_shutdown() final;
 	[[nodiscard]] auto get_is_shutting_down() const -> bool final;
@@ -107,7 +134,6 @@ class DesktopApp : private App, private detail::IWsi {
 	void handle_window_close();
 
 	CreateInfo m_create_info{};
-	std::string m_assets_path{};
 	ScopedResource<LogFile, LogFile::Deleter> m_log_file{};
 	ScopedResource<Glfw, Glfw::Deleter> m_glfw{};
 	std::unique_ptr<GLFWwindow, Glfw::Deleter> m_window{};

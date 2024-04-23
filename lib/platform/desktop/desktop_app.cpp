@@ -122,6 +122,15 @@ constexpr auto to_mods(int const glfw_mods) {
 }
 } // namespace
 
+auto MainArgs::get_exe_path() const -> std::string {
+	if (args.empty()) { return {}; }
+	return fs::path{args.front()}.make_preferred().generic_string();
+}
+
+auto MainArgs::get_exe_dir() const -> std::string { return fs::path{get_exe_path()}.parent_path().generic_string(); }
+
+auto MainArgs::find_assets_super_dir(std::string_view patterns) const -> std::string { return file::find_super_dir(get_exe_dir(), patterns); }
+
 void DesktopApp::LogFile::Deleter::operator()(LogFile const& /*log_file*/) const noexcept { g_file_logger.reset(); }
 
 void DesktopApp::Glfw::Deleter::operator()(Glfw /*glfw*/) const noexcept { glfwTerminate(); }
@@ -134,10 +143,9 @@ DesktopApp::DesktopApp(CreateInfo create_info) : App("DesktopApp"), m_create_inf
 	if (!m_create_info.select_gpu) {
 		m_create_info.select_gpu = [](std::span<Gpu const> gpus) { return gpus.front(); };
 	}
-	m_assets_path = file::find_super_dir(m_create_info.args.front(), m_create_info.assets_patterns);
-	if (m_assets_path.empty()) {
-		m_log.error("could not locate assets via patterns: '{}'", m_create_info.assets_patterns);
-		m_assets_path = fs::current_path().generic_string();
+	if (!fs::is_directory(m_create_info.assets_dir)) {
+		m_log.error("could not locate assets dir: '{}'", m_create_info.assets_dir);
+		m_create_info.assets_dir = fs::current_path().generic_string();
 	}
 }
 
@@ -281,10 +289,10 @@ void DesktopApp::push(Ptr<GLFWwindow> window, Event event) { self(window).push_e
 
 void DesktopApp::init_data_store() {
 	auto data_loader = std::make_unique<DesktopDataLoader>();
-	if (!data_loader->set_mount_point(m_assets_path)) {
-		m_log.warn("failed to mount assets directory: '{}'", m_assets_path);
+	if (!data_loader->set_mount_point(m_create_info.assets_dir)) {
+		m_log.warn("failed to mount assets directory: '{}'", m_create_info.assets_dir);
 	} else {
-		m_log.info("mounted: '{}'", m_assets_path);
+		m_log.info("mounted: '{}'", m_create_info.assets_dir);
 	}
 	add_data_loader(std::move(data_loader));
 }
