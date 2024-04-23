@@ -4,7 +4,7 @@
 #include <bave/core/error.hpp>
 #include <bave/core/visitor.hpp>
 #include <bave/desktop_app.hpp>
-#include <bave/file_io.hpp>
+#include <bave/io/file_io.hpp>
 #include <platform/desktop/desktop_data_loader.hpp>
 #include <filesystem>
 #include <fstream>

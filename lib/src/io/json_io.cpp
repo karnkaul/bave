@@ -1,4 +1,4 @@
-#include <bave/json_io.hpp>
+#include <bave/io/json_io.hpp>
 
 namespace {
 void to_json(dj::Json& out, bave::Radians const& radians) { out = radians.to_degrees().value; }

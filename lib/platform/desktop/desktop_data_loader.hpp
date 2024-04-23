@@ -1,6 +1,6 @@
 #pragma once
 #include <bave/data_loader.hpp>
-#include <bave/file_io.hpp>
+#include <bave/io/file_io.hpp>
 #include <bave/logger.hpp>
 #include <filesystem>
 
