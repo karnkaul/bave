@@ -1,3 +1,4 @@
+#include <physfs.h>
 #include <bave/app.hpp>
 #include <bave/core/error.hpp>
 #include <bave/driver.hpp>
@@ -7,9 +8,25 @@
 namespace bave {
 namespace fs = std::filesystem;
 
+struct App::ZipFs {
+	explicit ZipFs() : m_instance(PHYSFS_init(nullptr)) {
+		if (m_instance == 0) { m_log.warn("failed to initialize ZipFs"); }
+	}
+
+  private:
+	struct Deleter {
+		void operator()(int /*i*/) const noexcept { PHYSFS_deinit(); }
+	};
+
+	Logger m_log{"ZipFs"};
+	ScopedResource<int, Deleter> m_instance{};
+};
+
+void App::ZipFsDeleter::operator()(Ptr<ZipFs> ptr) const noexcept { std::default_delete<ZipFs>{}(ptr); }
+
 App::App(std::string tag)
 	: m_log{std::move(tag)}, m_bootloader([](App& app) { return std::make_unique<Driver>(app); }), m_audio_device(std::make_unique<AudioDevice>()),
-	  m_audio_streamer(std::make_unique<AudioStreamer>(*m_audio_device)) {
+	  m_audio_streamer(std::make_unique<AudioStreamer>(*m_audio_device)), m_zip_fs(new ZipFs{}) {
 	log::get_thread_id(); // set thread 0
 
 	for (int i = 0; i < static_cast<int>(m_gamepads.size()); ++i) { m_gamepads.at(static_cast<GamepadId>(i)).id = GamepadId{i}; }

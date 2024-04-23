@@ -170,6 +170,12 @@ class App : public PolyPinned {
 	KeyState m_key_state{};
 
   private:
+	struct ZipFs;
+
+	struct ZipFsDeleter {
+		void operator()(Ptr<ZipFs> ptr) const noexcept;
+	};
+
 	virtual auto setup() -> std::optional<ErrCode> = 0;
 	virtual void poll_events() = 0;
 	virtual void tick() = 0;
@@ -201,6 +207,7 @@ class App : public PolyPinned {
 	std::unique_ptr<DataStore> m_data_store{std::make_unique<DataStore>()};
 	std::unique_ptr<AudioDevice> m_audio_device{};
 	std::unique_ptr<AudioStreamer> m_audio_streamer{};
+	std::unique_ptr<ZipFs, ZipFsDeleter> m_zip_fs{};
 
 	std::vector<std::string> m_drops{};
 	std::vector<Event> m_events{};

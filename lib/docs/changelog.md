@@ -5,6 +5,8 @@
 ### v0.4.10
 
 - bave::DataStore now stores an ordered list of bave::IDataLoader s, users can add their own loaders to the list.
+- Added ZIP VFS (virtual filesystem) in bave::zip. ZIP archives can be mounted/unmounted and read from (io/zip_io.hpp).
+- A bave::ZipLoader instance can be added to bave::DataStore (via bave::App::add_data_loader()) to also search the ZIP VFS.
 
 ### v0.4.9
 

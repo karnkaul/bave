@@ -18,6 +18,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
   bave::bave-compile-options
+  PhysFS::PhysFS-static
 )
 
 set(generated_version_header "${CMAKE_CURRENT_BINARY_DIR}/include/${PROJECT_NAME}/build_version.hpp")

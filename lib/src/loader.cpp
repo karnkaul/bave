@@ -1,5 +1,5 @@
 #include <bave/graphics/image_file.hpp>
-#include <bave/json_io.hpp>
+#include <bave/io/json_io.hpp>
 #include <bave/loader.hpp>
 #include <filesystem>
 

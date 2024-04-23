@@ -4,7 +4,7 @@
 #include <bave/core/error.hpp>
 #include <bave/core/visitor.hpp>
 #include <bave/desktop_app.hpp>
-#include <bave/file_io.hpp>
+#include <bave/io/file_io.hpp>
 #include <platform/desktop/desktop_data_loader.hpp>
 #include <filesystem>
 #include <fstream>
@@ -134,7 +134,7 @@ DesktopApp::DesktopApp(CreateInfo create_info) : App("DesktopApp"), m_create_inf
 	if (!m_create_info.select_gpu) {
 		m_create_info.select_gpu = [](std::span<Gpu const> gpus) { return gpus.front(); };
 	}
-	m_assets_path = find_super_dir(m_create_info.args.front(), m_create_info.assets_patterns);
+	m_assets_path = file::find_super_dir(m_create_info.args.front(), m_create_info.assets_patterns);
 	if (m_assets_path.empty()) {
 		m_log.error("could not locate assets via patterns: '{}'", m_create_info.assets_patterns);
 		m_assets_path = fs::current_path().generic_string();
