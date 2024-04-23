@@ -9,6 +9,10 @@ class Json;
 }
 
 namespace bave {
+/// \brief Central data store, maintains an ordered list of `IDataLoader`s.
+///
+/// The stored loaders are iterated through for each API function, with the first
+/// success being returned. If all loaders fail (or no loaders present), the call fails.
 class DataStore {
   public:
 	/// \brief View bytes as a string view.

@@ -11,7 +11,7 @@ struct android_app;
 namespace bave {
 static_assert(platform_v == Platform::eAndroid);
 
-struct AndroidDataLoader : DataLoader {
+struct AndroidDataLoader : IDataLoader {
 	explicit AndroidDataLoader(NotNull<android_app*> app) : m_app(app) {}
 
 	[[nodiscard]] auto exists(std::string_view uri) const -> bool final;
