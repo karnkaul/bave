@@ -3,6 +3,7 @@
 #include <bave/core/scoped_resource.hpp>
 #include <bave/core/string_hash.hpp>
 #include <bave/io/zip_io.hpp>
+#include <memory>
 #include <mutex>
 #include <unordered_map>
 

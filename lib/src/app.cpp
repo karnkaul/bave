@@ -13,11 +13,6 @@ struct App::ZipFs {
 		if (m_instance == 0) { m_log.warn("failed to initialize ZipFs"); }
 	}
 
-	void mount(std::string name, std::vector<std::byte> zip_contents) { m_zips.insert_or_assign(std::move(name), std::move(zip_contents)); }
-	void unmount(std::string const& name) { m_zips.erase(name); }
-
-	[[nodiscard]] auto is_mounted(std::string_view const name) const -> bool { return m_zips.contains(name); }
-
   private:
 	struct Deleter {
 		void operator()(int /*i*/) const noexcept { PHYSFS_deinit(); }
@@ -25,7 +20,6 @@ struct App::ZipFs {
 
 	Logger m_log{"ZipFs"};
 	ScopedResource<int, Deleter> m_instance{};
-	std::unordered_map<std::string, std::vector<std::byte>, StringHash, std::equal_to<>> m_zips{};
 };
 
 void App::ZipFsDeleter::operator()(Ptr<ZipFs> ptr) const noexcept { std::default_delete<ZipFs>{}(ptr); }

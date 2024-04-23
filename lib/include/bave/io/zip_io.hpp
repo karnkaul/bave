@@ -8,12 +8,10 @@ namespace bave::zip {
 /// \param zip_bytes Bytes of ZIP archive.
 /// \returns true on success.
 [[nodiscard]] auto mount(std::string name, std::vector<std::byte> zip_bytes) -> bool;
-
 /// \brief Unmount a ZIP archive from ZIP VFS.
 /// \param name Name of mounted archive.
 /// \returns true on success.
 [[nodiscard]] auto unmount(std::string const& name) -> bool;
-
 /// \brief Check if a ZIP archive is mounted in ZIP VFS.
 /// \param name Name of the archive.
 /// \returns true if mounted.
