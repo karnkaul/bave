@@ -94,20 +94,9 @@ class App : public PolyPinned {
 	/// A Shader instance is intended to be temporary, within a draw scope.
 	[[nodiscard]] auto load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader>;
 
-	/// \brief Get the path to the assets directory. Only relevant for desktop platforms.
-	/// \returns Path to assets directory if any, else empty string.
-	[[nodiscard]] auto get_assets_dir() const -> std::string_view { return do_get_assets_dir(); }
-	/// \brief Add a custom DataLoader at the given priority.
-	/// \param loader Custom DataLoader to add.
-	/// \param priority Priority to set.
-	///
-	/// The default platform DataLoader will be at priority 0.
-	/// Subsequent loaders at identical priorities will be inserted after all existing ones.
-	void add_data_loader(std::unique_ptr<IDataLoader> loader, int priority = 0);
-
-	/// \brief Create a URI relative to the assets path. Only relevant for desktop platforms.
-	/// \returns URI relative to the assets path.
-	[[nodiscard]] auto make_uri(std::string_view full_path) const -> std::string;
+	/// \brief Set a custom DataLoader.
+	/// \param loader Custom DataLoader to use.
+	void set_data_loader(std::unique_ptr<IDataLoader> loader);
 
 	/// \brief Get a particular gamepad.
 	/// \param id ID of gamepad.
@@ -180,8 +169,6 @@ class App : public PolyPinned {
 	virtual void poll_events() = 0;
 	virtual void tick() = 0;
 	virtual void render() = 0;
-
-	[[nodiscard]] virtual auto do_get_assets_dir() const -> std::string_view { return {}; }
 
 	virtual void do_shutdown() = 0;
 	[[nodiscard]] virtual auto get_is_shutting_down() const -> bool = 0;

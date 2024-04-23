@@ -3,6 +3,7 @@
 #include <bave/core/ptr.hpp>
 #include <bave/detail/dear_imgui.hpp>
 #include <bave/driver.hpp>
+#include <bave/io/file_loader.hpp>
 #include <bave/platform.hpp>
 #include <functional>
 #include <span>
@@ -41,8 +42,13 @@ struct MainArgs {
 
 	/// \brief Find assets in a super directory of exe path / working directory.
 	/// \param patterns Comma-separated list of file patterns to search for.
-	/// \returns Path to super directory if found, else empty string.
-	[[nodiscard]] auto find_assets_super_dir(std::string_view patterns) const -> std::string;
+	/// \returns Path to directory if found, else empty string.
+	[[nodiscard]] auto upfind(std::string_view patterns) const -> std::string;
+
+	/// \brief Find the parent directory of a super directory containing a given file.
+	/// \param filename Filename to search for.
+	/// \returns Path to parent directory if found, else empty string.
+	[[nodiscard]] auto upfind_parent(std::string_view filename) const -> std::string;
 };
 
 /// \brief Concrete App for desktop.
@@ -55,7 +61,7 @@ class DesktopApp : private App, private detail::IWsi {
 		DisplayMode mode{Windowed{}};
 		std::function<Gpu(std::span<Gpu const>)> select_gpu{};
 		vk::SampleCountFlagBits msaa{vk::SampleCountFlagBits::e1};
-		std::string assets_dir{};
+		std::unique_ptr<IDataLoader> data_loader{};
 		bool validation_layers{debug_v};
 	};
 
@@ -100,8 +106,6 @@ class DesktopApp : private App, private detail::IWsi {
 	void poll_events() final;
 	void tick() final;
 	void render() final;
-
-	[[nodiscard]] auto do_get_assets_dir() const -> std::string_view final { return m_create_info.assets_dir; }
 
 	void do_shutdown() final;
 	[[nodiscard]] auto get_is_shutting_down() const -> bool final;

@@ -24,10 +24,14 @@ class Runner : public Driver {
 	Logger m_log{"Runner"};
 
   public:
-	explicit Runner(App& app);
+	explicit Runner(App& app, std::string assets_dir);
 };
 
 struct Bootloader {
-	[[nodiscard]] auto operator()(App& app) const { return std::make_unique<Runner>(app); }
+	std::string assets_dir{};
+
+	explicit Bootloader(std::string assets_dir) : assets_dir(std::move(assets_dir)) {}
+
+	[[nodiscard]] auto operator()(App& app) const { return std::make_unique<Runner>(app, assets_dir); }
 };
 } // namespace bave::tools

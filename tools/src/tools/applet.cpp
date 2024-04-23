@@ -1,3 +1,4 @@
+#include <bave/io/file_io.hpp>
 #include <tools/applet.hpp>
 #include <tools/nine_slicer.hpp>
 #include <filesystem>
@@ -130,7 +131,7 @@ auto Applet::replace_extension(std::string_view uri, std::string_view extension)
 }
 
 auto Applet::truncate_to_uri(std::string_view const path) const -> std::string {
-	auto uri = get_app().make_uri(path);
+	auto uri = bave::file::make_uri(state->assets_path, path);
 	if (uri.empty() || uri.starts_with("..")) {
 		m_log.error("path located outside mount point: '{}'", path);
 		return {};

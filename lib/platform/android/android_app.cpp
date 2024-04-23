@@ -282,7 +282,7 @@ void AndroidApp::resume_render() {
 
 void AndroidApp::start() {
 	ANativeActivity_setWindowFlags(m_app.activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
-	add_data_loader(std::make_unique<AndroidDataLoader>(&m_app));
+	set_data_loader(std::make_unique<AndroidDataLoader>(&m_app));
 	init_graphics();
 	m_driver = boot_driver();
 	m_can_render = true;

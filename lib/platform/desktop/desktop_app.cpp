@@ -5,7 +5,6 @@
 #include <bave/core/visitor.hpp>
 #include <bave/desktop_app.hpp>
 #include <bave/io/file_io.hpp>
-#include <platform/desktop/desktop_data_loader.hpp>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -129,7 +128,9 @@ auto MainArgs::get_exe_path() const -> std::string {
 
 auto MainArgs::get_exe_dir() const -> std::string { return fs::path{get_exe_path()}.parent_path().generic_string(); }
 
-auto MainArgs::find_assets_super_dir(std::string_view patterns) const -> std::string { return file::find_super_dir(get_exe_dir(), patterns); }
+auto MainArgs::upfind(std::string_view patterns) const -> std::string { return file::upfind(get_exe_dir(), patterns); }
+
+auto MainArgs::upfind_parent(std::string_view filename) const -> std::string { return file::upfind_parent(get_exe_dir(), filename); }
 
 void DesktopApp::LogFile::Deleter::operator()(LogFile const& /*log_file*/) const noexcept { g_file_logger.reset(); }
 
@@ -142,10 +143,6 @@ DesktopApp::DesktopApp(CreateInfo create_info) : App("DesktopApp"), m_create_inf
 	m_log_file.get().init = true;
 	if (!m_create_info.select_gpu) {
 		m_create_info.select_gpu = [](std::span<Gpu const> gpus) { return gpus.front(); };
-	}
-	if (!fs::is_directory(m_create_info.assets_dir)) {
-		m_log.error("could not locate assets dir: '{}'", m_create_info.assets_dir);
-		m_create_info.assets_dir = fs::current_path().generic_string();
 	}
 }
 
@@ -288,13 +285,12 @@ auto DesktopApp::self(Ptr<GLFWwindow> window) -> DesktopApp& {
 void DesktopApp::push(Ptr<GLFWwindow> window, Event event) { self(window).push_event(event); }
 
 void DesktopApp::init_data_store() {
-	auto data_loader = std::make_unique<DesktopDataLoader>();
-	if (!data_loader->set_mount_point(m_create_info.assets_dir)) {
-		m_log.warn("failed to mount assets directory: '{}'", m_create_info.assets_dir);
-	} else {
-		m_log.info("mounted: '{}'", m_create_info.assets_dir);
+	if (!m_create_info.data_loader) {
+		auto const mount_point = fs::current_path().generic_string();
+		m_log.info("setting FileLoader mount point: '{}'", mount_point);
+		m_create_info.data_loader = std::make_unique<FileLoader>(mount_point);
 	}
-	add_data_loader(std::move(data_loader));
+	set_data_loader(std::move(m_create_info.data_loader));
 }
 
 void DesktopApp::make_window() {

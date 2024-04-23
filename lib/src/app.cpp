@@ -91,14 +91,7 @@ auto App::load_shader(std::string_view vertex, std::string_view fragment) const 
 	return Shader{&get_renderer(), vert, frag};
 }
 
-void App::add_data_loader(std::unique_ptr<IDataLoader> loader, int priority) { m_data_store->add_loader(std::move(loader), priority); }
-
-auto App::make_uri(std::string_view const full_path) const -> std::string {
-	if (full_path.empty()) { return {}; }
-	auto const assets_path = get_assets_dir();
-	if (assets_path.empty()) { return std::string{full_path}; }
-	return fs::path{full_path}.lexically_relative(assets_path).generic_string();
-}
+void App::set_data_loader(std::unique_ptr<IDataLoader> loader) { m_data_store->set_loader(std::move(loader)); }
 
 auto App::get_features() const -> FeatureFlags {
 	auto ret = do_get_native_features();
