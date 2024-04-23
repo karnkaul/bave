@@ -17,7 +17,7 @@ auto DataStore::as_string_view(std::span<std::byte const> bytes) -> std::string_
 	return {reinterpret_cast<char const*>(bytes.data()), bytes.size()}; // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 }
 
-void DataStore::add_loader(std::unique_ptr<DataLoader> loader, int const priority) {
+void DataStore::add_loader(std::unique_ptr<IDataLoader> loader, int const priority) {
 	if (!loader) { return; }
 	auto const it = std::lower_bound(m_loaders.begin(), m_loaders.end(), priority, [](Entry const& a, int const priority) { return a.priority < priority; });
 	auto entry = Entry{.loader = std::move(loader), .priority = priority};

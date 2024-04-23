@@ -22,7 +22,7 @@ class DataStore {
 	///
 	/// The default platform DataLoader will be at priority 0.
 	/// Subsequent loaders at identical priorities will be inserted after all existing ones.
-	void add_loader(std::unique_ptr<DataLoader> loader, int priority = 0);
+	void add_loader(std::unique_ptr<IDataLoader> loader, int priority = 0);
 
 	/// \brief Check if a resource exists at the given URI.
 	/// \param uri URI of the resource.
@@ -49,7 +49,7 @@ class DataStore {
 
   private:
 	struct Entry {
-		std::unique_ptr<DataLoader> loader{};
+		std::unique_ptr<IDataLoader> loader{};
 		int priority{};
 	};
 

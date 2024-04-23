@@ -5,7 +5,7 @@
 #include <filesystem>
 
 namespace bave {
-struct DesktopDataLoader : DataLoader {
+struct DesktopDataLoader : IDataLoader {
 	[[nodiscard]] auto exists(std::string_view const uri) const -> bool final { return does_exist(make_full_path(uri).c_str()); }
 
 	auto read_bytes(std::vector<std::byte>& out, std::string_view const uri) const -> bool final { return read_bytes_from(out, make_full_path(uri).c_str()); }

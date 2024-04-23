@@ -7,7 +7,7 @@
 
 namespace bave {
 /// \brief Interface for loading bytes given a URI.
-class DataLoader : public Polymorphic {
+class IDataLoader : public Polymorphic {
   public:
 	/// \brief Check if a resource exists at the given URI.
 	/// \param uri URI of the resource.
