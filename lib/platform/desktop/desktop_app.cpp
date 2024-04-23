@@ -286,7 +286,7 @@ void DesktopApp::init_data_store() {
 	} else {
 		m_log.info("mounted: '{}'", m_assets_path);
 	}
-	get_data_store().add_loader(std::move(data_loader));
+	add_data_loader(std::move(data_loader));
 }
 
 void DesktopApp::make_window() {

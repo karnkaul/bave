@@ -97,6 +97,13 @@ class App : public PolyPinned {
 	/// \brief Get the path to the assets directory. Only relevant for desktop platforms.
 	/// \returns Path to assets directory if any, else empty string.
 	[[nodiscard]] auto get_assets_path() const -> std::string_view { return do_get_assets_path(); }
+	/// \brief Add a custom DataLoader at the given priority.
+	/// \param loader Custom DataLoader to add.
+	/// \param priority Priority to set.
+	///
+	/// The default platform DataLoader will be at priority 0.
+	/// Subsequent loaders at identical priorities will be inserted after all existing ones.
+	void add_data_loader(std::unique_ptr<IDataLoader> loader, int priority = 0);
 
 	/// \brief Create a URI relative to the assets path. Only relevant for desktop platforms.
 	/// \returns URI relative to the assets path.
@@ -124,7 +131,7 @@ class App : public PolyPinned {
 	/// \brief Wait until RenderDevice is idle.
 	void wait_render_device_idle() { do_wait_render_device_idle(); }
 
-	[[nodiscard]] auto get_data_store() const -> DataStore& { return *m_data_store; }
+	[[nodiscard]] auto get_data_store() const -> DataStore const& { return *m_data_store; }
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return do_get_render_device(); }
 	[[nodiscard]] auto get_renderer() const -> Renderer const& { return do_get_renderer(); }
 	[[nodiscard]] auto get_audio_device() const -> AudioDevice& { return *m_audio_device; }
