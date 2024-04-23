@@ -2,6 +2,10 @@
 
 ## v0.4
 
+### v0.4.10
+
+- bave::DataStore now stores an ordered list of bave::IDataLoader s, users can add their own loaders to the list.
+
 ### v0.4.9
 
 - Fixed overflow bug in key events.

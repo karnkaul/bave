@@ -46,7 +46,7 @@ auto bave::find_super_dir(std::string_view base, std::string_view patterns) -> s
 		auto pattern = std::string_view{};
 		while (parser.next(pattern)) {
 			for (auto path = base_path; !path.empty() && path.parent_path() != path; path = path.parent_path()) {
-				if (auto ret = path / pattern; fs::is_directory(ret)) { return ret.generic_string(); }
+				if (auto ret = path / pattern; fs::is_directory(ret)) { return ret.make_preferred().generic_string(); }
 			}
 		}
 	}

@@ -2,13 +2,9 @@
 
 [[ ! $(clang-format --version) ]] && exit 1
 
-script_path=${0%/*}
-tools_root=${script_path%/*}
-project_root=$tools_root/..
-
-if [[ "$0" != "$project_root" ]] && [[ "$project_root" != "" ]]; then
-  cd "$project_root" || exit 1
-  echo "-- Changed pwd to $(pwd)"
+if [[ ! -d ./lib ]]; then
+  echo "Please run script from the project root"
+  exit 1
 fi
 
 files=$(find lib tools example/android/app/src/main example/desktop example/flappy -name "*.?pp")

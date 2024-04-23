@@ -10,6 +10,7 @@ Checks: 'clang-analyzer-*,
 	portability-*,
 	readability-*,
 	-readability-identifier-length,
-	-readability-magic-numbers
+	-readability-magic-numbers,
+	-readability-redundant-member-init,
 	-readability-uppercase-literal-suffix'
 ...

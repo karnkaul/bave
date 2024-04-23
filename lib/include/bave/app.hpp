@@ -53,10 +53,6 @@ class App : public PolyPinned {
 	///
 	/// App will create a Driver after successful initialization of the window and devices.
 	void set_bootloader(Bootloader bootloader);
-	/// \brief Set custom DataStore.
-	/// \param data_store store instance to use.
-	/// \pre data_store should not be null.
-	void set_data_store(std::unique_ptr<DataStore> data_store);
 
 	/// \brief Run the game loop.
 	/// \returns Error code.
@@ -98,12 +94,20 @@ class App : public PolyPinned {
 	/// A Shader instance is intended to be temporary, within a draw scope.
 	[[nodiscard]] auto load_shader(std::string_view vertex, std::string_view fragment) const -> std::optional<Shader>;
 
-	/// \brief Change the data store mount point.
-	/// \param directory Directory to mount.
-	/// \returns true on success.
+	/// \brief Get the path to the assets directory. Only relevant for desktop platforms.
+	/// \returns Path to assets directory if any, else empty string.
+	[[nodiscard]] auto get_assets_path() const -> std::string_view { return do_get_assets_path(); }
+	/// \brief Add a custom DataLoader at the given priority.
+	/// \param loader Custom DataLoader to add.
+	/// \param priority Priority to set.
 	///
-	/// Mount point is fixed on Android.
-	auto change_mount_point(std::string_view directory) -> bool;
+	/// The default platform DataLoader will be at priority 0.
+	/// Subsequent loaders at identical priorities will be inserted after all existing ones.
+	void add_data_loader(std::unique_ptr<IDataLoader> loader, int priority = 0);
+
+	/// \brief Create a URI relative to the assets path. Only relevant for desktop platforms.
+	/// \returns URI relative to the assets path.
+	[[nodiscard]] auto make_uri(std::string_view full_path) const -> std::string;
 
 	/// \brief Get a particular gamepad.
 	/// \param id ID of gamepad.
@@ -127,7 +131,7 @@ class App : public PolyPinned {
 	/// \brief Wait until RenderDevice is idle.
 	void wait_render_device_idle() { do_wait_render_device_idle(); }
 
-	[[nodiscard]] auto get_data_store() const -> DataStore& { return *m_data_store; }
+	[[nodiscard]] auto get_data_store() const -> DataStore const& { return *m_data_store; }
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return do_get_render_device(); }
 	[[nodiscard]] auto get_renderer() const -> Renderer const& { return do_get_renderer(); }
 	[[nodiscard]] auto get_audio_device() const -> AudioDevice& { return *m_audio_device; }
@@ -170,6 +174,8 @@ class App : public PolyPinned {
 	virtual void poll_events() = 0;
 	virtual void tick() = 0;
 	virtual void render() = 0;
+
+	[[nodiscard]] virtual auto do_get_assets_path() const -> std::string_view { return {}; }
 
 	virtual void do_shutdown() = 0;
 	[[nodiscard]] virtual auto get_is_shutting_down() const -> bool = 0;

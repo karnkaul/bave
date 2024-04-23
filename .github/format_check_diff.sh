@@ -5,7 +5,7 @@
 output=$(git diff)
 
 if [[ "$output" != "" ]]; then
-  echo "One or more source files are not formatted!"
+  echo -e "One or more source files are not formatted!\n\n$output\n"
   exit 1
 fi
 

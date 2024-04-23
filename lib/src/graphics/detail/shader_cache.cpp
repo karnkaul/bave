@@ -7,9 +7,9 @@ auto ShaderCache::load(std::string_view const uri) -> vk::ShaderModule {
 
 	if (auto it = m_modules.find(uri); it != m_modules.end()) { return *it->second; }
 
-	auto const spir_v_uri = m_data_store->to_spir_v(uri);
+	auto const spir_v_uri = get_data_store().to_spir_v(uri);
 	if (spir_v_uri.empty()) { return {}; }
-	auto const spir_v_bytes = m_data_store->read_bytes(spir_v_uri);
+	auto const spir_v_bytes = get_data_store().read_bytes(spir_v_uri);
 	if (spir_v_bytes.empty()) { return {}; }
 	auto const smci = vk::ShaderModuleCreateInfo{
 		{},

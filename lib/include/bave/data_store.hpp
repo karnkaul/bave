@@ -1,44 +1,63 @@
 #pragma once
-#include <bave/core/c_string.hpp>
-#include <bave/core/polymorphic.hpp>
+#include <bave/data_loader.hpp>
 #include <bave/logger.hpp>
-#include <cstddef>
+#include <memory>
 #include <span>
-#include <vector>
 
 namespace dj {
 class Json;
 }
 
 namespace bave {
-class DataStore : public Polymorphic {
+/// \brief Central data store, maintains an ordered list of `IDataLoader`s.
+///
+/// The stored loaders are iterated through for each API function, with the first
+/// success being returned. If all loaders fail (or no loaders present), the call fails.
+class DataStore {
   public:
-	explicit DataStore(std::string tag = "DataStore") : m_log{std::move(tag)} {}
-
+	/// \brief View bytes as a string view.
+	/// \param bytes Bytes to interpret.
+	/// \returns string_view into the bytes.
 	[[nodiscard]] static auto as_string_view(std::span<std::byte const> bytes) -> std::string_view;
 
-	[[nodiscard]] auto exists(std::string_view uri) const -> bool { return !uri.empty() && do_exists(make_full_path(uri).c_str()); }
+	/// \brief Add a custom DataLoader at the given priority.
+	/// \param loader Custom DataLoader to add.
+	/// \param priority Priority to set.
+	///
+	/// The default platform DataLoader will be at priority 0.
+	/// Subsequent loaders at identical priorities will be inserted after all existing ones.
+	void add_loader(std::unique_ptr<IDataLoader> loader, int priority = 0);
 
+	/// \brief Check if a resource exists at the given URI.
+	/// \param uri URI of the resource.
+	/// \returns true if a resource exists.
+	[[nodiscard]] auto exists(std::string_view uri) const -> bool;
+
+	/// \brief Read bytes from a given URI.
+	/// \param uri URI to read from.
+	/// \returns Vector of bytes, empty on failure.
 	[[nodiscard]] auto read_bytes(std::string_view uri) const -> std::vector<std::byte>;
+	/// \brief Read string from a given URI.
+	/// \param uri URI to read from.
+	/// \returns String, empty on failure.
 	[[nodiscard]] auto read_string(std::string_view uri) const -> std::string;
+	/// \brief Read JSON from a given URI.
+	/// \param uri URI to read from.
+	/// \returns JSON, null object on failure.
 	[[nodiscard]] auto read_json(std::string_view uri) const -> dj::Json;
 
-	[[nodiscard]] auto get_mount_point() const -> std::string_view { return m_prefix; }
-	auto set_mount_point(std::string_view directory) -> bool { return do_set_mount_point(directory); }
-
-	[[nodiscard]] auto make_full_path(std::string_view uri) const -> std::string;
-	[[nodiscard]] auto make_uri(std::string_view full_path) const -> std::string;
-
+	/// \brief Convert a GLSL URI to SPIR-V.
+	/// \param glsl GLSL URI.
+	/// \returns SPIR-V URI if exists, else empty string.
 	[[nodiscard]] auto to_spir_v(std::string_view glsl) const -> std::string;
 
-  protected:
-	std::string m_prefix{};
-	Logger m_log;
-
   private:
-	[[nodiscard]] virtual auto do_exists(CString /*path*/) const -> bool { return false; }
-	[[nodiscard]] virtual auto do_read_bytes(std::vector<std::byte>& /*out*/, CString /*path*/) const -> bool { return false; }
-	[[nodiscard]] virtual auto do_read_string(std::string& out, CString path) const -> bool;
-	virtual auto do_set_mount_point(std::string_view /*directory*/) -> bool { return false; }
+	struct Entry {
+		std::unique_ptr<IDataLoader> loader{};
+		int priority{};
+	};
+
+	Logger m_log{"DataStore"};
+	std::vector<Entry> m_loaders{};
 };
 } // namespace bave

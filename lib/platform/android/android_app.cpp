@@ -6,7 +6,7 @@
 #include <bave/core/error.hpp>
 #include <bave/core/ptr.hpp>
 #include <bave/driver.hpp>
-#include <platform/android/android_data_store.hpp>
+#include <platform/android/android_data_loader.hpp>
 #include <cassert>
 #include <unordered_map>
 
@@ -282,7 +282,7 @@ void AndroidApp::resume_render() {
 
 void AndroidApp::start() {
 	ANativeActivity_setWindowFlags(m_app.activity, AWINDOW_FLAG_KEEP_SCREEN_ON, 0);
-	set_data_store(std::make_unique<AndroidDataStore>(&m_app));
+	add_data_loader(std::make_unique<AndroidDataLoader>(&m_app));
 	init_graphics();
 	m_driver = boot_driver();
 	m_can_render = true;

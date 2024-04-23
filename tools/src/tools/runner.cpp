@@ -1,3 +1,4 @@
+#include <bave/desktop_app.hpp>
 #include <tools/animator.hpp>
 #include <tools/nine_slicer.hpp>
 #include <tools/runner.hpp>
@@ -5,9 +6,10 @@
 
 namespace bave::tools {
 namespace {
-[[nodiscard]] auto load_or_create_state() {
+[[nodiscard]] auto load_or_create_state(App const& app) {
 	static auto const logger = bave::Logger{"BaveTools"};
 	auto ret = std::make_shared<State>();
+	ret->assets_path = app.get_assets_path();
 	if (ret->load()) {
 		logger.info("loaded State from '{}'", State::path_v.as_view());
 	} else {
@@ -18,7 +20,7 @@ namespace {
 }
 } // namespace
 
-Runner::Runner(App& app) : Driver(app), m_state(load_or_create_state()) {
+Runner::Runner(App& app) : Driver(app), m_state(load_or_create_state(app)) {
 	app.set_title("Bave Tools");
 
 	m_map = {
