@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 
+namespace bave {
 namespace {
 namespace fs = std::filesystem;
 
@@ -38,7 +39,7 @@ struct PatternParser {
 };
 } // namespace
 
-auto bave::find_super_dir(std::string_view base, std::string_view patterns) -> std::string {
+auto file::find_super_dir(std::string_view base, std::string_view patterns) -> std::string {
 	auto const base_paths = std::array{fs::absolute(base), fs::current_path()};
 
 	for (auto const& base_path : base_paths) {
@@ -54,6 +55,7 @@ auto bave::find_super_dir(std::string_view base, std::string_view patterns) -> s
 	return {};
 }
 
-auto bave::does_exist(CString const path) -> bool { return fs::exists(path.as_view()); }
-auto bave::read_bytes_from(std::vector<std::byte>& out, CString const path) -> bool { return read_data(out, path); }
-auto bave::read_string_from(std::string& out, CString const path) -> bool { return read_data(out, path); }
+auto file::exists(CString const path) -> bool { return fs::exists(path.as_view()); }
+auto file::read_bytes(std::vector<std::byte>& out, CString const path) -> bool { return read_data(out, path); }
+auto file::read_string(std::string& out, CString const path) -> bool { return read_data(out, path); }
+} // namespace bave
