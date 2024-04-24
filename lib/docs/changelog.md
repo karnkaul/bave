@@ -1,12 +1,17 @@
 # Changelog
 
+## v0.5
+
+### v0.5.0
+
+- Added bave::MainArgs with convenience functions to obtain the exe path, exe directory, and to find the assets super directory.
+- bave::DesktopApp::CreateInfo now allows customizing the bave::IDataLoader in use instead of storing the asset patterns to search for.
+
 ## v0.4
 
 ### v0.4.10
 
 - Added ZIP VFS (virtual filesystem) in bave::zip. ZIP archives can be mounted/unmounted and read from (io/zip_io.hpp).
-- Added bave::MainArgs with convenience functions to obtain the exe path, exe directory, and to find the assets super directory.
-- bave::DesktopApp::CreateInfo now allows customizing the bave::IDataLoader in use instead of storing the asset patterns to search for. This relaxes users from being forced to specify a valid assets pattern.
 
 ### v0.4.9
 

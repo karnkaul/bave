@@ -5,18 +5,15 @@
 auto main(int argc, char** argv) -> int {
 	// we will use bave::DesktopApp.
 	// set up its CreateInfo:
-	// create MainArgs, use it to search for assets.
-	auto const args = bave::MainArgs{argc, argv};
-	// search for assets in a super directory of the exe dir.
+	// create a data loader by searching for assets in a super directory of the exe dir.
 	// this allows debugging without the need to set the working directory to <project_root>/example.
-	auto const assets_path = args.upfind("assets,example/assets");
+	auto data_loader = bave::DataLoaderBuilder{argc, argv}.add_dir("assets,example/assets").build();
 	auto create_info = bave::DesktopApp::CreateInfo{
-		.args = args,
 		.title = "BaveExample",
 		.mode = bave::Windowed{.extent = {720, 1280}},
 		.msaa = vk::SampleCountFlagBits::e4,
-		// pass a custom data loader that uses the located assets path.
-		.data_loader = std::make_unique<bave::FileLoader>(assets_path),
+		// pass the custom data loader.
+		.data_loader = std::move(data_loader),
 	};
 
 	// create the App instance.

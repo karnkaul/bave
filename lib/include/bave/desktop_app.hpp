@@ -1,8 +1,10 @@
 #pragma once
 #include <bave/app.hpp>
 #include <bave/core/ptr.hpp>
+#include <bave/data_loader.hpp>
 #include <bave/detail/dear_imgui.hpp>
 #include <bave/driver.hpp>
+#include <bave/io/data_loader_builder.hpp>
 #include <bave/io/file_loader.hpp>
 #include <bave/platform.hpp>
 #include <functional>
@@ -26,37 +28,11 @@ struct BorderlessFullscreen {};
 /// \brief Variant of possible display modes.
 using DisplayMode = std::variant<Windowed, BorderlessFullscreen>;
 
-struct MainArgs {
-	std::span<char const* const> args{};
-
-	MainArgs() = default;
-
-	explicit constexpr MainArgs(int argc, char const* const* argv) : args(argv, static_cast<std::size_t>(argc)) {}
-
-	/// \brief Get the path to the executable (arg0).
-	/// \returns Path to the executable.
-	[[nodiscard]] auto get_exe_path() const -> std::string;
-	/// \brief Get the path to the executable's parent directory.
-	/// \returns Path to the executable's parent directory.
-	[[nodiscard]] auto get_exe_dir() const -> std::string;
-
-	/// \brief Find assets in a super directory of exe path / working directory.
-	/// \param patterns Comma-separated list of file patterns to search for.
-	/// \returns Path to directory if found, else empty string.
-	[[nodiscard]] auto upfind(std::string_view patterns) const -> std::string;
-
-	/// \brief Find the parent directory of a super directory containing a given file.
-	/// \param filename Filename to search for.
-	/// \returns Path to parent directory if found, else empty string.
-	[[nodiscard]] auto upfind_parent(std::string_view filename) const -> std::string;
-};
-
 /// \brief Concrete App for desktop.
 class DesktopApp : private App, private detail::IWsi {
   public:
 	/// \brief Data needed during construction.
 	struct CreateInfo {
-		MainArgs args{};
 		CString title{"BaveApp"};
 		DisplayMode mode{Windowed{}};
 		std::function<Gpu(std::span<Gpu const>)> select_gpu{};

@@ -121,17 +121,6 @@ constexpr auto to_mods(int const glfw_mods) {
 }
 } // namespace
 
-auto MainArgs::get_exe_path() const -> std::string {
-	if (args.empty()) { return {}; }
-	return fs::path{args.front()}.make_preferred().generic_string();
-}
-
-auto MainArgs::get_exe_dir() const -> std::string { return fs::path{get_exe_path()}.parent_path().generic_string(); }
-
-auto MainArgs::upfind(std::string_view patterns) const -> std::string { return file::upfind(get_exe_dir(), patterns); }
-
-auto MainArgs::upfind_parent(std::string_view filename) const -> std::string { return file::upfind_parent(get_exe_dir(), filename); }
-
 void DesktopApp::LogFile::Deleter::operator()(LogFile const& /*log_file*/) const noexcept { g_file_logger.reset(); }
 
 void DesktopApp::Glfw::Deleter::operator()(Glfw /*glfw*/) const noexcept { glfwTerminate(); }

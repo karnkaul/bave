@@ -4,6 +4,7 @@
 #include <bave/core/string_hash.hpp>
 #include <bave/io/zip_io.hpp>
 #include <bave/logger.hpp>
+#include <src/io/zip_io_reinit.hpp>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
@@ -16,7 +17,7 @@ struct ZipFs {
 		void operator()(int /*i*/) const noexcept { PHYSFS_deinit(); }
 	};
 
-	explicit ZipFs() : m_instance(PHYSFS_init(nullptr)) {
+	explicit ZipFs(char const* arg0 = nullptr) : m_instance(PHYSFS_init(arg0)) {
 		if (m_instance == 0) { m_log.warn("failed to initialize ZipFs"); }
 	}
 
@@ -43,6 +44,13 @@ struct {
 
 auto open_read(CString const path) { return std::unique_ptr<PHYSFS_File, ZipFs::Deleter>{PHYSFS_openRead(path.c_str())}; }
 } // namespace
+
+auto zip::reinit(CString const arg0) -> bool {
+	auto lock = std::scoped_lock{g_state.mutex};
+	if (g_state.zip_fs) { g_state.zip_fs.reset(); }
+	g_state.zip_fs.emplace(arg0.c_str());
+	return g_state.zip_fs->is_init();
+}
 
 auto zip::mount(std::string name, std::vector<std::byte> zip_bytes) -> bool {
 	if (!g_state.ensure_init()) { return false; }

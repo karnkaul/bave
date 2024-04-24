@@ -4,10 +4,9 @@
 auto main(int argc, char** argv) -> int {
 	using namespace bave::tools;
 
-	auto const args = bave::MainArgs{argc, argv};
-	auto assets_path = args.upfind("assets,example/assets");
+	auto const dlb = bave::DataLoaderBuilder{argc, argv};
+	auto assets_path = dlb.upfind("assets,example/assets");
 	auto daci = bave::DesktopApp::CreateInfo{
-		.args = args,
 		.title = "Bave Tools",
 		.mode = bave::Windowed{.extent = Applet::window_size_v, .lock_aspect_ratio = false},
 		.data_loader = std::make_unique<bave::FileLoader>(assets_path),
