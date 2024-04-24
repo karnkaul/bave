@@ -9,7 +9,7 @@ auto main(int argc, char** argv) -> int {
 	auto const args = bave::MainArgs{argc, argv};
 	// search for assets in a super directory of the exe dir.
 	// this allows debugging without the need to set the working directory to <project_root>/example.
-	auto const assets_path = args.upfind_assets_dir("assets,example/assets");
+	auto const assets_path = args.upfind("assets,example/assets");
 	auto create_info = bave::DesktopApp::CreateInfo{
 		.args = args,
 		.title = "BaveExample",

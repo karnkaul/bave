@@ -5,7 +5,7 @@ auto main(int argc, char** argv) -> int {
 	using namespace bave::tools;
 
 	auto const args = bave::MainArgs{argc, argv};
-	auto assets_path = args.upfind_assets_dir("assets,example/assets");
+	auto assets_path = args.upfind("assets,example/assets");
 	auto daci = bave::DesktopApp::CreateInfo{
 		.args = args,
 		.title = "Bave Tools",
