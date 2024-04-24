@@ -9,7 +9,7 @@ namespace {
 [[nodiscard]] auto load_or_create_state(std::string assets_dir) {
 	static auto const logger = bave::Logger{"BaveTools"};
 	auto ret = std::make_shared<State>();
-	ret->assets_path = std::move(assets_dir);
+	ret->assets_dir = std::move(assets_dir);
 	if (ret->load()) {
 		logger.info("loaded State from '{}'", State::path_v.as_view());
 	} else {

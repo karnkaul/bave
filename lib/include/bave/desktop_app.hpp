@@ -45,13 +45,6 @@ class DesktopApp : private App, private detail::IWsi {
 	/// \param create_info CreateInfo for this instance.
 	explicit DesktopApp(CreateInfo create_info);
 
-	/// \brief Get the path to the parent directory of the executable.
-	/// \returns Path to the parent directory of the executable.
-	[[nodiscard]] auto get_exe_dir() const -> std::string;
-
-	/// \brief Set the
-	void set_assets_dir(std::string path);
-
 	using App::run;
 	using App::set_bootloader;
 
