@@ -1,3 +1,4 @@
+#include <bave/io/file_io.hpp>
 #include <tools/applet.hpp>
 #include <tools/nine_slicer.hpp>
 #include <filesystem>
@@ -130,7 +131,7 @@ auto Applet::replace_extension(std::string_view uri, std::string_view extension)
 }
 
 auto Applet::truncate_to_uri(std::string_view const path) const -> std::string {
-	auto uri = get_app().make_uri(path);
+	auto uri = bave::file::make_uri(state->assets_dir, path);
 	if (uri.empty() || uri.starts_with("..")) {
 		m_log.error("path located outside mount point: '{}'", path);
 		return {};
@@ -139,18 +140,18 @@ auto Applet::truncate_to_uri(std::string_view const path) const -> std::string {
 }
 
 auto Applet::dialog_open_file(CString const title) const -> std::string {
-	auto result = pfd::open_file(title.c_str(), std::string{state->assets_path}).result();
+	auto result = pfd::open_file(title.c_str(), std::string{state->assets_dir}).result();
 	if (result.empty()) { return {}; }
 	return truncate_to_uri(result.front());
 }
 
 auto Applet::dialog_save_file(CString const title, std::string_view const uri) const -> std::string {
-	auto const path = (fs::path{state->assets_path} / uri).make_preferred().string();
+	auto const path = (fs::path{state->assets_dir} / uri).make_preferred().string();
 	return truncate_to_uri(pfd::save_file(title.c_str(), path).result());
 }
 
 auto Applet::save_json(dj::Json const& json, std::string_view uri) const -> bool {
-	auto const path = (fs::path{state->assets_path} / uri).make_preferred().string();
+	auto const path = (fs::path{state->assets_dir} / uri).make_preferred().string();
 	return json.to_file(path.c_str());
 }
 

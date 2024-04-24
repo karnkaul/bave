@@ -20,13 +20,9 @@ class DataStore {
 	/// \returns string_view into the bytes.
 	[[nodiscard]] static auto as_string_view(std::span<std::byte const> bytes) -> std::string_view;
 
-	/// \brief Add a custom DataLoader at the given priority.
-	/// \param loader Custom DataLoader to add.
-	/// \param priority Priority to set.
-	///
-	/// The default platform DataLoader will be at priority 0.
-	/// Subsequent loaders at identical priorities will be inserted after all existing ones.
-	void add_loader(std::unique_ptr<IDataLoader> loader, int priority = 0);
+	/// \brief Use a custom DataLoader.
+	/// \param loader Custom DataLoader to use.
+	void set_loader(std::unique_ptr<IDataLoader> loader);
 
 	/// \brief Check if a resource exists at the given URI.
 	/// \param uri URI of the resource.
@@ -52,12 +48,7 @@ class DataStore {
 	[[nodiscard]] auto to_spir_v(std::string_view glsl) const -> std::string;
 
   private:
-	struct Entry {
-		std::unique_ptr<IDataLoader> loader{};
-		int priority{};
-	};
-
 	Logger m_log{"DataStore"};
-	std::vector<Entry> m_loaders{};
+	std::unique_ptr<IDataLoader> m_loader{};
 };
 } // namespace bave

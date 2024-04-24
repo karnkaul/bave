@@ -6,10 +6,10 @@
 
 namespace bave::tools {
 namespace {
-[[nodiscard]] auto load_or_create_state(App const& app) {
+[[nodiscard]] auto load_or_create_state(std::string assets_dir) {
 	static auto const logger = bave::Logger{"BaveTools"};
 	auto ret = std::make_shared<State>();
-	ret->assets_path = app.get_assets_path();
+	ret->assets_dir = std::move(assets_dir);
 	if (ret->load()) {
 		logger.info("loaded State from '{}'", State::path_v.as_view());
 	} else {
@@ -20,7 +20,7 @@ namespace {
 }
 } // namespace
 
-Runner::Runner(App& app) : Driver(app), m_state(load_or_create_state(app)) {
+Runner::Runner(App& app, std::string assets_dir) : Driver(app), m_state(load_or_create_state(std::move(assets_dir))) {
 	app.set_title("Bave Tools");
 
 	m_map = {

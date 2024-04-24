@@ -5,7 +5,6 @@
 #include <bave/core/visitor.hpp>
 #include <bave/desktop_app.hpp>
 #include <bave/io/file_io.hpp>
-#include <platform/desktop/desktop_data_loader.hpp>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -133,11 +132,6 @@ DesktopApp::DesktopApp(CreateInfo create_info) : App("DesktopApp"), m_create_inf
 	m_log_file.get().init = true;
 	if (!m_create_info.select_gpu) {
 		m_create_info.select_gpu = [](std::span<Gpu const> gpus) { return gpus.front(); };
-	}
-	m_assets_path = file::find_super_dir(m_create_info.args.front(), m_create_info.assets_patterns);
-	if (m_assets_path.empty()) {
-		m_log.error("could not locate assets via patterns: '{}'", m_create_info.assets_patterns);
-		m_assets_path = fs::current_path().generic_string();
 	}
 }
 
@@ -280,13 +274,12 @@ auto DesktopApp::self(Ptr<GLFWwindow> window) -> DesktopApp& {
 void DesktopApp::push(Ptr<GLFWwindow> window, Event event) { self(window).push_event(event); }
 
 void DesktopApp::init_data_store() {
-	auto data_loader = std::make_unique<DesktopDataLoader>();
-	if (!data_loader->set_mount_point(m_assets_path)) {
-		m_log.warn("failed to mount assets directory: '{}'", m_assets_path);
-	} else {
-		m_log.info("mounted: '{}'", m_assets_path);
+	if (!m_create_info.data_loader) {
+		auto const mount_point = fs::current_path().generic_string();
+		m_log.info("setting FileLoader mount point: '{}'", mount_point);
+		m_create_info.data_loader = std::make_unique<FileLoader>(mount_point);
 	}
-	add_data_loader(std::move(data_loader));
+	set_data_loader(std::move(m_create_info.data_loader));
 }
 
 void DesktopApp::make_window() {

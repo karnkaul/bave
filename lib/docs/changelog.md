@@ -1,12 +1,17 @@
 # Changelog
 
+## v0.5
+
+### v0.5.0
+
+- bave::DesktopApp::CreateInfo now allows customizing the bave::IDataLoader in use instead of storing the asset patterns to search for.
+- Added bave::DataLoaderBuilder to search for asset zips / directories and build a corresponding concrete bave::IDataLoader for desktop.
+
 ## v0.4
 
 ### v0.4.10
 
-- bave::DataStore now stores an ordered list of bave::IDataLoader s, users can add their own loaders to the list.
 - Added ZIP VFS (virtual filesystem) in bave::zip. ZIP archives can be mounted/unmounted and read from (io/zip_io.hpp).
-- A bave::ZipLoader instance can be added to bave::DataStore (via bave::App::add_data_loader()) to also search the ZIP VFS.
 
 ### v0.4.9
 

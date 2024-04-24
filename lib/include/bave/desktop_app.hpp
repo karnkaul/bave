@@ -1,8 +1,11 @@
 #pragma once
 #include <bave/app.hpp>
 #include <bave/core/ptr.hpp>
+#include <bave/data_loader.hpp>
 #include <bave/detail/dear_imgui.hpp>
 #include <bave/driver.hpp>
+#include <bave/io/data_loader_builder.hpp>
+#include <bave/io/file_loader.hpp>
 #include <bave/platform.hpp>
 #include <functional>
 #include <span>
@@ -30,12 +33,11 @@ class DesktopApp : private App, private detail::IWsi {
   public:
 	/// \brief Data needed during construction.
 	struct CreateInfo {
-		std::span<char const* const> args{};
 		CString title{"BaveApp"};
 		DisplayMode mode{Windowed{}};
 		std::function<Gpu(std::span<Gpu const>)> select_gpu{};
 		vk::SampleCountFlagBits msaa{vk::SampleCountFlagBits::e1};
-		std::string_view assets_patterns{"assets"};
+		std::unique_ptr<IDataLoader> data_loader{};
 		bool validation_layers{debug_v};
 	};
 
@@ -74,8 +76,6 @@ class DesktopApp : private App, private detail::IWsi {
 	void tick() final;
 	void render() final;
 
-	[[nodiscard]] auto do_get_assets_path() const -> std::string_view final { return m_assets_path; }
-
 	void do_shutdown() final;
 	[[nodiscard]] auto get_is_shutting_down() const -> bool final;
 
@@ -107,7 +107,6 @@ class DesktopApp : private App, private detail::IWsi {
 	void handle_window_close();
 
 	CreateInfo m_create_info{};
-	std::string m_assets_path{};
 	ScopedResource<LogFile, LogFile::Deleter> m_log_file{};
 	ScopedResource<Glfw, Glfw::Deleter> m_glfw{};
 	std::unique_ptr<GLFWwindow, Glfw::Deleter> m_window{};

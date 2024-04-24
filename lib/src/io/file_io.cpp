@@ -39,15 +39,16 @@ struct PatternParser {
 };
 } // namespace
 
-auto file::find_super_dir(std::string_view base, std::string_view patterns) -> std::string {
+auto file::upfind(std::string_view const base, std::string_view const patterns) -> std::string {
 	auto const base_paths = std::array{fs::absolute(base), fs::current_path()};
 
 	for (auto const& base_path : base_paths) {
+		if (base_path.empty()) { continue; }
 		auto parser = PatternParser{patterns};
 		auto pattern = std::string_view{};
 		while (parser.next(pattern)) {
 			for (auto path = base_path; !path.empty() && path.parent_path() != path; path = path.parent_path()) {
-				if (auto ret = path / pattern; fs::is_directory(ret)) { return ret.make_preferred().generic_string(); }
+				if (auto ret = path / pattern; fs::exists(ret)) { return ret.make_preferred().generic_string(); }
 			}
 		}
 	}
@@ -55,7 +56,23 @@ auto file::find_super_dir(std::string_view base, std::string_view patterns) -> s
 	return {};
 }
 
+auto file::upfind_dir(std::string_view const base, std::string_view const patterns) -> std::string {
+	auto ret = upfind(base, patterns);
+	if (fs::is_directory(ret)) { return ret; }
+	return {};
+}
+
+auto file::upfind_parent(std::string_view const base, std::string_view const filename) -> std::string {
+	return fs::path{upfind(base, filename)}.parent_path().generic_string();
+}
+
 auto file::exists(CString const path) -> bool { return fs::exists(path.as_view()); }
 auto file::read_bytes(std::vector<std::byte>& out, CString const path) -> bool { return read_data(out, path); }
 auto file::read_string(std::string& out, CString const path) -> bool { return read_data(out, path); }
+
+auto file::make_uri(std::string_view const assets_dir, std::string_view const full_path) -> std::string {
+	if (full_path.empty()) { return {}; }
+	if (assets_dir.empty()) { return std::string{full_path}; }
+	return fs::path{full_path}.lexically_relative(assets_dir).generic_string();
+}
 } // namespace bave

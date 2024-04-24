@@ -10,7 +10,7 @@ namespace bave::tools {
 struct State {
 	static constexpr auto path_v = CString{"bave-tools.state.json"};
 
-	std::string_view assets_path{};
+	std::string assets_dir{};
 
 	std::string active_applet{};
 
