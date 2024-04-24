@@ -6,6 +6,7 @@
 #include <bave/logger.hpp>
 #include <src/io/zip_io_reinit.hpp>
 #include <filesystem>
+#include <span>
 
 namespace bave {
 namespace fs = std::filesystem;

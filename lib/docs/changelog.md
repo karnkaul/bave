@@ -4,8 +4,8 @@
 
 ### v0.5.0
 
-- Added bave::MainArgs with convenience functions to obtain the exe path, exe directory, and to find the assets super directory.
 - bave::DesktopApp::CreateInfo now allows customizing the bave::IDataLoader in use instead of storing the asset patterns to search for.
+- Added bave::DataLoaderBuilder to search for asset zips / directories and build a corresponding concrete bave::IDataLoader for desktop.
 
 ## v0.4
 

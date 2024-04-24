@@ -7,6 +7,7 @@
 #include <src/io/zip_io_reinit.hpp>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <unordered_map>
 
 namespace bave {
