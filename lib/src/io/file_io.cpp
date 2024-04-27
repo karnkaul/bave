@@ -70,6 +70,20 @@ auto file::exists(CString const path) -> bool { return fs::exists(path.as_view()
 auto file::read_bytes(std::vector<std::byte>& out, CString const path) -> bool { return read_data(out, path); }
 auto file::read_string(std::string& out, CString const path) -> bool { return read_data(out, path); }
 
+auto file::write_bytes(CString const path, std::span<std::byte const> data) -> bool {
+	auto f = std::ofstream{path.c_str(), std::ios::binary};
+	if (!f) { return false; }
+	if (data.empty()) { return true; }
+	auto const size = static_cast<std::streamsize>(data.size());
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+	return static_cast<bool>(f.write(reinterpret_cast<char const*>(data.data()), size));
+}
+
+auto file::write_string(CString const path, std::string_view text) -> bool {
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+	return write_bytes(path, std::span{reinterpret_cast<std::byte const*>(text.data()), text.size()});
+}
+
 auto file::make_uri(std::string_view const assets_dir, std::string_view const full_path) -> std::string {
 	if (full_path.empty()) { return {}; }
 	if (assets_dir.empty()) { return std::string{full_path}; }

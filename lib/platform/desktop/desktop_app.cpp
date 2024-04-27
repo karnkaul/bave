@@ -133,6 +133,11 @@ DesktopApp::DesktopApp(CreateInfo create_info) : App("DesktopApp"), m_create_inf
 	if (!m_create_info.select_gpu) {
 		m_create_info.select_gpu = [](std::span<Gpu const> gpus) { return gpus.front(); };
 	}
+	if (!m_create_info.persistent_dir.empty() && !fs::is_directory(m_create_info.persistent_dir)) {
+		m_log.warn("could not locate desired persistent directory '{}', using working directory", m_create_info.persistent_dir);
+		m_create_info.persistent_dir.clear();
+	}
+	if (m_create_info.persistent_dir.empty()) { m_create_info.persistent_dir = fs::current_path().generic_string(); }
 }
 
 auto DesktopApp::setup() -> std::optional<ErrCode> {

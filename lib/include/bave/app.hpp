@@ -120,6 +120,10 @@ class App : public PolyPinned {
 	/// \brief Wait until RenderDevice is idle.
 	void wait_render_device_idle() { do_wait_render_device_idle(); }
 
+	/// \brief Obtain the platform-dependent persistent storage directory.
+	/// \returns Path to persistent storage directory (read/write).
+	[[nodiscard]] auto get_persistent_dir() const -> std::string_view { return do_get_persistent_dir(); }
+
 	[[nodiscard]] auto get_data_store() const -> DataStore const& { return *m_data_store; }
 	[[nodiscard]] auto get_render_device() const -> RenderDevice& { return do_get_render_device(); }
 	[[nodiscard]] auto get_renderer() const -> Renderer const& { return do_get_renderer(); }
@@ -166,6 +170,8 @@ class App : public PolyPinned {
 
 	virtual void do_shutdown() = 0;
 	[[nodiscard]] virtual auto get_is_shutting_down() const -> bool = 0;
+
+	[[nodiscard]] virtual auto do_get_persistent_dir() const -> std::string_view = 0;
 
 	[[nodiscard]] virtual auto do_get_native_features() const -> FeatureFlags { return {}; }
 	[[nodiscard]] virtual auto do_get_window_size() const -> glm::ivec2 { return do_get_framebuffer_size(); }

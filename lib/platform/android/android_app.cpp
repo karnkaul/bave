@@ -149,6 +149,7 @@ auto find_index(Ptr<AInputEvent const> event, Pointer::Id id) -> std::optional<s
 AndroidApp::AndroidApp(android_app& app, vk::SampleCountFlagBits msaa, bool validation_layers)
 	: m_app(app), m_msaa(msaa), m_validation_layers(validation_layers) {
 	m_app.userData = this;
+	if (m_app.activity->externalDataPath != nullptr && *m_app.activity->externalDataPath != '\0') { m_persistent_dir = m_app.activity->externalDataPath; }
 }
 
 auto AndroidApp::setup() -> std::optional<ErrCode> {

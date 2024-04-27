@@ -2,6 +2,10 @@
 
 ## v0.5
 
+### v0.5.1
+
+- Added bave::Persistor for manipulating files in platform-specific persistent storage.
+
 ### v0.5.0
 
 - bave::DesktopApp::CreateInfo now allows customizing the bave::IDataLoader in use instead of storing the asset patterns to search for.

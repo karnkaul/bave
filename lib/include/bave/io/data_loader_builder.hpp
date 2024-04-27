@@ -33,7 +33,7 @@ class DataLoaderBuilder {
 	/// \returns Self.
 	auto add_dir(std::string patterns) -> DataLoaderBuilder&;
 	/// \brief Add a zip file search.
-	/// \param patterns ZIP filename to search for.
+	/// \param uri ZIP filename to search for.
 	/// \returns Self.
 	auto add_zip(std::string uri) -> DataLoaderBuilder&;
 

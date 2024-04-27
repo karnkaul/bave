@@ -38,6 +38,7 @@ class DesktopApp : private App, private detail::IWsi {
 		std::function<Gpu(std::span<Gpu const>)> select_gpu{};
 		vk::SampleCountFlagBits msaa{vk::SampleCountFlagBits::e1};
 		std::unique_ptr<IDataLoader> data_loader{};
+		std::string persistent_dir{};
 		bool validation_layers{debug_v};
 	};
 
@@ -78,6 +79,8 @@ class DesktopApp : private App, private detail::IWsi {
 
 	void do_shutdown() final;
 	[[nodiscard]] auto get_is_shutting_down() const -> bool final;
+
+	[[nodiscard]] auto do_get_persistent_dir() const -> std::string_view final { return m_create_info.persistent_dir; }
 
 	[[nodiscard]] auto do_get_native_features() const -> FeatureFlags final;
 	[[nodiscard]] auto do_get_window_size() const -> glm::ivec2 final;

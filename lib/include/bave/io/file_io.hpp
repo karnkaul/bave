@@ -1,5 +1,6 @@
 #pragma once
 #include <bave/core/c_string.hpp>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -35,6 +36,17 @@ namespace bave::file {
 /// \param path Path to read from.
 /// \returns true on success.
 [[nodiscard]] auto read_string(std::string& out, CString path) -> bool;
+
+/// \brief Write bytes to a file.
+/// \param path Path to write to.
+/// \param data Bytes to write.
+/// \returns true on success.
+[[nodiscard]] auto write_bytes(CString path, std::span<std::byte const> data) -> bool;
+/// \brief Write string to a file.
+/// \param path Path to write to.
+/// \param text String to write.
+/// \returns true on success.
+[[nodiscard]] auto write_string(CString path, std::string_view text) -> bool;
 
 /// \brief Create a URI relative to the assets path. Only relevant for desktop platforms.
 /// \param assets_dir Path to assets directory.

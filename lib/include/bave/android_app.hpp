@@ -35,6 +35,8 @@ class AndroidApp : private App, private detail::IWsi {
 	void do_shutdown() final;
 	[[nodiscard]] auto get_is_shutting_down() const -> bool final;
 
+	[[nodiscard]] auto do_get_persistent_dir() const -> std::string_view final { return m_persistent_dir; }
+
 	[[nodiscard]] auto do_get_framebuffer_size() const -> glm::ivec2 final;
 
 	[[nodiscard]] auto do_get_render_device() const -> RenderDevice& final;
@@ -66,6 +68,7 @@ class AndroidApp : private App, private detail::IWsi {
 	android_app& m_app; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 	vk::SampleCountFlagBits m_msaa;
 	bool m_validation_layers;
+	std::string m_persistent_dir{};
 
 	std::unique_ptr<RenderDevice> m_render_device{};
 	vk::UniqueSurfaceKHR m_surface{};
