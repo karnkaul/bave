@@ -23,6 +23,11 @@ class Persistor {
 	/// \returns Full path as a string.
 	[[nodiscard]] auto full_path(std::string_view uri) const -> std::string;
 
+	/// \brief Check if a resource exists at a given URI.
+	/// \param uri URI to check for.
+	/// \returns true if a file exists.
+	[[nodiscard]] auto exists(std::string_view uri) const -> bool;
+
 	/// \brief Read bytes from a URI.
 	/// \param uri URI to read from.
 	/// \returns Bytes read as a vector, empty on failure.

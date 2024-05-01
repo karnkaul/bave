@@ -37,6 +37,15 @@ struct PatternParser {
 		return true;
 	}
 };
+
+auto ensure_parent_exists(CString const path) {
+	auto const parent = fs::path{path.as_view()}.parent_path();
+	if (!fs::exists(parent)) {
+		auto errc = std::error_code{};
+		fs::create_directories(fs::path{path.as_view()}.parent_path(), errc);
+	}
+	return fs::exists(parent);
+}
 } // namespace
 
 auto file::upfind(std::string_view const base, std::string_view const patterns) -> std::string {
@@ -71,6 +80,8 @@ auto file::read_bytes(std::vector<std::byte>& out, CString const path) -> bool {
 auto file::read_string(std::string& out, CString const path) -> bool { return read_data(out, path); }
 
 auto file::write_bytes(CString const path, std::span<std::byte const> data) -> bool {
+	if (path.as_view().empty()) { return false; }
+	if (!ensure_parent_exists(path)) { return false; }
 	auto f = std::ofstream{path.c_str(), std::ios::binary};
 	if (!f) { return false; }
 	if (data.empty()) { return true; }

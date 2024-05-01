@@ -2,6 +2,11 @@
 
 ## v0.5
 
+### v0.5.2
+
+- Added bave::Persistor::exists() to check if a persisted resource exists before trying to read from it.
+- Write functions in bave::file create parent directories as needed.
+
 ### v0.5.1
 
 - Added bave::Persistor for manipulating files in platform-specific persistent storage.

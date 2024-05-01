@@ -18,6 +18,8 @@ Persistor::Persistor(App const& app) : m_root_dir(app.get_persistent_dir()) {}
 
 auto Persistor::full_path(std::string_view const uri) const -> std::string { return (fs::path{m_root_dir} / uri).generic_string(); }
 
+auto Persistor::exists(std::string_view const uri) const -> bool { return file::exists(full_path(uri).c_str()); }
+
 auto Persistor::write_bytes(std::string_view const uri, std::span<std::byte const> bytes) const -> bool { return do_write(uri, bytes, &file::write_bytes); }
 
 auto Persistor::write_string(std::string_view const uri, std::string_view const text) const -> bool { return do_write(uri, text, &file::write_string); }
@@ -36,10 +38,11 @@ auto Persistor::read_json(std::string_view const uri) const -> dj::Json {
 
 template <typename Ret, typename F>
 auto Persistor::do_read(std::string_view const uri, F func) const -> Ret {
-	auto const path = full_path(uri);
 	auto ret = Ret{};
+	if (uri.empty()) { return ret; }
+	auto const path = full_path(uri);
 	if (!func(ret, path.c_str())) {
-		m_log.warn("failed to read to: '{}'", uri);
+		m_log.warn("failed to read from: '{}'", uri);
 		return ret;
 	}
 	m_log.info("data read from: '{}'", uri);
@@ -48,6 +51,7 @@ auto Persistor::do_read(std::string_view const uri, F func) const -> Ret {
 
 template <typename T, typename F>
 auto Persistor::do_write(std::string_view const uri, T const& data, F func) const -> bool {
+	if (uri.empty()) { return false; }
 	auto const path = full_path(uri);
 	if (!func(path.c_str(), data)) {
 		m_log.warn("failed to write to: '{}'", uri);
