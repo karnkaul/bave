@@ -6,6 +6,7 @@ namespace bave {
 struct AnimTimeline;
 class Texture9Slice;
 class TextureAtlas;
+class ParticleEmitter;
 
 namespace detail {
 template <typename...>
@@ -20,6 +21,8 @@ constexpr auto get_asset_type() -> std::string_view {
 		return "Texture9Slice";
 	} else if constexpr (std::same_as<Type, TextureAtlas>) {
 		return "TextureAtlas";
+	} else if constexpr (std::same_as<Type, ParticleEmitter>) {
+		return "ParticleEmitter";
 	}
 
 	else {

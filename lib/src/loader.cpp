@@ -173,4 +173,32 @@ auto Loader::load_anim_timeline(std::string_view const uri) const -> std::shared
 	m_log.info("loaded AnimTimeline: '{}'", uri);
 	return ret;
 }
+
+auto Loader::load_particle_emitter(std::string_view const uri) const -> std::shared_ptr<ParticleEmitter> {
+	auto const json = load_json_asset<ParticleEmitter>(uri);
+	if (!json) { return {}; }
+
+	auto ret = std::make_shared<ParticleEmitter>();
+	from_json(json["config"], ret->config);
+
+	if (auto const& modifiers = json["modifiers"]) {
+		ret->modifiers = {};
+		for (auto const& modifier : modifiers.array_view()) {
+			if (modifier.as_string() == "translate") {
+				ret->modifiers.set(ParticleEmitter::Modifier::eTranslate);
+			} else if (modifier.as_string() == "rotate") {
+				ret->modifiers.set(ParticleEmitter::Modifier::eRotate);
+			} else if (modifier.as_string() == "scale") {
+				ret->modifiers.set(ParticleEmitter::Modifier::eScale);
+			} else if (modifier.as_string() == "tint") {
+				ret->modifiers.set(ParticleEmitter::Modifier::eTint);
+			}
+		}
+	}
+
+	if (auto const& texture = json["texture"]) { ret->set_texture(load_texture(texture.as_string())); }
+
+	m_log.info("loaded ParticleEmitter: '{}'", uri);
+	return ret;
+}
 } // namespace bave

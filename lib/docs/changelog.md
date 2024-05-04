@@ -2,6 +2,11 @@
 
 ## v0.5
 
+### v0.5.3
+
+- bave::SpriteAnim only overwrites texture[0] if it has an atlas.
+- Added bave::Loader::load_particle_emitter().
+
 ### v0.5.2
 
 - Added bave::Persistor::exists() to check if a persisted resource exists before trying to read from it.

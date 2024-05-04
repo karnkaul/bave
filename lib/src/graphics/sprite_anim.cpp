@@ -3,8 +3,7 @@
 
 namespace bave {
 namespace {
-auto make_timeline(std::shared_ptr<AnimTimeline const> timeline, std::shared_ptr<TextureAtlas const> const& atlas, Seconds duration)
-	-> std::shared_ptr<AnimTimeline const> {
+auto make_timeline(std::shared_ptr<AnimTimeline const> timeline, std::shared_ptr<TextureAtlas const> const& atlas, Seconds duration) {
 	if (timeline) { return timeline; }
 	auto ret = std::make_shared<AnimTimeline>();
 	ret->duration = duration;
@@ -13,7 +12,7 @@ auto make_timeline(std::shared_ptr<AnimTimeline const> timeline, std::shared_ptr
 		ret->tiles.reserve(tiles.size());
 		for (auto const& block : tiles) { ret->tiles.emplace_back(block.id); }
 	}
-	return ret;
+	return std::shared_ptr<AnimTimeline const>{std::move(ret)};
 }
 } // namespace
 
@@ -25,6 +24,7 @@ SpriteAnim::SpriteAnim(std::shared_ptr<TextureAtlas const> atlas, std::shared_pt
 void SpriteAnim::set_texture_atlas(std::shared_ptr<TextureAtlas const> atlas) {
 	if (!atlas) { return; }
 	m_atlas = std::move(atlas);
+	set_texture(m_atlas);
 	reset_anim();
 }
 
@@ -35,7 +35,7 @@ void SpriteAnim::set_timeline(std::shared_ptr<Timeline const> timeline) {
 }
 
 void SpriteAnim::tick(Seconds dt) {
-	if (textures[0] != m_atlas) { textures[0] = m_atlas; }
+	if (m_atlas && textures[0] != m_atlas) { textures[0] = m_atlas; }
 
 	if (!m_atlas) { animate = false; }
 

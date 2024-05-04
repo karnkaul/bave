@@ -5,6 +5,7 @@
 #include <bave/font/font.hpp>
 #include <bave/graphics/anim_timeline.hpp>
 #include <bave/graphics/image_file.hpp>
+#include <bave/graphics/particle_system.hpp>
 #include <bave/graphics/render_device.hpp>
 #include <bave/graphics/texture.hpp>
 #include <bave/graphics/texture_9slice.hpp>
@@ -75,6 +76,10 @@ class Loader {
 	/// \param uri URI to load from.
 	/// \returns AnimTimeline on success, nullptr on failure.
 	[[nodiscard]] auto load_anim_timeline(std::string_view uri) const -> std::shared_ptr<AnimTimeline>;
+	/// \brief Try to load a ParticleEmitter.
+	/// \param uri URI to load from.
+	/// \returns ParticleEmitter on success, nullptr on failure.
+	[[nodiscard]] auto load_particle_emitter(std::string_view uri) const -> std::shared_ptr<ParticleEmitter>;
 
   private:
 	Logger m_log{"Loader"};
