@@ -144,7 +144,7 @@ auto DesktopApp::setup() -> std::optional<ErrCode> {
 	m_active_pointers.emplace_back();
 
 	m_log.debug("glfwInit");
-	glfwInit();
+	if (glfwInit() == GLFW_FALSE) { throw Error{"failed to initialize GLFW"}; }
 	m_glfw = {Glfw{.init = true}};
 
 	glfwSetErrorCallback([](int error_code, char const* description) {
@@ -302,18 +302,21 @@ void DesktopApp::make_window() {
 			glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
 			glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
 			glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
-			return glfwCreateWindow(video_mode->width, video_mode->height, m_create_info.title.c_str(), primary_monitor, nullptr);
+			return std::unique_ptr<GLFWwindow, Glfw::Deleter>{
+				glfwCreateWindow(video_mode->width, video_mode->height, m_create_info.title.c_str(), primary_monitor, nullptr)};
 		},
 		[&](Windowed const& w) {
 			if (!w.decoration) { glfwWindowHint(GLFW_DECORATED, GLFW_FALSE); }
-			auto* ret = glfwCreateWindow(w.extent.x, w.extent.y, m_create_info.title.c_str(), nullptr, nullptr);
-			if (w.lock_aspect_ratio) { glfwSetWindowAspectRatio(ret, w.extent.x, w.extent.y); }
+			auto ret = std::unique_ptr<GLFWwindow, Glfw::Deleter>{glfwCreateWindow(w.extent.x, w.extent.y, m_create_info.title.c_str(), nullptr, nullptr)};
+			if (ret != nullptr && w.lock_aspect_ratio) {
+				glfwSetWindowAspectRatio(ret.get(), w.extent.x, w.extent.y);
+				glfwSetWindowSize(ret.get(), w.extent.x, w.extent.y);
+			}
 			return ret;
 		},
 	};
 
-	auto* window = std::visit(create_window, m_create_info.mode);
-	m_window = std::unique_ptr<GLFWwindow, Glfw::Deleter>{window};
+	m_window = std::visit(create_window, m_create_info.mode);
 	if (m_window == nullptr) { throw Error{"Failed to create Window"}; }
 	glfwSetWindowUserPointer(m_window.get(), this);
 
