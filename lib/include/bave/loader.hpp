@@ -5,7 +5,7 @@
 #include <bave/font/font.hpp>
 #include <bave/graphics/anim_timeline.hpp>
 #include <bave/graphics/image_file.hpp>
-#include <bave/graphics/particle_system.hpp>
+#include <bave/graphics/particle_emitter.hpp>
 #include <bave/graphics/render_device.hpp>
 #include <bave/graphics/texture.hpp>
 #include <bave/graphics/texture_9slice.hpp>

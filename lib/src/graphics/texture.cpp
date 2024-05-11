@@ -21,7 +21,7 @@ auto Texture::get_size() const -> glm::ivec2 {
 	return glm::ivec2{extent.width, extent.height};
 }
 
-auto Texture::combined_image_sampler() const -> CombinedImageSampler {
+auto Texture::get_sampler_image() const -> SamplerImage {
 	if (!m_image) { return {}; }
 	return {.image_view = m_image->get_image_view(), .sampler = m_render_device->get_sampler_cache().get(sampler)};
 }
