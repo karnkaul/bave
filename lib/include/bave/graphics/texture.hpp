@@ -1,13 +1,9 @@
 #pragma once
 #include <bave/graphics/detail/render_resource.hpp>
+#include <bave/graphics/sampler_image.hpp>
 #include <memory>
 
 namespace bave {
-struct CombinedImageSampler {
-	vk::ImageView image_view{};
-	vk::Sampler sampler{};
-};
-
 /// \brief Texture: image on the GPU.
 class Texture {
   public:
@@ -42,7 +38,7 @@ class Texture {
 
 	[[nodiscard]] auto get_size() const -> glm::ivec2;
 
-	[[nodiscard]] auto combined_image_sampler() const -> CombinedImageSampler;
+	[[nodiscard]] auto get_sampler_image() const -> SamplerImage;
 	[[nodiscard]] auto get_image() const -> std::shared_ptr<detail::RenderImage> const& { return m_image; }
 
 	Sampler sampler{};

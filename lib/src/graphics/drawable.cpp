@@ -35,9 +35,9 @@ Drawable::Primitive::operator RenderPrimitive() const {
 }
 
 void Drawable::draw(Shader& shader) const {
-	bake_instances();
+	auto const baked_instance = to_baked();
 	update_textures(shader);
-	shader.draw(m_primitive, m_baked_instances);
+	shader.draw(m_primitive, {&baked_instance, 1});
 }
 
 void Drawable::set_geometry(Geometry geometry) {
@@ -45,23 +45,12 @@ void Drawable::set_geometry(Geometry geometry) {
 	m_primitive.write(m_geometry);
 }
 
-void Drawable::bake_instances() const {
-	m_baked_instances.clear();
-	if (instances.empty()) {
-		m_baked_instances.push_back(RenderInstance{.transform = transform, .tint = tint}.bake());
-	} else {
-		auto const parent = parented_instances ? transform.matrix() : glm::identity<glm::mat4>();
-		m_baked_instances.reserve(instances.size());
-		for (auto const& instance : instances) { m_baked_instances.push_back(instance.bake(parent)); }
-	}
-}
-
 void Drawable::update_textures(Shader& out_shader) const {
-	auto image_samplers = std::array<CombinedImageSampler, Shader::max_textures_v>{};
+	auto image_samplers = std::array<SamplerImage, Shader::max_textures_v>{};
 	for (std::uint32_t binding = 0; binding < textures.size(); ++binding) {
 		auto const& texture = textures.at(binding);
 		if (texture == nullptr) { continue; }
-		image_samplers.at(binding) = texture->combined_image_sampler();
+		image_samplers.at(binding) = texture->get_sampler_image();
 	}
 	out_shader.update_textures(image_samplers);
 }

@@ -1,6 +1,6 @@
 #include <bave/core/random.hpp>
 #include <bave/core/visitor.hpp>
-#include <bave/graphics/particle_system.hpp>
+#include <bave/graphics/particle_emitter.hpp>
 #include <algorithm>
 
 namespace bave {

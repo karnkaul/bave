@@ -2,6 +2,13 @@
 
 ## v0.5
 
+### v0.5.4
+
+- Desktop: if aspect ratio is locked, set the window size right after window creation (to enforce the locked aspect ratio). 
+- Split instanced rendering from bave::Drawable into bave::Instanced.
+- Renamed `CombinedImageSampler` to bave::SamplerImage.
+- Split bave::IDrawable, bave::ParticleEmitter, bave::SamplerImage into their own headers.
+
 ### v0.5.3
 
 - bave::SpriteAnim only overwrites texture[0] if it has an atlas.

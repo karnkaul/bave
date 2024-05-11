@@ -34,7 +34,7 @@ struct DescriptorWrite {
 };
 
 using BufferBinding = ResourceBinding<DescriptorBuffer>;
-using ImageBinding = ResourceBinding<CombinedImageSampler>;
+using ImageBinding = ResourceBinding<SamplerImage>;
 
 template <std::size_t Size>
 using BufferWrite = DescriptorWrite<vk::DescriptorBufferInfo, Size>;
@@ -60,9 +60,9 @@ template <std::size_t Size>
 void make_image_write(ImageWrite<Size>& out, std::array<ImageBinding, Size> const& bindings, vk::DescriptorSet descriptor_set) {
 	for (std::size_t i = 0; i < Size; ++i) {
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-		auto const cis = bindings[i].resource;
+		auto const sampler_image = bindings[i].resource;
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-		out.infos[i] = vk::DescriptorImageInfo{cis.sampler, cis.image_view, vk::ImageLayout::eShaderReadOnlyOptimal};
+		out.infos[i] = vk::DescriptorImageInfo{sampler_image.sampler, sampler_image.image_view, vk::ImageLayout::eShaderReadOnlyOptimal};
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
 		out.writes[i] = vk::WriteDescriptorSet{descriptor_set, bindings[i].binding, 0, 1, vk::DescriptorType::eCombinedImageSampler};
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
@@ -103,12 +103,12 @@ auto make_vpi_bindings(RenderDevice const& render_device, std::span<RenderInstan
 	};
 }
 
-auto make_texture_bindings(std::span<CombinedImageSampler const, Shader::max_textures_v> textures, CombinedImageSampler const white) {
+auto make_texture_bindings(std::span<SamplerImage const, Shader::max_textures_v> textures, SamplerImage const white) {
 	auto ret = std::array<ImageBinding, Shader::max_textures_v>{};
 	for (std::uint32_t i = 0; i < ret.size(); ++i) {
-		auto cis = textures[i]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
-		if (!cis.image_view || !cis.sampler) { cis = white; }
-		ret[i] = ImageBinding{.resource = cis, .binding = i}; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+		auto sampler_image = textures[i]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+		if (!sampler_image.image_view || !sampler_image.sampler) { sampler_image = white; }
+		ret[i] = ImageBinding{.resource = sampler_image, .binding = i}; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
 	}
 	return ret;
 }
@@ -134,14 +134,14 @@ Shader::Shader(NotNull<Renderer const*> renderer, vk::ShaderModule vertex, vk::S
 	set_viewport();
 }
 
-auto Shader::update_texture(CombinedImageSampler const cis, std::uint32_t binding) -> bool {
-	if (binding >= m_sets.cis.size()) { return false; }
+auto Shader::update_texture(SamplerImage const& image, std::uint32_t binding) -> bool {
+	if (binding >= m_sets.images.size()) { return false; }
 
-	m_sets.cis.at(binding) = cis;
+	m_sets.images.at(binding) = image;
 	return true;
 }
 
-void Shader::update_textures(std::span<CombinedImageSampler const, max_textures_v> cis) { std::copy(cis.begin(), cis.end(), m_sets.cis.begin()); }
+void Shader::update_textures(std::span<SamplerImage const, max_textures_v> images) { std::copy(images.begin(), images.end(), m_sets.images.begin()); }
 
 auto Shader::write_ubo(void const* data, vk::DeviceSize const size) -> bool {
 	if (data == nullptr || size == 0) { return false; }
@@ -231,7 +231,7 @@ void Shader::update_and_bind_sets(vk::CommandBuffer command_buffer, std::span<Re
 	auto vpi_write = BufferWrite<vpi_bindings.size()>{};
 	make_buffer_write(vpi_write, vpi_bindings, descriptor_sets[0]);
 
-	auto const texture_bindings = make_texture_bindings(m_sets.cis, m_renderer->get_white_texture().combined_image_sampler());
+	auto const texture_bindings = make_texture_bindings(m_sets.images, m_renderer->get_white_texture().get_sampler_image());
 	auto texture_write = ImageWrite<texture_bindings.size()>{};
 	make_image_write(texture_write, texture_bindings, descriptor_sets[1]);
 

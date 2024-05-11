@@ -1,10 +1,11 @@
 #pragma once
 #include <bave/core/not_null.hpp>
 #include <bave/graphics/detail/buffer_type.hpp>
+#include <bave/graphics/detail/render_resource.hpp>
 #include <bave/graphics/detail/set_layout.hpp>
 #include <bave/graphics/render_instance.hpp>
 #include <bave/graphics/render_view.hpp>
-#include <bave/graphics/texture.hpp>
+#include <bave/graphics/sampler_image.hpp>
 
 namespace bave {
 class Shader {
@@ -18,8 +19,8 @@ class Shader {
 
 	explicit Shader(NotNull<class Renderer const*> renderer, vk::ShaderModule vertex, vk::ShaderModule fragment);
 
-	auto update_texture(CombinedImageSampler cis, std::uint32_t binding = 0) -> bool;
-	void update_textures(std::span<CombinedImageSampler const, max_textures_v> cis);
+	auto update_texture(SamplerImage const& image, std::uint32_t binding = 0) -> bool;
+	void update_textures(std::span<SamplerImage const, max_textures_v> images);
 
 	auto write_ubo(void const* data, vk::DeviceSize size) -> bool;
 	auto write_ssbo(void const* data, vk::DeviceSize size) -> bool;
@@ -47,7 +48,7 @@ class Shader {
 
   private:
 	struct Sets {
-		std::array<CombinedImageSampler, max_textures_v> cis{};
+		std::array<SamplerImage, max_textures_v> images{};
 		Ptr<detail::RenderBuffer> ubo{};
 		Ptr<detail::RenderBuffer> ssbo{};
 	};
