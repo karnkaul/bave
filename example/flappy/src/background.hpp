@@ -1,4 +1,5 @@
 #pragma once
+#include <bave/graphics/instanced.hpp>
 #include <bave/graphics/sprite.hpp>
 #include <src/config.hpp>
 
@@ -10,7 +11,7 @@ class Background {
 	void draw(bave::Shader& shader) const;
 
 	bave::CustomShape quad{};
-	bave::Sprite cloud{};
+	bave::Instanced<bave::Sprite> cloud{};
 
   private:
 	struct CloudInstance {

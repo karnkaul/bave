@@ -1,52 +1,34 @@
 #pragma once
-#include <bave/core/polymorphic.hpp>
 #include <bave/graphics/detail/get_bounds.hpp>
 #include <bave/graphics/geometry.hpp>
-#include <bave/graphics/shader.hpp>
+#include <bave/graphics/i_drawable.hpp>
 #include <bave/graphics/texture.hpp>
 #include <memory>
 #include <vector>
 
 namespace bave {
-/// \brief Interface for all drawable types.
-class IDrawable : public Polymorphic {
-  public:
-	/// \brief Draw this object using a given shader.
-	/// \param shader Shader instance to use.
-	virtual void draw(Shader& shader) const = 0;
-};
-
 /// \brief Base class for drawable objects.
-class Drawable : public IDrawable {
+class Drawable : public IDrawable, public RenderInstance {
   public:
 	/// \brief Draw this object using a given shader.
-	/// \param shader Shader instance to use.
-	void draw(Shader& shader) const final;
+	/// \param shader Shader to use.
+	void draw(Shader& shader) const override;
 
-	/// \brief Get the bounding rectangle of this instance.
+	/// \brief Get the bounding rectangle in world space.
 	[[nodiscard]] auto get_bounds() const -> Rect<> { return detail::get_bounds(*this); }
-	/// \brief Get the Geometry of this instance.
+	/// \brief Get the stored Geometry.
 	[[nodiscard]] auto get_geometry() const -> Geometry const& { return m_geometry; }
+	/// \brief Get the generated RenderPrimitive.
+	[[nodiscard]] auto get_render_primitive() const -> RenderPrimitive { return m_primitive; }
 
-	/// \brief World transform of this instance.
-	Transform transform{};
-	/// \brief Tint to apply during draw.
-	Rgba tint{white_v};
 	/// \brief Textures to bind during draw.
 	std::array<std::shared_ptr<Texture const>, Shader::max_textures_v> textures{};
-
-	/// \brief Instanced rendering.
-	///
-	/// tint is ignored if instances is not empty.
-	std::vector<RenderInstance> instances{};
-	/// \brief Whether to parent RenderInstance transforms on transform.
-	///
-	/// If true, transform will affect each instance.transform.
-	bool parented_instances{true};
 
   protected:
 	void set_geometry(Geometry geometry);
 	void set_texture(std::shared_ptr<Texture const> texture) { textures.front() = std::move(texture); }
+
+	void update_textures(Shader& out_shader) const;
 
   private:
 	struct Primitive {
@@ -62,12 +44,7 @@ class Drawable : public IDrawable {
 		[[nodiscard]] operator RenderPrimitive() const;
 	};
 
-	void bake_instances() const;
-	void update_textures(Shader& out_shader) const;
-
 	Geometry m_geometry{};
 	Primitive m_primitive{};
-
-	mutable std::vector<RenderInstance::Baked> m_baked_instances{};
 };
 } // namespace bave
