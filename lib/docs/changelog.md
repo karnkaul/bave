@@ -2,6 +2,12 @@
 
 ## v0.5
 
+### v0.5.5
+
+- Added bave::IEventSink.
+- Refactored `Driver::should_close()` to bave::Driver::prevent_close().
+- Fixed bave::AudioStreamer gain update bug.
+
 ### v0.5.4
 
 - Desktop: if aspect ratio is locked, set the window size right after window creation (to enforce the locked aspect ratio). 

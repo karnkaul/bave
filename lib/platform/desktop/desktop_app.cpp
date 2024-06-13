@@ -386,7 +386,7 @@ void DesktopApp::update_gamepads() {
 }
 
 void DesktopApp::handle_window_close() {
-	if (m_driver && !m_driver->should_close()) {
+	if (m_driver && m_driver->prevent_close()) {
 		glfwSetWindowShouldClose(m_window.get(), GLFW_FALSE);
 		return;
 	}

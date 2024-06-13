@@ -6,7 +6,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: init
-        run: sudo apt update -yqq && sudo apt install -yqq ninja-build xorg-dev g++-13
+        run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+          sudo apt update -yqq && sudo apt install -yqq ninja-build xorg-dev g++-13 clang-15
       - name: configure gcc
         run: cmake -S . --preset=default -B build -DBAVE_USE_PCH=OFF -DBAVE_BUILD_EXAMPLE=OFF -DBAVE_USE_FREETYPE=OFF -DCAPO_USE_OPENAL=OFF -DCMAKE_CXX_COMPILER=g++-13
       - name: build gcc

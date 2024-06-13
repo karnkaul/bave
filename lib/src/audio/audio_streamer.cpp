@@ -43,8 +43,11 @@ auto AudioStreamer::pause() -> std::optional<Pause> {
 
 void AudioStreamer::resume(Pause /*pause*/) { m_primary.stream.play(); }
 
-void AudioStreamer::tick(Seconds dt) {
-	if (!m_transition) { return; }
+void AudioStreamer::tick(Seconds const dt) {
+	if (!m_transition) {
+		m_primary.stream.set_gain(m_primary.gain * gain);
+		return;
+	}
 
 	m_transition->elapsed += dt;
 	auto const ratio = std::clamp(m_transition->elapsed / m_transition->total, 0.0f, 1.0f);
