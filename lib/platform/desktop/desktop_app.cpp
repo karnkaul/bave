@@ -352,6 +352,9 @@ void DesktopApp::init_graphics() {
 	m_render_device = std::make_unique<RenderDevice>(static_cast<detail::IWsi*>(this), rdci);
 	m_renderer = std::make_unique<Renderer>(m_render_device.get(), &get_data_store());
 	m_dear_imgui = std::make_unique<detail::DearImGui>(m_window.get(), *m_render_device, m_renderer->get_render_pass());
+
+	m_renderer->start_render(m_create_info.splash);
+	m_renderer->finish_render();
 }
 
 void DesktopApp::update_gamepads() {

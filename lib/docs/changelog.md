@@ -2,6 +2,10 @@
 
 ## v0.5
 
+### v0.5.6
+
+- Added splash clear colour to bave::DesktopApp::CreateInfo.
+
 ### v0.5.5
 
 - Added bave::IEventSink.
