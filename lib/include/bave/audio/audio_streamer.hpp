@@ -20,8 +20,8 @@ class AudioStreamer {
 	/// \param clip Clip to play.
 	/// \param cross_fade Time to cross fade to full gain.
 	void play(NotNull<std::shared_ptr<AudioClip>> const& clip, Seconds cross_fade = 1s);
-	/// \brief Stop playback(if playing a stream).
-	void stop() { m_primary.stream.stop(); }
+	/// \brief Stop playback with fadeout (if playing a stream).
+	void stop(Seconds fadeout = 0s);
 	/// \brief Seek to time (if playing a stream).
 	/// \param time Position to seek to.
 	void seek(Seconds time) { m_primary.stream.seek(time); }

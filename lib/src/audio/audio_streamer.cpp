@@ -35,6 +35,20 @@ void AudioStreamer::play(NotNull<std::shared_ptr<AudioClip>> const& clip, Second
 	m_transition = Transition{.total = cross_fade, .fadeout_gain = m_secondary.gain};
 }
 
+void AudioStreamer::stop(Seconds const fadeout) {
+	m_secondary.stream.stop();
+
+	if (get_state() == AudioState::ePaused || fadeout <= 0s) {
+		m_primary.stream.stop();
+		m_transition.reset();
+		return;
+	}
+
+	std::swap(m_primary, m_secondary);
+
+	m_transition = Transition{.total = fadeout, .fadeout_gain = m_secondary.gain};
+}
+
 auto AudioStreamer::pause() -> std::optional<Pause> {
 	if (get_state() != AudioState::ePlaying) { return {}; }
 	m_primary.stream.pause();
