@@ -20,7 +20,6 @@ class Runner : public Driver {
 	std::unordered_map<std::string_view, std::function<std::unique_ptr<Applet>()>> m_map{};
 	std::vector<std::string_view> m_applet_names{};
 	std::unique_ptr<Applet> m_active{};
-	float m_sidepanel_width{};
 	Logger m_log{"Runner"};
 
   public:

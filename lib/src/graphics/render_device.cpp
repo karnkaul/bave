@@ -100,19 +100,14 @@ RenderDevice::RenderDevice(NotNull<detail::IWsi*> wsi, CreateInfo create_info) :
 	m_log.info("using MSAA: {}x", static_cast<int>(m_samples));
 }
 
-auto RenderDevice::get_default_view() const -> RenderView {
-	auto const extent = get_swapchain_extent();
-	return RenderView{.viewport = glm::vec2{extent.width, extent.height}};
+auto RenderDevice::project_to(glm::vec2 const target_space, glm::vec2 const fb_point) const -> glm::vec2 {
+	return Projector{.source = get_framebuffer_size(), .target = target_space}.project(fb_point);
 }
 
-auto RenderDevice::get_viewport_scaler() const -> ExtentScaler {
-	auto const extent = get_swapchain_extent();
-	return ExtentScaler{.source = glm::vec2{extent.width, extent.height}};
-}
-
-auto RenderDevice::project_to(glm::vec2 const target_space, glm::vec2 const point) const -> glm::vec2 {
-	auto const extent = get_swapchain_extent();
-	return Projector{.source = glm::vec2{extent.width, extent.height}, .target = target_space}.project(point);
+auto RenderDevice::unproject_to(RenderView const& view, glm::vec2 const fb_point) const -> glm::vec2 {
+	auto const fb_size = get_framebuffer_size();
+	if (!is_positive(fb_size) || !is_positive(view.viewport)) { return fb_point; }
+	return view.unproject(fb_point / fb_size);
 }
 
 auto RenderDevice::wait_for(vk::Fence const fence, std::uint64_t const timeout) const -> bool {

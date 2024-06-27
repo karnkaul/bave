@@ -112,5 +112,10 @@ constexpr auto to_vk_extent(glm::tvec2<Type> const in) -> vk::Extent2D {
 	auto const uextent = glm::uvec2{in};
 	return {uextent.x, uextent.y};
 }
+
+template <typename Type>
+constexpr auto to_glm_vec(vk::Extent2D const in) -> glm::vec<2, Type> {
+	return {static_cast<Type>(in.width), static_cast<Type>(in.height)};
+}
 } // namespace detail
 } // namespace bave

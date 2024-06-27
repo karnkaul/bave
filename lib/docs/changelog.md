@@ -2,6 +2,10 @@
 
 ## v0.5
 
+### v0.5.8
+
+- Updated capo-lite to include crash bugfix.
+
 ### v0.5.7
 
 - Added fadeout for bave::AudioStreamer::stop().

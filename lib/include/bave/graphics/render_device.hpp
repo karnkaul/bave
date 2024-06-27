@@ -53,14 +53,16 @@ class RenderDevice {
 	[[nodiscard]] auto get_allocator() const -> VmaAllocator { return m_allocator.get(); }
 	[[nodiscard]] auto get_swapchain_format() const -> vk::Format { return m_swapchain.create_info.imageFormat; }
 	[[nodiscard]] auto get_swapchain_extent() const -> vk::Extent2D { return m_swapchain.create_info.imageExtent; }
+	[[nodiscard]] auto get_framebuffer_size() const -> glm::vec2 { return detail::to_glm_vec<float>(get_swapchain_extent()); }
 
 	[[nodiscard]] auto get_line_width_limits() const -> InclusiveRange<float> { return m_line_width_limits; }
 	[[nodiscard]] auto get_sample_count() const -> vk::SampleCountFlagBits { return m_samples; }
 	[[nodiscard]] auto get_frame_index() const -> detail::FrameIndex { return m_frame_index; }
-	[[nodiscard]] auto get_default_view() const -> RenderView;
+	[[nodiscard]] auto get_default_view() const -> RenderView { return RenderView{.viewport = get_framebuffer_size()}; }
 
-	[[nodiscard]] auto get_viewport_scaler() const -> ExtentScaler;
-	[[nodiscard]] auto project_to(glm::vec2 target_space, glm::vec2 point) const -> glm::vec2;
+	[[nodiscard]] auto get_viewport_scaler() const -> ExtentScaler { return ExtentScaler{.source = get_framebuffer_size()}; }
+	[[nodiscard]] auto project_to(glm::vec2 target_space, glm::vec2 fb_point) const -> glm::vec2;
+	[[nodiscard]] auto unproject_to(RenderView const& view, glm::vec2 fb_point) const -> glm::vec2;
 
 	auto wait_for(vk::Fence fence, std::uint64_t timeout = max_timeout_v) const -> bool;
 	auto reset_fence(vk::Fence fence, std::optional<std::uint64_t> wait_timeout) const -> bool;
