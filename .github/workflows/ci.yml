@@ -10,17 +10,15 @@ jobs:
       - name: check diff
         run: .github/format_check_diff.sh
   build-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: init
-        run: |
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-          sudo apt update -yqq && sudo apt install -yqq ninja-build xorg-dev g++-13 clang-15
+        run: sudo apt update -yqq && sudo apt install -yqq ninja-build xorg-dev
       - name: configure gcc
-        run: cmake -S . --preset=default -B build -DBAVE_BUILD_SHADERS=OFF -DBAVE_USE_FREETYPE=OFF -DCAPO_USE_OPENAL=OFF -DCMAKE_CXX_COMPILER=g++-13
+        run: cmake -S . --preset=default -B build -DBAVE_BUILD_SHADERS=OFF -DBAVE_USE_FREETYPE=OFF -DCAPO_USE_OPENAL=OFF
       - name: configure clang
-        run: cmake -S . --preset=default -B clang -DBAVE_BUILD_SHADERS=OFF -DBAVE_USE_FREETYPE=OFF -DCAPO_USE_OPENAL=OFF -DCMAKE_CXX_COMPILER=clang++-15
+        run: cmake -S . --preset=ninja-clang -B clang -DBAVE_BUILD_SHADERS=OFF -DBAVE_USE_FREETYPE=OFF -DCAPO_USE_OPENAL=OFF
       - name: build gcc
         run: cmake --build build --config=Release -- -d explain
       - name: build clang
