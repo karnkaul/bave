@@ -66,10 +66,8 @@ void Text::refresh() {
 
 	auto const n_offset = [&] {
 		switch (m_align) {
-		// NOLINTNEXTLINE
-		case Align::eLeft: return -0.5f;
-		// NOLINTNEXTLINE
-		case Align::eRight: return +0.5f;
+		case Align::eLeft: return +0.5f;
+		case Align::eRight: return -0.5f;
 		default: return 0.0f;
 		}
 	}();

@@ -2,6 +2,10 @@
 
 ## v0.5
 
+### v0.5.9
+
+- Flip bave::Text::Align::eLeft and bave::Text::Align::eRight.
+
 ### v0.5.8
 
 - Updated capo-lite to include crash bugfix.
