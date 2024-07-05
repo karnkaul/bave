@@ -2,6 +2,11 @@
 
 ## v0.5
 
+### v0.5.9
+
+- Flipped bave::Text::Align::eLeft and bave::Text::Align::eRight.
+- Enabled customization of log file name for bave::DesktopApp.
+
 ### v0.5.8
 
 - Updated capo-lite to include crash bugfix.

@@ -39,6 +39,7 @@ class DesktopApp : private App, private detail::IWsi {
 		vk::SampleCountFlagBits msaa{vk::SampleCountFlagBits::e1};
 		std::unique_ptr<IDataLoader> data_loader{};
 		std::string persistent_dir{};
+		std::string log_filename{"bave.log"};
 		Rgba splash{black_v};
 		bool validation_layers{debug_v};
 	};

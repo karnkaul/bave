@@ -128,7 +128,7 @@ void DesktopApp::Glfw::Deleter::operator()(Glfw /*glfw*/) const noexcept { glfwT
 void DesktopApp::Glfw::Deleter::operator()(Ptr<GLFWwindow> window) const noexcept { glfwDestroyWindow(window); }
 
 DesktopApp::DesktopApp(CreateInfo create_info) : App("DesktopApp"), m_create_info(std::move(create_info)) {
-	g_file_logger = std::make_unique<FileLogger>("bave.log");
+	g_file_logger = std::make_unique<FileLogger>(m_create_info.log_filename);
 	m_log_file.get().init = true;
 	if (!m_create_info.select_gpu) {
 		m_create_info.select_gpu = [](std::span<Gpu const> gpus) { return gpus.front(); };
